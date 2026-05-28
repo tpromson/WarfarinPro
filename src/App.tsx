@@ -31,6 +31,7 @@ import {
   interactionLabels,
   makePlan,
   parsePatientHash,
+  parseWCodeToPlan,
   pillCombos,
   planSpeech,
   roundToHalf,
@@ -311,6 +312,8 @@ function PatientMode({
 }) {
   const [showCalMenu, setShowCalMenu] = useState(false);
   const [speakGender, setSpeakGender] = useState<"female" | "male">("female");
+  const [wCodeInput, setWCodeInput] = useState("");
+  const [wCodeError, setWCodeError] = useState("");
 
   useEffect(() => {
     if (!showCalMenu) return;
@@ -338,11 +341,45 @@ function PatientMode({
   };
 
   if (!plan) {
+    const handleWCodeSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      const parsed = parseWCodeToPlan(wCodeInput);
+      if (parsed) {
+        setWCodeError("");
+        onSelect(parsed);
+      } else {
+        setWCodeError("รหัส W-code ไม่ถูกต้อง (รูปแบบที่ถูกต้อง เช่น W3500, W0752)");
+      }
+    };
+
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
-        <Panel title="Saved Plans" icon={<Home size={18} />}>
+      <div className="mx-auto max-w-xl px-4 py-8 space-y-6">
+        <Panel title="ป้อนรหัสแผนยา (Patient Viewer)" icon={<UserRound size={18} />}>
+          <form onSubmit={handleWCodeSubmit} className="space-y-4">
+            <label className="field">
+              ระบุรหัสแผนยา (W-code)
+              <input
+                type="text"
+                placeholder="เช่น W3500 หรือ W0752"
+                value={wCodeInput}
+                onChange={(e) => {
+                  setWCodeInput(e.target.value);
+                  if (wCodeError) setWCodeError("");
+                }}
+                className="uppercase tracking-wide"
+                style={{ textTransform: "uppercase" }}
+              />
+            </label>
+            {wCodeError && <p className="text-xs text-clinic-red font-bold">{wCodeError}</p>}
+            <button type="submit" className="icon-button w-full" style={{ justifyContent: "center" }}>
+              แสดงตารางรับประทานยา
+            </button>
+          </form>
+        </Panel>
+
+        <Panel title="แผนยาที่บันทึกไว้ล่าสุด" icon={<Home size={18} />}>
           {savedPlans.length === 0 ? (
-            <p className="text-slate-600">No plan is open. Scan or open a WarfarinPro plan link, or create one in Doctor Mode.</p>
+            <p className="text-slate-500 text-sm">ยังไม่มีแผนยาที่บันทึกไว้ในเครื่องนี้</p>
           ) : (
             <SavedPlanList plans={savedPlans} onSelect={onSelect} onDelete={onDelete} />
           )}
@@ -355,7 +392,15 @@ function PatientMode({
     <div className="mx-auto max-w-6xl px-4 py-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
-          <h2 className="text-2xl font-bold">Patient Viewer</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold">Patient Viewer</h2>
+            <button 
+              onClick={() => onSelect(null as any)} 
+              className="text-xs text-slate-500 hover:text-clinic-blue font-semibold border border-clinic-line rounded-lg px-2.5 py-1 hover:border-clinic-blue transition-all bg-white hover:bg-clinic-cyan/10"
+            >
+              เปลี่ยนรหัส W-code
+            </button>
+          </div>
           <p className="text-sm text-slate-600">No patient identity is stored in this plan.</p>
         </div>
         <div className="flex flex-wrap gap-2">

@@ -529,3 +529,45 @@ export function generateGoogleCalendarUrl(plan: MedicationPlan): string {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr}T180000/${dateStr}T183000&details=${details}&recur=RRULE:FREQ=DAILY;COUNT=30`;
 }
 
+export function parseWCodeToPlan(wCode: string): MedicationPlan | null {
+  const code = wCode.trim().toUpperCase();
+  const match = code.match(/^W(\d{3})(\d)$/);
+  if (!match) return null;
+
+  const tenths = parseInt(match[1], 10);
+  const weeklyDose = tenths / 10;
+  const holdDoses = parseInt(match[2], 10);
+
+  const todayIndex = new Date().getDay();
+  const jsToDaysMap: DayKey[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const clinicDay = jsToDaysMap[todayIndex];
+
+  const maintenanceWeek = buildMaintenanceSchedule(weeklyDose);
+  const firstWeek = buildFirstWeek(maintenanceWeek, clinicDay, holdDoses);
+
+  return {
+    version: 1,
+    id: `wcode-${code}-${Date.now()}`,
+    issuedDate: new Date().toISOString().slice(0, 10),
+    clinicDay,
+    target: { preset: "standard", lower: 2, upper: 3 },
+    currentInr: 2.5,
+    previousWeeklyDose: weeklyDose,
+    calculatedWeeklyDose: weeklyDose,
+    scheduleWeeklyDose: weeklyDose,
+    selectedAdjustment: 0,
+    firstWeekHoldDoses: holdDoses,
+    wCode: code,
+    safety: {
+      severity: "normal",
+      messages: ["สร้างแผนยาโดยสรุปจากการป้อนรหัส W-code"],
+      interactionFlags: [],
+      contextFlags: [],
+      complexSchedule: isComplex(maintenanceWeek),
+      roundedSchedule: false,
+    },
+    firstWeek,
+    maintenanceWeek,
+  };
+}
+
