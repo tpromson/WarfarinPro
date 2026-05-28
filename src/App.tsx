@@ -632,6 +632,13 @@ function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; d
 }
 
 function MedicationSheet({ plan, lang = "th" }: { plan: MedicationPlan; lang?: "th" | "en" }) {
+  const [qr, setQr] = useState("");
+  const url = useMemo(() => buildPatientUrl(plan), [plan]);
+
+  useEffect(() => {
+    QRCode.toDataURL(url, { margin: 1, width: 140 }).then(setQr).catch(() => setQr(""));
+  }, [url]);
+
   return (
     <section className="sheet">
       <div className="sheet-head">
@@ -639,7 +646,15 @@ function MedicationSheet({ plan, lang = "th" }: { plan: MedicationPlan; lang?: "
           <h2>{lang === "th" ? "ตารางแนะนำการรับประทานยา" : "Warfarin Medication Sheet"}</h2>
           <p>{lang === "th" ? "Warfarin Medication Sheet" : "Medication dosing plan for patients"}</p>
         </div>
-        <div className="wcode">{plan.wCode}</div>
+        <div className="flex items-center gap-3">
+          {qr && (
+            <div className="flex flex-col items-center gap-0.5">
+              <img src={qr} alt="Plan QR" className="h-14 w-14 border border-clinic-line rounded p-0.5 bg-white" />
+              <span className="text-[9px] text-slate-400 font-bold">{lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}</span>
+            </div>
+          )}
+          <div className="wcode">{plan.wCode}</div>
+        </div>
       </div>
 
       <div className="blank-grid">
