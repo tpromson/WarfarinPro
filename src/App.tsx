@@ -588,6 +588,16 @@ function PatientMode({
 function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; disabled: boolean; onOpenPatient: (plan: MedicationPlan) => void }) {
   const [qr, setQr] = useState("");
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
+  const shortUrl = useMemo(() => {
+    try {
+      const parsed = new URL(url);
+      const hashPart = parsed.hash || "";
+      const cleanHash = hashPart.length > 24 ? `${hashPart.substring(0, 21)}...` : hashPart;
+      return `${parsed.host}${parsed.pathname}${cleanHash}`;
+    } catch {
+      return url;
+    }
+  }, [url]);
 
   useEffect(() => {
     QRCode.toDataURL(url, { margin: 1, width: 240 }).then(setQr).catch(() => setQr(""));
@@ -601,8 +611,12 @@ function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; d
         <div className="qr-box">{qr ? <img src={qr} alt="Plan QR" /> : <QrCode size={72} />}</div>
         <div className="space-y-3">
           <div className="rounded-lg border border-clinic-line bg-white p-3">
-            <div className="text-xs font-semibold uppercase text-slate-500">Patient link</div>
-            <div className="mt-1 break-all text-sm">{url}</div>
+            <div className="text-xs font-semibold uppercase text-slate-500 font-bold">Patient Link</div>
+            <div className="mt-1 text-sm text-clinic-blue font-bold truncate">
+              <a href={url} target="_blank" rel="noreferrer" title={url} className="hover:underline">
+                {shortUrl}
+              </a>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <IconButton disabled={disabled} icon={<UserRound size={17} />} onClick={() => onOpenPatient(plan)} label="Open patient view" />
