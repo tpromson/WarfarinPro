@@ -763,3 +763,22 @@ select {
   line-height: 1.7 !important;
 }
 
+/* Off-screen print pre-rendering to prevent missing print images */
+.print-sheet-wrapper {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media print {
+  .print-sheet-wrapper {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+}
+

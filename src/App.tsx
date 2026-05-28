@@ -397,7 +397,7 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
             {plan ? (
               <>
                 <SharePanel plan={plan} disabled={!canShare} onOpenPatient={onOpenPatient} />
-                <div className="hidden print:block">
+                <div className="print-sheet-wrapper">
                   <MedicationSheet plan={plan} lang={lang} />
                 </div>
               </>
