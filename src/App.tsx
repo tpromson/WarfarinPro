@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import {
   AlertTriangle,
+  BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
@@ -156,19 +157,31 @@ export default function App() {
     }
   }, []);
 
+  const handleHomeClick = () => {
+    window.location.hash = "";
+    setOpenedPlan(null);
+    setActive("doctor");
+  };
+
   return (
     <main className="min-h-screen bg-clinic-paper text-clinic-ink">
       <header className="sticky top-0 z-30 border-b border-clinic-line/60 bg-white/85 backdrop-blur-md shadow-[0_2px_15px_-3px_rgba(23,50,77,0.03)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={handleHomeClick}
+            className="flex items-center gap-3 text-left focus:outline-none hover:opacity-80 transition-opacity"
+            title={lang === "th" ? "กลับไปหน้าหลัก" : "Return to Home"}
+          >
             <div className="grid h-10 w-10 place-items-center rounded-lg bg-clinic-blue text-white">
               <HeartPulse size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight">WarfarinPro</h1>
-              <p className="text-xs text-slate-600">{lang === "th" ? "ระบบแนะนำการรับประทานยาวาร์ฟาริน" : "Physician-directed warfarin support"}</p>
+              <h1 className="text-lg font-bold leading-tight text-clinic-ink">WarfarinPro</h1>
+              <p className="text-xs text-slate-600">
+                {lang === "th" ? "ระบบแนะนำการรับประทานยาวาร์ฟาริน" : "Physician-directed warfarin support"}
+              </p>
             </div>
-          </div>
+          </button>
           <div className="flex items-center gap-3 print:hidden">
             <div className="segmented">
               <button className={lang === "th" ? "active" : ""} onClick={() => setLang("th")}>
@@ -223,6 +236,79 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
   const [majorBleeding, setMajorBleeding] = useState(false);
   const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
   const [contexts, setContexts] = useState<ContextFlag[]>([]);
+  const [isSummaryHighlighted, setIsSummaryHighlighted] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalShortcuts = (e: KeyboardEvent) => {
+      if (!e.altKey) return;
+      const key = e.key.toLowerCase();
+
+      const elementMap: Record<string, string> = {
+        i: "inr-input",
+        p: "prev-dose-input",
+        t: "preset-select",
+        v: "clinic-day-select",
+        d: "adjustment-select",
+        f: "hold-doses-select",
+      };
+
+      if (elementMap[key]) {
+        e.preventDefault();
+        document.getElementById(elementMap[key])?.focus();
+      } else if (key === "b") {
+        e.preventDefault();
+        setMajorBleeding((prev) => !prev);
+      } else if (key === "s") {
+        e.preventDefault();
+        const el = document.getElementById("booklet-summary-panel");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setIsSummaryHighlighted(true);
+          setTimeout(() => setIsSummaryHighlighted(false), 1500);
+        }
+      } else if (key === "o") {
+        e.preventDefault();
+        document.getElementById("btn-open-patient")?.click();
+      } else if (key === "c") {
+        e.preventDefault();
+        document.getElementById("btn-copy-link")?.click();
+      } else if (key === "h") {
+        e.preventDefault();
+        window.print();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalShortcuts);
+    return () => window.removeEventListener("keydown", handleGlobalShortcuts);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent, currentId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const ids = [
+        "inr-input",
+        "prev-dose-input",
+        "preset-select",
+        "clinic-day-select",
+        "adjustment-select",
+        "hold-doses-select",
+        "dose-mon",
+        "dose-tue",
+        "dose-wed",
+        "dose-thu",
+        "dose-fri",
+        "dose-sat",
+        "dose-sun",
+      ];
+      const index = ids.indexOf(currentId);
+      if (index !== -1) {
+        const nextIndex = e.shiftKey ? index - 1 : index + 1;
+        if (nextIndex >= 0 && nextIndex < ids.length) {
+          document.getElementById(ids[nextIndex])?.focus();
+        }
+      }
+    }
+  };
 
   const target: TargetRange = useMemo(() => {
     if (preset === "mechanical") return { preset, lower: 2.5, upper: 3.5 };
@@ -279,12 +365,42 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
     <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 lg:grid-cols-[360px_1fr]">
       <section className="space-y-4">
         <Panel title="Clinical Inputs" icon={<HeartPulse size={18} />}>
-          <NumberField label="Current INR" value={inr} step={0.1} min={0.5} max={12} onChange={setInr} />
-          <NumberField label="Previous weekly dose (mg)" value={previousDose} step={0.5} min={0} max={99.9} onChange={setPreviousDose} />
+          <NumberField
+            id="inr-input"
+            shortcut="Alt+I"
+            label="Current INR"
+            value={inr}
+            step={0.1}
+            min={0.5}
+            max={12}
+            onChange={setInr}
+            onKeyDown={(e) => handleKeyDown(e, "inr-input")}
+          />
+          <NumberField
+            id="prev-dose-input"
+            shortcut="Alt+P"
+            label="Previous weekly dose (mg)"
+            value={previousDose}
+            step={0.5}
+            min={0}
+            max={99.9}
+            onChange={setPreviousDose}
+            onKeyDown={(e) => handleKeyDown(e, "prev-dose-input")}
+          />
           <label className="field">
-            Target range
+            <span className="flex items-center justify-between">
+              <span>Target range</span>
+              <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
+                Alt+T
+              </kbd>
+            </span>
             <span className="select-wrap">
-              <select value={preset} onChange={(event) => setPreset(event.target.value as typeof preset)}>
+              <select
+                id="preset-select"
+                value={preset}
+                onChange={(event) => setPreset(event.target.value as typeof preset)}
+                onKeyDown={(e) => handleKeyDown(e, "preset-select")}
+              >
                 <option value="standard">Standard 2.0-3.0</option>
                 <option value="mechanical">Mechanical valve 2.5-3.5</option>
                 <option value="custom">Custom range</option>
@@ -299,9 +415,19 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
             </div>
           ) : null}
           <label className="field">
-            Clinic visit day
+            <span className="flex items-center justify-between">
+              <span>Clinic visit day</span>
+              <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
+                Alt+V
+              </kbd>
+            </span>
             <span className="select-wrap">
-              <select value={clinicDay} onChange={(event) => setClinicDay(event.target.value as DayKey)}>
+              <select
+                id="clinic-day-select"
+                value={clinicDay}
+                onChange={(event) => setClinicDay(event.target.value as DayKey)}
+                onKeyDown={(e) => handleKeyDown(e, "clinic-day-select")}
+              >
                 {days.map((day) => (
                   <option key={day} value={day}>
                     {dayLabels[day]}
@@ -314,9 +440,14 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
         </Panel>
 
         <Panel title="Safety Flags" icon={<ShieldAlert size={18} />}>
-          <label className="check danger">
-            <input type="checkbox" checked={majorBleeding} onChange={(event) => setMajorBleeding(event.target.checked)} />
-            Major bleeding
+          <label className="check danger justify-between">
+            <span className="flex items-center gap-2">
+              <input type="checkbox" checked={majorBleeding} onChange={(event) => setMajorBleeding(event.target.checked)} />
+              Major bleeding
+            </span>
+            <kbd className="text-[9px] font-mono bg-red-100 text-red-700 rounded px-1.5 py-0.5 font-semibold select-none border border-red-200">
+              Alt+B
+            </kbd>
           </label>
           <div className="check-grid">
             {contextKeys.map((flag) => (
@@ -352,9 +483,19 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
               </div>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <label className="field">
-                  Selected adjustment
+                  <span className="flex items-center justify-between">
+                    <span>Selected adjustment</span>
+                    <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
+                      Alt+D
+                    </kbd>
+                  </span>
                   <span className="select-wrap">
-                    <select value={selectedAdjustment} onChange={(event) => setSelectedAdjustment(Number(event.target.value))}>
+                    <select
+                      id="adjustment-select"
+                      value={selectedAdjustment}
+                      onChange={(event) => setSelectedAdjustment(Number(event.target.value))}
+                      onKeyDown={(e) => handleKeyDown(e, "adjustment-select")}
+                    >
                       {suggestion.adjustmentOptions.map((option) => (
                         <option key={option} value={option}>
                           {option > 0 ? "+" : ""}
@@ -366,9 +507,19 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
                   </span>
                 </label>
                 <label className="field">
-                  First week hold doses
+                  <span className="flex items-center justify-between">
+                    <span>First week hold doses</span>
+                    <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
+                      Alt+F
+                    </kbd>
+                  </span>
                   <span className="select-wrap">
-                    <select value={holdDoses} onChange={(event) => setHoldDoses(Number(event.target.value))}>
+                    <select
+                      id="hold-doses-select"
+                      value={holdDoses}
+                      onChange={(event) => setHoldDoses(Number(event.target.value))}
+                      onKeyDown={(e) => handleKeyDown(e, "hold-doses-select")}
+                    >
                       {suggestion.holdDoseOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -382,7 +533,7 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
             </Panel>
 
             <Panel title="Editable Maintenance Week" icon={<CalendarDays size={18} />}>
-              <ScheduleEditor schedule={maintenance} onChange={setMaintenance} />
+              <ScheduleEditor schedule={maintenance} onChange={setMaintenance} onKeyDown={handleKeyDown} />
               {plan ? (
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
                   <Metric label="Schedule total" value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} tone={scheduleDelta > 0.5 ? "danger" : "normal"} />
@@ -396,7 +547,14 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
 
             {plan ? (
               <>
-                <SharePanel plan={plan} disabled={!canShare} onOpenPatient={onOpenPatient} />
+                <BookletAndSharePanel
+                  plan={plan}
+                  canShare={canShare}
+                  scheduleDelta={scheduleDelta}
+                  onOpenPatient={onOpenPatient}
+                  lang={lang}
+                  highlighted={isSummaryHighlighted}
+                />
                 <div className="print-sheet-wrapper">
                   <MedicationSheet plan={plan} lang={lang} />
                 </div>
@@ -482,6 +640,7 @@ function PatientMode({
                   setWCodeInput(e.target.value);
                   if (wCodeError) setWCodeError("");
                 }}
+                onFocus={(e) => e.target.select()}
                 className="uppercase tracking-wide"
                 style={{ textTransform: "uppercase" }}
               />
@@ -615,9 +774,44 @@ function PatientMode({
   );
 }
 
-function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; disabled: boolean; onOpenPatient: (plan: MedicationPlan) => void }) {
+const getPillComboDesc = (combo: DayDose["combo"], hold?: boolean, lang: "th" | "en" = "th") => {
+  if (hold || combo.dose === 0) return lang === "th" ? "งดทานยา" : "HOLD";
+  const parts: string[] = [];
+  if (lang === "th") {
+    if (combo.orangeWhole > 0) parts.push(`สีส้ม ${combo.orangeWhole} เม็ด`);
+    if (combo.orangeHalf > 0) parts.push(`สีส้ม 1/2 เม็ด`);
+    if (combo.blueWhole > 0) parts.push(`สีฟ้า ${combo.blueWhole} เม็ด`);
+    if (combo.blueHalf > 0) parts.push(`สีฟ้า 1/2 เม็ด`);
+    return parts.length > 0 ? parts.join(" + ") : "งดยา";
+  } else {
+    if (combo.orangeWhole > 0) parts.push(`Orange ${combo.orangeWhole} tab${combo.orangeWhole > 1 ? "s" : ""}`);
+    if (combo.orangeHalf > 0) parts.push(`Orange 1/2 tab`);
+    if (combo.blueWhole > 0) parts.push(`Blue ${combo.blueWhole} tab${combo.blueWhole > 1 ? "s" : ""}`);
+    if (combo.blueHalf > 0) parts.push(`Blue 1/2 tab`);
+    return parts.length > 0 ? parts.join(" + ") : "HOLD";
+  }
+};
+
+function BookletAndSharePanel({
+  plan,
+  canShare,
+  scheduleDelta,
+  onOpenPatient,
+  lang,
+  highlighted,
+}: {
+  plan: MedicationPlan;
+  canShare: boolean;
+  scheduleDelta: number;
+  onOpenPatient: (plan: MedicationPlan) => void;
+  lang: "th" | "en";
+  highlighted: boolean;
+}) {
   const [qr, setQr] = useState("");
+  const [copiedWCode, setCopiedWCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
+
   const shortUrl = useMemo(() => {
     try {
       const parsed = new URL(url);
@@ -630,31 +824,288 @@ function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; d
   }, [url]);
 
   useEffect(() => {
-    QRCode.toDataURL(url, { errorCorrectionLevel: "L", margin: 1, width: 240 }).then(setQr).catch((err) => console.error("QR Code Error in SharePanel:", err));
+    QRCode.toDataURL(url, { errorCorrectionLevel: "L", margin: 1, width: 240 })
+      .then(setQr)
+      .catch((err) => console.error("QR Code Error in BookletAndSharePanel:", err));
   }, [url]);
 
   const lineText = `WarfarinPro ${plan.wCode}\nWeekly dose ${plan.scheduleWeeklyDose.toFixed(1)} mg\nOpen plan: ${url}`;
 
+  const handleCopyWCode = () => {
+    navigator.clipboard.writeText(plan.wCode);
+    setCopiedWCode(true);
+    setTimeout(() => setCopiedWCode(false), 2000);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  if (!canShare) {
+    return (
+      <Panel
+        id="booklet-summary-panel"
+        title={lang === "th" ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" : "Booklet Transcription & Patient Guide"}
+        icon={<BookOpen size={18} />}
+        className={highlighted ? "ring-4 ring-clinic-blue/40" : ""}
+      >
+        <div className="bg-orange-50 border border-orange-200 text-orange-850 p-4 rounded-xl flex items-start gap-3">
+          <AlertTriangle className="text-orange-500 shrink-0 mt-0.5" size={20} />
+          <div>
+            <h4 className="font-bold text-sm">
+              {lang === "th" ? "ไม่สามารถแสดง W-code และข้อมูลสรุปได้" : "Cannot generate W-Code & Booklet Summary"}
+            </h4>
+            <p className="text-xs mt-1">
+              {lang === "th"
+                ? `กรุณาปรับขนาดความแรงยาในตารางกินยาปกติให้ตรงกับขนาดที่คำนวณได้ก่อน (ขนาดยารวมจากตารางยังต่างจากโดสคำนวณอยู่ ${scheduleDelta.toFixed(1)} mg)`
+                : `Please adjust the maintenance week dosing schedule to match the calculated weekly dose first (currently differing by ${scheduleDelta.toFixed(1)} mg).`}
+            </p>
+          </div>
+        </div>
+      </Panel>
+    );
+  }
+
   return (
-    <Panel title="Share and Print" icon={<QrCode size={18} />}>
-      <div className="grid gap-4 md:grid-cols-[260px_1fr]">
-        <div className="qr-box">{qr ? <img src={qr} alt="Plan QR" /> : <QrCode size={72} />}</div>
-        <div className="space-y-3">
-          <div className="rounded-lg border border-clinic-line bg-white p-3">
-            <div className="text-xs font-semibold uppercase text-slate-500 font-bold">Patient Link</div>
-            <div className="mt-1 text-sm text-clinic-blue font-bold truncate">
-              <a href={url} target="_blank" rel="noreferrer" title={url} className="hover:underline">
-                {shortUrl}
-              </a>
+    <Panel
+      id="booklet-summary-panel"
+      title={lang === "th" ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" : "Booklet Transcription & Patient Guide"}
+      icon={<BookOpen size={18} />}
+      className={highlighted ? "ring-4 ring-clinic-blue/40" : ""}
+    >
+      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+        {/* Left Column: W-Code, QR Code & Links */}
+        <div className="space-y-5 border-b border-clinic-line lg:border-b-0 lg:border-r border-dashed border-clinic-line pb-6 lg:pb-0 lg:pr-6 flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* W-Code Ticket */}
+            <div className="bg-clinic-paper border-2 border-dashed border-clinic-blue/40 rounded-xl p-4 text-center space-y-2.5 relative overflow-hidden shadow-sm">
+              <div className="text-[11px] uppercase font-bold text-clinic-blue tracking-wider">
+                {lang === "th" ? "รหัส W-code สำหรับสมุดยา" : "Warfarin W-Code"}
+              </div>
+              <div className="text-3xl font-black text-clinic-ink tracking-widest font-mono select-all bg-white py-2 px-4 rounded-lg shadow-sm border border-clinic-line inline-block">
+                {plan.wCode}
+              </div>
+              <p className="text-[10px] text-slate-500 leading-normal">
+                {lang === "th"
+                  ? "คัดลอกรหัสนี้เขียนลงสมุดคุมยาวาฟาริน หรือให้คนไข้นำไปพิมพ์เปิดตารางยาได้"
+                  : "Copy this code to write in the patient booklet or use to open their schedule online."}
+              </p>
+
+              <button
+                onClick={handleCopyWCode}
+                className={`w-full py-1.5 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1.5 focus:outline-none ${
+                  copiedWCode
+                    ? "bg-green-600 text-white"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300"
+                }`}
+              >
+                {copiedWCode ? <Check size={13} /> : <Copy size={13} />}
+                <span>
+                  {copiedWCode
+                    ? lang === "th"
+                      ? "คัดลอกสำเร็จ!"
+                      : "Copied!"
+                    : lang === "th"
+                    ? "คัดลอกรหัส W-code"
+                    : "Copy W-Code"}
+                </span>
+              </button>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center p-3 bg-white border border-clinic-line rounded-xl">
+              <div className="text-xs font-bold text-clinic-ink mb-1">
+                {lang === "th" ? "สแกนเพื่อเปิดตารางยาบนมือถือ" : "Scan to open on Mobile"}
+              </div>
+              <div className="qr-box max-w-[160px] max-h-[160px] flex items-center justify-center overflow-hidden border border-slate-100 rounded-lg p-1 bg-slate-50">
+                {qr ? (
+                  <img src={qr} alt="Plan QR" className="object-contain" />
+                ) : (
+                  <QrCode size={64} className="text-slate-300" />
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <IconButton disabled={disabled} icon={<UserRound size={17} />} onClick={() => onOpenPatient(plan)} label="Open patient view" />
-            <IconButton disabled={disabled} icon={<Copy size={17} />} onClick={() => navigator.clipboard.writeText(url)} label="Copy link" />
-            <IconButton disabled={disabled} icon={<MessageCircle size={17} />} onClick={() => window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")} label="LINE share" />
-            <IconButton disabled={disabled} icon={<Printer size={17} />} onClick={() => window.print()} label="Print" />
+
+          {/* Action Buttons for Sharing */}
+          <div className="space-y-2">
+            <div className="rounded-lg border border-clinic-line bg-slate-50 p-2.5">
+              <div className="text-[10px] font-bold uppercase text-slate-500">
+                {lang === "th" ? "ลิงก์หน้าผู้ป่วย" : "Patient Link"}
+              </div>
+              <div className="mt-0.5 text-xs text-clinic-blue font-bold truncate">
+                <a href={url} target="_blank" rel="noreferrer" title={url} className="hover:underline">
+                  {shortUrl}
+                </a>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              <IconButton
+                id="btn-copy-link"
+                icon={<Copy size={14} />}
+                onClick={handleCopyLink}
+                label={
+                  copiedLink
+                    ? lang === "th"
+                      ? "คัดลอกแล้ว!"
+                      : "Copied!"
+                    : lang === "th"
+                    ? "คัดลอกลิงก์"
+                    : "Copy Link"
+                }
+                shortcut="Alt+C"
+              />
+              <IconButton
+                id="btn-open-patient"
+                icon={<UserRound size={14} />}
+                onClick={() => onOpenPatient(plan)}
+                label={lang === "th" ? "เปิดหน้าผู้ป่วย" : "Patient View"}
+                shortcut="Alt+O"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                onClick={() =>
+                  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
+                }
+                className="w-full min-height-[40px] px-3.5 py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <MessageCircle size={14} className="text-[#06C755]" />
+                <span>LINE Share</span>
+              </button>
+              <IconButton
+                icon={<Printer size={14} />}
+                onClick={() => window.print()}
+                label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
+                shortcut="Alt+H"
+              />
+            </div>
           </div>
-          {disabled ? <p className="warning">Sharing is disabled until the schedule is valid and W-code is encodable.</p> : null}
+        </div>
+
+        {/* Right Column: Booklet Transcription Details */}
+        <div className="space-y-4">
+          <div className="bg-slate-50 border border-clinic-line/60 rounded-xl p-4 space-y-4">
+            <div className="flex flex-wrap justify-between items-center border-b border-clinic-line pb-2.5 gap-2">
+              <h3 className="font-extrabold text-sm text-clinic-ink flex items-center gap-2">
+                <BookOpen size={16} className="text-clinic-blue" />
+                <span>
+                  {lang === "th" ? "ข้อมูลวิธีกรอกลงสมุดประวัติยาของผู้ป่วย" : "Warfarin Booklet Writing Guide"}
+                </span>
+              </h3>
+              <div className="flex gap-4 text-xs font-bold">
+                <span className="text-slate-500">
+                  {lang === "th" ? "ขนาดยาต่อสัปดาห์: " : "Weekly Dose: "}
+                  <strong className="text-clinic-ink">{plan.scheduleWeeklyDose.toFixed(1)} mg</strong>
+                </span>
+                <span className="text-slate-500">
+                  {lang === "th" ? "เป้าหมาย INR: " : "Target INR: "}
+                  <strong className="text-clinic-blue">
+                    {plan.target.lower.toFixed(1)} - {plan.target.upper.toFixed(1)}
+                  </strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Step 1: First Week */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-slate-500 block font-bold">
+                {lang === "th"
+                  ? "1. คำแนะนำการกินยาสัปดาห์แรก (สัปดาห์เริ่มต้นยา)"
+                  : "1. First-Week Instructions (Dosing Start)"}
+              </span>
+              <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-orange-900 font-bold text-xs">
+                {plan.firstWeekHoldDoses > 0 ? (
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg leading-none">⚠️</span>
+                    <span>
+                      {lang === "th"
+                        ? `งดยา ${plan.firstWeekHoldDoses} วันแรก (เริ่มงดวัน${getDayLabel(
+                            plan.clinicDay,
+                            "th",
+                          )} เป็นต้นไป) จากนั้นทานขนาดปกติตามตารางในวันที่เหลือ`
+                        : `Hold drug for the first ${plan.firstWeekHoldDoses} days (starting on ${getDayLabel(
+                            plan.clinicDay,
+                            "en",
+                          )}), then take the regular dose on remaining days.`}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg leading-none">✅</span>
+                    <span>
+                      {lang === "th"
+                        ? "ไม่ต้องงดยา เริ่มกินยาตามตารางขนาดปกติ (Maintenance) ได้ทันทีตั้งแต่วันแรก"
+                        : "No hold required. Start regular maintenance dose schedule from day one."}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Step 2: Regular Maintenance Week */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-slate-500 block font-bold">
+                {lang === "th"
+                  ? "2. ตารางกินยาปกติ (สัปดาห์ถัดไปเป็นต้นไป)"
+                  : "2. Regular Maintenance Schedule (Following Weeks)"}
+              </span>
+
+              <div className="border border-clinic-line/60 rounded-xl overflow-hidden bg-white shadow-sm overflow-x-auto">
+                <table className="w-full text-xs text-left border-collapse min-w-[400px]">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-600 border-b border-clinic-line font-bold">
+                      <th className="p-2.5 w-28">{lang === "th" ? "วัน" : "Day"}</th>
+                      <th className="p-2.5 text-center w-24">{lang === "th" ? "ขนาดโดส" : "Dose"}</th>
+                      <th className="p-2.5 text-center">{lang === "th" ? "ตัวช่วยจำสีเม็ดยา" : "Pill Visual"}</th>
+                      <th className="p-2.5 text-right w-44">{lang === "th" ? "วิธีเขียนลงสมุดยา" : "Transcription Text"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {days.map((dayKey) => {
+                      const dayDose = plan.maintenanceWeek.find((d) => d.day === dayKey);
+                      if (!dayDose) return null;
+                      return (
+                        <tr key={dayKey} className="border-b border-clinic-line/30 hover:bg-slate-50/50">
+                          <td className="p-2.5 font-bold text-clinic-ink">{getDayLabel(dayKey, lang)}</td>
+                          <td className="p-2.5 text-center font-bold text-slate-800">
+                            {dayDose.hold ? (
+                              <span className="text-clinic-red">{lang === "th" ? "งดทานยา" : "HOLD"}</span>
+                            ) : (
+                              <span>{dayDose.dose} mg</span>
+                            )}
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <PillVisual combo={dayDose.combo} hold={dayDose.hold} lang={lang} />
+                          </td>
+                          <td className="p-2.5 text-right font-medium text-slate-600">
+                            {getPillComboDesc(dayDose.combo, dayDose.hold, lang)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Print advice helper */}
+            <div className="pt-2 text-right">
+              <button
+                onClick={() => window.print()}
+                className="px-4 py-2 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-xs rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2 inline-flex"
+              >
+                <Printer size={15} />
+                <span>
+                  {lang === "th" ? "พิมพ์ใบตารางแนะนำยาสำหรับคนไข้" : "Print Patient Guidance Leaflet"}
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </Panel>
@@ -767,7 +1218,15 @@ function ScheduleView({
   );
 }
 
-function ScheduleEditor({ schedule, onChange }: { schedule: DayDose[]; onChange: (schedule: DayDose[]) => void }) {
+function ScheduleEditor({
+  schedule,
+  onChange,
+  onKeyDown,
+}: {
+  schedule: DayDose[];
+  onChange: (schedule: DayDose[]) => void;
+  onKeyDown?: (e: React.KeyboardEvent, currentId: string) => void;
+}) {
   return (
     <div className="schedule-editor">
       {schedule.map((day) => (
@@ -775,11 +1234,17 @@ function ScheduleEditor({ schedule, onChange }: { schedule: DayDose[]; onChange:
           <span>{dayLabels[day.day]}</span>
           <span className="select-wrap">
             <select
+              id={`dose-${day.day}`}
               value={day.dose}
               onChange={(event) => {
                 const dose = Number(event.target.value);
-                onChange(schedule.map((item) => (item.day === day.day ? { ...item, dose, combo: comboForDose(dose), hold: dose === 0 } : item)));
+                onChange(
+                  schedule.map((item) =>
+                    item.day === day.day ? { ...item, dose, combo: comboForDose(dose), hold: dose === 0 } : item
+                  )
+                );
               }}
+              onKeyDown={(e) => onKeyDown?.(e, `dose-${day.day}`)}
             >
               {doseOptions.map((dose) => (
                 <option key={dose} value={dose}>
@@ -837,9 +1302,21 @@ function HardStop({ reasons }: { reasons: string[] }) {
   );
 }
 
-function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Panel({
+  title,
+  icon,
+  children,
+  id,
+  className,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  id?: string;
+  className?: string;
+}) {
   return (
-    <section className="panel">
+    <section id={id} className={`panel ${className || ""}`}>
       <div className="panel-title">
         {icon}
         <h2>{title}</h2>
@@ -858,18 +1335,106 @@ function Metric({ label, value, tone = "normal" }: { label: string; value: strin
   );
 }
 
-function NumberField({ label, value, min, max, step, onChange }: { label: string; value: number; min: number; max: number; step: number; onChange: (value: number) => void }) {
+function NumberField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  id,
+  shortcut,
+  onKeyDown,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+  id?: string;
+  shortcut?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+}) {
+  const [inputValue, setInputValue] = useState(value.toString());
+
+  useEffect(() => {
+    if (Number(inputValue) !== value) {
+      setInputValue(value.toString());
+    }
+  }, [value, inputValue]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const valStr = event.target.value;
+    setInputValue(valStr);
+
+    const parsed = Number(valStr);
+    if (!isNaN(parsed) && valStr !== "") {
+      onChange(parsed);
+    }
+  };
+
+  const handleBlur = () => {
+    if (inputValue === "" || isNaN(Number(inputValue))) {
+      onChange(min);
+      setInputValue(min.toString());
+    } else {
+      const parsed = Number(inputValue);
+      const bounded = Math.max(min, Math.min(max, parsed));
+      onChange(bounded);
+      setInputValue(bounded.toString());
+    }
+  };
+
   return (
     <label className="field">
-      {label}
-      <input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} />
+      <span className="flex items-center justify-between">
+        <span>{label}</span>
+        {shortcut && (
+          <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
+            {shortcut}
+          </kbd>
+        )}
+      </span>
+      <input
+        id={id}
+        type="number"
+        value={inputValue}
+        min={min}
+        max={max}
+        step={step}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={onKeyDown}
+        onFocus={(e) => e.target.select()}
+      />
     </label>
   );
 }
 
-function IconButton({ icon, label, onClick, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean }) {
+function IconButton({
+  icon,
+  label,
+  onClick,
+  disabled,
+  id,
+  shortcut,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  id?: string;
+  shortcut?: string;
+}) {
   return (
-    <button className="icon-button" onClick={onClick} disabled={disabled} title={label}>
+    <button
+      id={id}
+      className="icon-button"
+      onClick={onClick}
+      disabled={disabled}
+      title={shortcut ? `${label} [${shortcut}]` : label}
+    >
       {icon}
       <span>{label}</span>
     </button>
