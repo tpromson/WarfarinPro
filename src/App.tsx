@@ -237,78 +237,7 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
   const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
   const [contexts, setContexts] = useState<ContextFlag[]>([]);
   const [isSummaryHighlighted, setIsSummaryHighlighted] = useState(false);
-
-  useEffect(() => {
-    const handleGlobalShortcuts = (e: KeyboardEvent) => {
-      if (!e.altKey) return;
-      const key = e.key.toLowerCase();
-
-      const elementMap: Record<string, string> = {
-        i: "inr-input",
-        p: "prev-dose-input",
-        t: "preset-select",
-        v: "clinic-day-select",
-        d: "adjustment-select",
-        f: "hold-doses-select",
-      };
-
-      if (elementMap[key]) {
-        e.preventDefault();
-        document.getElementById(elementMap[key])?.focus();
-      } else if (key === "b") {
-        e.preventDefault();
-        setMajorBleeding((prev) => !prev);
-      } else if (key === "s") {
-        e.preventDefault();
-        const el = document.getElementById("booklet-summary-panel");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          setIsSummaryHighlighted(true);
-          setTimeout(() => setIsSummaryHighlighted(false), 1500);
-        }
-      } else if (key === "o") {
-        e.preventDefault();
-        document.getElementById("btn-open-patient")?.click();
-      } else if (key === "c") {
-        e.preventDefault();
-        document.getElementById("btn-copy-link")?.click();
-      } else if (key === "h") {
-        e.preventDefault();
-        window.print();
-      }
-    };
-
-    window.addEventListener("keydown", handleGlobalShortcuts);
-    return () => window.removeEventListener("keydown", handleGlobalShortcuts);
-  }, []);
-
-  const handleKeyDown = (e: React.KeyboardEvent, currentId: string) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const ids = [
-        "inr-input",
-        "prev-dose-input",
-        "preset-select",
-        "clinic-day-select",
-        "adjustment-select",
-        "hold-doses-select",
-        "dose-mon",
-        "dose-tue",
-        "dose-wed",
-        "dose-thu",
-        "dose-fri",
-        "dose-sat",
-        "dose-sun",
-      ];
-      const index = ids.indexOf(currentId);
-      if (index !== -1) {
-        const nextIndex = e.shiftKey ? index - 1 : index + 1;
-        if (nextIndex >= 0 && nextIndex < ids.length) {
-          document.getElementById(ids[nextIndex])?.focus();
-        }
-      }
-    }
-  };
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   const target: TargetRange = useMemo(() => {
     if (preset === "mechanical") return { preset, lower: 2.5, upper: 3.5 };
@@ -352,6 +281,84 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
 
   const scheduleDelta = plan ? Math.abs(plan.scheduleWeeklyDose - plan.calculatedWeeklyDose) : 0;
   const canShare = Boolean(plan && scheduleDelta <= 0.5 && plan.wCode !== "W----");
+
+  useEffect(() => {
+    const handleGlobalShortcuts = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowSummaryModal(false);
+      }
+      if (!e.altKey) return;
+      const key = e.key.toLowerCase();
+
+      const elementMap: Record<string, string> = {
+        i: "inr-input",
+        p: "prev-dose-input",
+        t: "preset-select",
+        v: "clinic-day-select",
+        d: "adjustment-select",
+        f: "hold-doses-select",
+      };
+
+      if (elementMap[key]) {
+        e.preventDefault();
+        document.getElementById(elementMap[key])?.focus();
+      } else if (key === "b") {
+        e.preventDefault();
+        setMajorBleeding((prev) => !prev);
+      } else if (key === "s") {
+        e.preventDefault();
+        if (canShare) {
+          setShowSummaryModal(true);
+        }
+      } else if (key === "o") {
+        e.preventDefault();
+        document.getElementById("btn-open-patient")?.click();
+      } else if (key === "c") {
+        e.preventDefault();
+        document.getElementById("btn-copy-link")?.click();
+      } else if (key === "h") {
+        e.preventDefault();
+        window.print();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalShortcuts);
+    return () => window.removeEventListener("keydown", handleGlobalShortcuts);
+  }, [canShare, showSummaryModal]);
+
+  const handleKeyDown = (e: React.KeyboardEvent, currentId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      
+      if (currentId === "hold-doses-select" && canShare) {
+        setShowSummaryModal(true);
+        return;
+      }
+
+      const ids = [
+        "inr-input",
+        "prev-dose-input",
+        "preset-select",
+        "clinic-day-select",
+        "adjustment-select",
+        "hold-doses-select",
+        "dose-mon",
+        "dose-tue",
+        "dose-wed",
+        "dose-thu",
+        "dose-fri",
+        "dose-sat",
+        "dose-sun",
+      ];
+      const index = ids.indexOf(currentId);
+      if (index !== -1) {
+        const nextIndex = e.shiftKey ? index - 1 : index + 1;
+        if (nextIndex >= 0 && nextIndex < ids.length) {
+          document.getElementById(ids[nextIndex])?.focus();
+        }
+      }
+    }
+  };
 
   function toggleInteraction(flag: InteractionFlag) {
     setInteractions((current) => (current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag]));
@@ -563,6 +570,50 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
           </>
         )}
       </section>
+
+      {showSummaryModal && plan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden">
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-soft border border-clinic-line overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="bg-clinic-blue text-white p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen size={19} />
+                <h2 className="text-base font-bold">
+                  {lang === "th" ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" : "Booklet Transcription & Patient Guide"}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowSummaryModal(false)}
+                className="text-white/80 hover:text-white text-xl font-bold font-mono focus:outline-none p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto">
+              <BookletAndSharePanelContent
+                plan={plan}
+                onOpenPatient={(p) => {
+                  setShowSummaryModal(false);
+                  onOpenPatient(p);
+                }}
+                lang={lang}
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-50 border-t border-clinic-line p-3.5 flex justify-end gap-2">
+              <button
+                onClick={() => setShowSummaryModal(false)}
+                className="px-4 py-1.5 bg-slate-300 text-slate-700 hover:bg-slate-400 font-bold text-xs rounded-lg transition-colors focus:outline-none"
+              >
+                {lang === "th" ? "ปิดหน้าต่าง" : "Close"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -792,20 +843,14 @@ const getPillComboDesc = (combo: DayDose["combo"], hold?: boolean, lang: "th" | 
   }
 };
 
-function BookletAndSharePanel({
+function BookletAndSharePanelContent({
   plan,
-  canShare,
-  scheduleDelta,
   onOpenPatient,
   lang,
-  highlighted,
 }: {
   plan: MedicationPlan;
-  canShare: boolean;
-  scheduleDelta: number;
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
-  highlighted: boolean;
 }) {
   const [qr, setQr] = useState("");
   const [copiedWCode, setCopiedWCode] = useState(false);
@@ -826,7 +871,7 @@ function BookletAndSharePanel({
   useEffect(() => {
     QRCode.toDataURL(url, { errorCorrectionLevel: "L", margin: 1, width: 240 })
       .then(setQr)
-      .catch((err) => console.error("QR Code Error in BookletAndSharePanel:", err));
+      .catch((err) => console.error("QR Code Error in BookletAndSharePanelContent:", err));
   }, [url]);
 
   const lineText = `WarfarinPro ${plan.wCode}\nWeekly dose ${plan.scheduleWeeklyDose.toFixed(1)} mg\nOpen plan: ${url}`;
@@ -843,6 +888,258 @@ function BookletAndSharePanel({
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  return (
+    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+      {/* Left Column: W-Code, QR Code & Links */}
+      <div className="space-y-5 border-b border-clinic-line lg:border-b-0 lg:border-r border-dashed border-clinic-line pb-6 lg:pb-0 lg:pr-6 flex flex-col justify-between">
+        <div className="space-y-4">
+          {/* W-Code Ticket */}
+          <div className="bg-clinic-paper border-2 border-dashed border-clinic-blue/40 rounded-xl p-4 text-center space-y-2.5 relative overflow-hidden shadow-sm">
+            <div className="text-[11px] uppercase font-bold text-clinic-blue tracking-wider">
+              {lang === "th" ? "รหัส W-code สำหรับสมุดยา" : "Warfarin W-Code"}
+            </div>
+            <div className="text-3xl font-black text-clinic-ink tracking-widest font-mono select-all bg-white py-2 px-4 rounded-lg shadow-sm border border-clinic-line inline-block">
+              {plan.wCode}
+            </div>
+            <p className="text-[10px] text-slate-500 leading-normal">
+              {lang === "th"
+                ? "คัดลอกรหัสนี้เขียนลงสมุดคุมยาวาฟาริน หรือให้คนไข้นำไปพิมพ์เปิดตารางยาได้"
+                : "Copy this code to write in the patient booklet or use to open their schedule online."}
+            </p>
+
+            <button
+              onClick={handleCopyWCode}
+              className={`w-full py-1.5 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1.5 focus:outline-none ${
+                copiedWCode
+                  ? "bg-green-600 text-white"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300"
+              }`}
+            >
+              {copiedWCode ? <Check size={13} /> : <Copy size={13} />}
+              <span>
+                {copiedWCode
+                  ? lang === "th"
+                    ? "คัดลอกสำเร็จ!"
+                    : "Copied!"
+                  : lang === "th"
+                  ? "คัดลอกรหัส W-code"
+                  : "Copy W-Code"}
+              </span>
+            </button>
+          </div>
+
+          {/* QR Code */}
+          <div className="flex flex-col items-center p-3 bg-white border border-clinic-line rounded-xl">
+            <div className="text-xs font-bold text-clinic-ink mb-1">
+              {lang === "th" ? "สแกนเพื่อเปิดตารางยาบนมือถือ" : "Scan to open on Mobile"}
+            </div>
+            <div className="qr-box max-w-[160px] max-h-[160px] flex items-center justify-center overflow-hidden border border-slate-100 rounded-lg p-1 bg-slate-50">
+              {qr ? (
+                <img src={qr} alt="Plan QR" className="object-contain" />
+              ) : (
+                <QrCode size={64} className="text-slate-300" />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons for Sharing */}
+        <div className="space-y-2">
+          <div className="rounded-lg border border-clinic-line bg-slate-50 p-2.5">
+            <div className="text-[10px] font-bold uppercase text-slate-500">
+              {lang === "th" ? "ลิงก์หน้าผู้ป่วย" : "Patient Link"}
+            </div>
+            <div className="mt-0.5 text-xs text-clinic-blue font-bold truncate">
+              <a href={url} target="_blank" rel="noreferrer" title={url} className="hover:underline">
+                {shortUrl}
+              </a>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5">
+            <IconButton
+              id="btn-copy-link"
+              icon={<Copy size={14} />}
+              onClick={handleCopyLink}
+              label={
+                copiedLink
+                  ? lang === "th"
+                    ? "คัดลอกแล้ว!"
+                    : "Copied!"
+                  : lang === "th"
+                  ? "คัดลอกลิงก์"
+                  : "Copy Link"
+              }
+              shortcut="Alt+C"
+            />
+            <IconButton
+              id="btn-open-patient"
+              icon={<UserRound size={14} />}
+              onClick={() => onOpenPatient(plan)}
+              label={lang === "th" ? "เปิดหน้าผู้ป่วย" : "Patient View"}
+              shortcut="Alt+O"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={() =>
+                window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
+              }
+              className="w-full min-height-[40px] px-3.5 py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <MessageCircle size={14} className="text-[#06C755]" />
+              <span>LINE Share</span>
+            </button>
+            <IconButton
+              icon={<Printer size={14} />}
+              onClick={() => window.print()}
+              label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
+              shortcut="Alt+H"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Booklet Transcription Details */}
+      <div className="space-y-4">
+        <div className="bg-slate-50 border border-clinic-line/60 rounded-xl p-4 space-y-4">
+          <div className="flex flex-wrap justify-between items-center border-b border-clinic-line pb-2.5 gap-2">
+            <h3 className="font-extrabold text-sm text-clinic-ink flex items-center gap-2">
+              <BookOpen size={16} className="text-clinic-blue" />
+              <span>
+                {lang === "th" ? "ข้อมูลวิธีกรอกลงสมุดประวัติยาของผู้ป่วย" : "Warfarin Booklet Writing Guide"}
+              </span>
+            </h3>
+            <div className="flex gap-4 text-xs font-bold">
+              <span className="text-slate-500">
+                {lang === "th" ? "ขนาดยาต่อสัปดาห์: " : "Weekly Dose: "}
+                <strong className="text-clinic-ink">{plan.scheduleWeeklyDose.toFixed(1)} mg</strong>
+              </span>
+              <span className="text-slate-500">
+                {lang === "th" ? "เป้าหมาย INR: " : "Target INR: "}
+                <strong className="text-clinic-blue">
+                  {plan.target.lower.toFixed(1)} - {plan.target.upper.toFixed(1)}
+                </strong>
+              </span>
+            </div>
+          </div>
+
+          {/* Step 1: First Week */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-500 block font-bold">
+              {lang === "th"
+                ? "1. คำแนะนำการกินยาสัปดาห์แรก (สัปดาห์เริ่มต้นยา)"
+                : "1. First-Week Instructions (Dosing Start)"}
+            </span>
+            <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-orange-900 font-bold text-xs">
+              {plan.firstWeekHoldDoses > 0 ? (
+                <div className="flex items-start gap-2">
+                  <span className="text-lg leading-none">⚠️</span>
+                  <span>
+                    {lang === "th"
+                      ? `งดยา ${plan.firstWeekHoldDoses} วันแรก (เริ่มงดวัน${getDayLabel(
+                          plan.clinicDay,
+                          "th",
+                        )} เป็นต้นไป) จากนั้นทานขนาดปกติตามตารางในวันที่เหลือ`
+                      : `Hold drug for the first ${plan.firstWeekHoldDoses} days (starting on ${getDayLabel(
+                          plan.clinicDay,
+                          "en",
+                        )}), then take the regular dose on remaining days.`}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-start gap-2">
+                  <span className="text-lg leading-none">✅</span>
+                  <span>
+                    {lang === "th"
+                      ? "ไม่ต้องงดยา เริ่มกินยาตามตารางขนาดปกติ (Maintenance) ได้ทันทีตั้งแต่วันแรก"
+                      : "No hold required. Start regular maintenance dose schedule from day one."}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Step 2: Regular Maintenance Week */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-500 block font-bold">
+              {lang === "th"
+                ? "2. ตารางกินยาปกติ (สัปดาห์ถัดไปเป็นต้นไป)"
+                : "2. Regular Maintenance Schedule (Following Weeks)"}
+            </span>
+
+            <div className="border border-clinic-line/60 rounded-xl overflow-hidden bg-white shadow-sm overflow-x-auto">
+              <table className="w-full text-xs text-left border-collapse min-w-[400px]">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-600 border-b border-clinic-line font-bold">
+                    <th className="p-2.5 w-28">{lang === "th" ? "วัน" : "Day"}</th>
+                    <th className="p-2.5 text-center w-24">{lang === "th" ? "ขนาดโดส" : "Dose"}</th>
+                    <th className="p-2.5 text-center">{lang === "th" ? "ตัวช่วยจำสีเม็ดยา" : "Pill Visual"}</th>
+                    <th className="p-2.5 text-right w-44">{lang === "th" ? "วิธีเขียนลงสมุดยา" : "Transcription Text"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {days.map((dayKey) => {
+                    const dayDose = plan.maintenanceWeek.find((d) => d.day === dayKey);
+                    if (!dayDose) return null;
+                    return (
+                      <tr key={dayKey} className="border-b border-clinic-line/30 hover:bg-slate-50/50">
+                        <td className="p-2.5 font-bold text-clinic-ink">{getDayLabel(dayKey, lang)}</td>
+                        <td className="p-2.5 text-center font-bold text-slate-800">
+                          {dayDose.hold ? (
+                            <span className="text-clinic-red">{lang === "th" ? "งดทานยา" : "HOLD"}</span>
+                          ) : (
+                            <span>{dayDose.dose} mg</span>
+                          )}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <PillVisual combo={dayDose.combo} hold={dayDose.hold} lang={lang} />
+                        </td>
+                        <td className="p-2.5 text-right font-medium text-slate-600">
+                          {getPillComboDesc(dayDose.combo, dayDose.hold, lang)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Print advice helper */}
+          <div className="pt-2 text-right">
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-xs rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2 inline-flex"
+            >
+              <Printer size={15} />
+              <span>
+                {lang === "th" ? "พิมพ์ใบตารางแนะนำยาสำหรับคนไข้" : "Print Patient Guidance Leaflet"}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookletAndSharePanel({
+  plan,
+  canShare,
+  scheduleDelta,
+  onOpenPatient,
+  lang,
+  highlighted,
+}: {
+  plan: MedicationPlan;
+  canShare: boolean;
+  scheduleDelta: number;
+  onOpenPatient: (plan: MedicationPlan) => void;
+  lang: "th" | "en";
+  highlighted: boolean;
+}) {
   if (!canShare) {
     return (
       <Panel
@@ -875,239 +1172,11 @@ function BookletAndSharePanel({
       icon={<BookOpen size={18} />}
       className={highlighted ? "ring-4 ring-clinic-blue/40" : ""}
     >
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        {/* Left Column: W-Code, QR Code & Links */}
-        <div className="space-y-5 border-b border-clinic-line lg:border-b-0 lg:border-r border-dashed border-clinic-line pb-6 lg:pb-0 lg:pr-6 flex flex-col justify-between">
-          <div className="space-y-4">
-            {/* W-Code Ticket */}
-            <div className="bg-clinic-paper border-2 border-dashed border-clinic-blue/40 rounded-xl p-4 text-center space-y-2.5 relative overflow-hidden shadow-sm">
-              <div className="text-[11px] uppercase font-bold text-clinic-blue tracking-wider">
-                {lang === "th" ? "รหัส W-code สำหรับสมุดยา" : "Warfarin W-Code"}
-              </div>
-              <div className="text-3xl font-black text-clinic-ink tracking-widest font-mono select-all bg-white py-2 px-4 rounded-lg shadow-sm border border-clinic-line inline-block">
-                {plan.wCode}
-              </div>
-              <p className="text-[10px] text-slate-500 leading-normal">
-                {lang === "th"
-                  ? "คัดลอกรหัสนี้เขียนลงสมุดคุมยาวาฟาริน หรือให้คนไข้นำไปพิมพ์เปิดตารางยาได้"
-                  : "Copy this code to write in the patient booklet or use to open their schedule online."}
-              </p>
-
-              <button
-                onClick={handleCopyWCode}
-                className={`w-full py-1.5 font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1.5 focus:outline-none ${
-                  copiedWCode
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300"
-                }`}
-              >
-                {copiedWCode ? <Check size={13} /> : <Copy size={13} />}
-                <span>
-                  {copiedWCode
-                    ? lang === "th"
-                      ? "คัดลอกสำเร็จ!"
-                      : "Copied!"
-                    : lang === "th"
-                    ? "คัดลอกรหัส W-code"
-                    : "Copy W-Code"}
-                </span>
-              </button>
-            </div>
-
-            {/* QR Code */}
-            <div className="flex flex-col items-center p-3 bg-white border border-clinic-line rounded-xl">
-              <div className="text-xs font-bold text-clinic-ink mb-1">
-                {lang === "th" ? "สแกนเพื่อเปิดตารางยาบนมือถือ" : "Scan to open on Mobile"}
-              </div>
-              <div className="qr-box max-w-[160px] max-h-[160px] flex items-center justify-center overflow-hidden border border-slate-100 rounded-lg p-1 bg-slate-50">
-                {qr ? (
-                  <img src={qr} alt="Plan QR" className="object-contain" />
-                ) : (
-                  <QrCode size={64} className="text-slate-300" />
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons for Sharing */}
-          <div className="space-y-2">
-            <div className="rounded-lg border border-clinic-line bg-slate-50 p-2.5">
-              <div className="text-[10px] font-bold uppercase text-slate-500">
-                {lang === "th" ? "ลิงก์หน้าผู้ป่วย" : "Patient Link"}
-              </div>
-              <div className="mt-0.5 text-xs text-clinic-blue font-bold truncate">
-                <a href={url} target="_blank" rel="noreferrer" title={url} className="hover:underline">
-                  {shortUrl}
-                </a>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5">
-              <IconButton
-                id="btn-copy-link"
-                icon={<Copy size={14} />}
-                onClick={handleCopyLink}
-                label={
-                  copiedLink
-                    ? lang === "th"
-                      ? "คัดลอกแล้ว!"
-                      : "Copied!"
-                    : lang === "th"
-                    ? "คัดลอกลิงก์"
-                    : "Copy Link"
-                }
-                shortcut="Alt+C"
-              />
-              <IconButton
-                id="btn-open-patient"
-                icon={<UserRound size={14} />}
-                onClick={() => onOpenPatient(plan)}
-                label={lang === "th" ? "เปิดหน้าผู้ป่วย" : "Patient View"}
-                shortcut="Alt+O"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                onClick={() =>
-                  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
-                }
-                className="w-full min-height-[40px] px-3.5 py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <MessageCircle size={14} className="text-[#06C755]" />
-                <span>LINE Share</span>
-              </button>
-              <IconButton
-                icon={<Printer size={14} />}
-                onClick={() => window.print()}
-                label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
-                shortcut="Alt+H"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Booklet Transcription Details */}
-        <div className="space-y-4">
-          <div className="bg-slate-50 border border-clinic-line/60 rounded-xl p-4 space-y-4">
-            <div className="flex flex-wrap justify-between items-center border-b border-clinic-line pb-2.5 gap-2">
-              <h3 className="font-extrabold text-sm text-clinic-ink flex items-center gap-2">
-                <BookOpen size={16} className="text-clinic-blue" />
-                <span>
-                  {lang === "th" ? "ข้อมูลวิธีกรอกลงสมุดประวัติยาของผู้ป่วย" : "Warfarin Booklet Writing Guide"}
-                </span>
-              </h3>
-              <div className="flex gap-4 text-xs font-bold">
-                <span className="text-slate-500">
-                  {lang === "th" ? "ขนาดยาต่อสัปดาห์: " : "Weekly Dose: "}
-                  <strong className="text-clinic-ink">{plan.scheduleWeeklyDose.toFixed(1)} mg</strong>
-                </span>
-                <span className="text-slate-500">
-                  {lang === "th" ? "เป้าหมาย INR: " : "Target INR: "}
-                  <strong className="text-clinic-blue">
-                    {plan.target.lower.toFixed(1)} - {plan.target.upper.toFixed(1)}
-                  </strong>
-                </span>
-              </div>
-            </div>
-
-            {/* Step 1: First Week */}
-            <div className="space-y-1.5">
-              <span className="text-xs text-slate-500 block font-bold">
-                {lang === "th"
-                  ? "1. คำแนะนำการกินยาสัปดาห์แรก (สัปดาห์เริ่มต้นยา)"
-                  : "1. First-Week Instructions (Dosing Start)"}
-              </span>
-              <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-orange-900 font-bold text-xs">
-                {plan.firstWeekHoldDoses > 0 ? (
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg leading-none">⚠️</span>
-                    <span>
-                      {lang === "th"
-                        ? `งดยา ${plan.firstWeekHoldDoses} วันแรก (เริ่มงดวัน${getDayLabel(
-                            plan.clinicDay,
-                            "th",
-                          )} เป็นต้นไป) จากนั้นทานขนาดปกติตามตารางในวันที่เหลือ`
-                        : `Hold drug for the first ${plan.firstWeekHoldDoses} days (starting on ${getDayLabel(
-                            plan.clinicDay,
-                            "en",
-                          )}), then take the regular dose on remaining days.`}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg leading-none">✅</span>
-                    <span>
-                      {lang === "th"
-                        ? "ไม่ต้องงดยา เริ่มกินยาตามตารางขนาดปกติ (Maintenance) ได้ทันทีตั้งแต่วันแรก"
-                        : "No hold required. Start regular maintenance dose schedule from day one."}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Step 2: Regular Maintenance Week */}
-            <div className="space-y-1.5">
-              <span className="text-xs text-slate-500 block font-bold">
-                {lang === "th"
-                  ? "2. ตารางกินยาปกติ (สัปดาห์ถัดไปเป็นต้นไป)"
-                  : "2. Regular Maintenance Schedule (Following Weeks)"}
-              </span>
-
-              <div className="border border-clinic-line/60 rounded-xl overflow-hidden bg-white shadow-sm overflow-x-auto">
-                <table className="w-full text-xs text-left border-collapse min-w-[400px]">
-                  <thead>
-                    <tr className="bg-slate-100 text-slate-600 border-b border-clinic-line font-bold">
-                      <th className="p-2.5 w-28">{lang === "th" ? "วัน" : "Day"}</th>
-                      <th className="p-2.5 text-center w-24">{lang === "th" ? "ขนาดโดส" : "Dose"}</th>
-                      <th className="p-2.5 text-center">{lang === "th" ? "ตัวช่วยจำสีเม็ดยา" : "Pill Visual"}</th>
-                      <th className="p-2.5 text-right w-44">{lang === "th" ? "วิธีเขียนลงสมุดยา" : "Transcription Text"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {days.map((dayKey) => {
-                      const dayDose = plan.maintenanceWeek.find((d) => d.day === dayKey);
-                      if (!dayDose) return null;
-                      return (
-                        <tr key={dayKey} className="border-b border-clinic-line/30 hover:bg-slate-50/50">
-                          <td className="p-2.5 font-bold text-clinic-ink">{getDayLabel(dayKey, lang)}</td>
-                          <td className="p-2.5 text-center font-bold text-slate-800">
-                            {dayDose.hold ? (
-                              <span className="text-clinic-red">{lang === "th" ? "งดทานยา" : "HOLD"}</span>
-                            ) : (
-                              <span>{dayDose.dose} mg</span>
-                            )}
-                          </td>
-                          <td className="p-2.5 text-center">
-                            <PillVisual combo={dayDose.combo} hold={dayDose.hold} lang={lang} />
-                          </td>
-                          <td className="p-2.5 text-right font-medium text-slate-600">
-                            {getPillComboDesc(dayDose.combo, dayDose.hold, lang)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Print advice helper */}
-            <div className="pt-2 text-right">
-              <button
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-xs rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2 inline-flex"
-              >
-                <Printer size={15} />
-                <span>
-                  {lang === "th" ? "พิมพ์ใบตารางแนะนำยาสำหรับคนไข้" : "Print Patient Guidance Leaflet"}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BookletAndSharePanelContent
+        plan={plan}
+        onOpenPatient={onOpenPatient}
+        lang={lang}
+      />
     </Panel>
   );
 }
