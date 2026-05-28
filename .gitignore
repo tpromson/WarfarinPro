@@ -10,3 +10,9 @@ vite.config.js
 .env.production
 .env.development.local
 .env.production.local
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
