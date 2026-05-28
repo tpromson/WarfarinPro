@@ -429,6 +429,7 @@ function PatientMode({
   const [wCodeInput, setWCodeInput] = useState("");
   const [wCodeError, setWCodeError] = useState("");
   const [isLargeFont, setIsLargeFont] = useState(false);
+  const [showVoicePrompt, setShowVoicePrompt] = useState(true);
 
   useEffect(() => {
     if (!showCalMenu) return;
@@ -505,6 +506,35 @@ function PatientMode({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-5">
+      {showVoicePrompt && (
+        <div className="mb-4 rounded-xl p-4 flex items-center justify-between gap-4 voice-prompt-banner print:hidden">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-clinic-cyan text-clinic-blue text-xl flex-shrink-0">
+              🔊
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-clinic-blue">
+                {lang === "th" ? "บริการแนะนำด้วยเสียงนำทาง" : "Voice Dosing Guidance"}
+              </h3>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {lang === "th"
+                  ? "กดปุ่มเพื่อฟังเสียงอธิบายวิธีกินยาภาษาไทยสำหรับตารางนี้"
+                  : "Click the button to listen to voice guidance for this schedule"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              speakPlan(plan, speakGender);
+              setShowVoicePrompt(false);
+            }}
+            className="flex-shrink-0 px-4 py-2 bg-clinic-blue text-white rounded-lg font-bold text-sm shadow hover:bg-clinic-blue/90 active:scale-95 transition-all flex items-center gap-2"
+          >
+            <span>{lang === "th" ? "กดฟังเสียงแนะนำยา" : "Listen Dosing"}</span>
+          </button>
+        </div>
+      )}
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
           <div className="flex items-center gap-3">
