@@ -282,7 +282,12 @@ function DoctorMode({ onOpenPatient }: { onOpenPatient: (plan: MedicationPlan) =
             </Panel>
 
             {plan ? (
-              <SharePanel plan={plan} disabled={!canShare} onOpenPatient={onOpenPatient} />
+              <>
+                <SharePanel plan={plan} disabled={!canShare} onOpenPatient={onOpenPatient} />
+                <div className="hidden print:block">
+                  <MedicationSheet plan={plan} />
+                </div>
+              </>
             ) : null}
           </>
         )}
