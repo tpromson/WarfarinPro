@@ -17,6 +17,7 @@ import {
   Speaker,
   Trash2,
   UserRound,
+  ZoomIn,
 } from "lucide-react";
 import {
   buildMaintenanceSchedule,
@@ -43,10 +44,108 @@ const interactionKeys = Object.keys(interactionLabels) as InteractionFlag[];
 const contextKeys: ContextFlag[] = ["mechanicalValve", "pregnancy", "liverDisease"];
 const doseOptions = pillCombos.map((combo) => combo.dose).filter((dose) => dose <= 12);
 
+const t = {
+  th: {
+    doctor: "สำหรับแพทย์",
+    patient: "สำหรับผู้ป่วย",
+    patientViewer: "ตารางแนะนำการรับประทานยา",
+    noPatientId: "ไม่มีการบันทึกข้อมูลส่วนบุคคลในระบบนี้ เพื่อความเป็นส่วนตัวสูงสุด",
+    changeWCode: "ป้อนรหัส W-code ใหม่",
+    listenThai: "ฟังเสียงนำทาง",
+    addToCal: "เพิ่มลงปฏิทิน",
+    downloadIcs: "ดาวน์โหลดปฏิทิน (.ics)",
+    addToGoogle: "เพิ่มลง Google Calendar",
+    saveOffline: "บันทึกในเครื่อง",
+    print: "พิมพ์แผ่นแนะนำยา",
+    savedPlans: "ประวัติแผนยาที่เลือก",
+    noSavedPlans: "ยังไม่มีแผนยาที่บันทึกไว้ในเครื่องนี้",
+    enterWCode: "ระบุรหัสตารางยา (W-code)",
+    wcodePlaceholder: "เช่น W3500 หรือ W0752",
+    wcodeError: "รหัสไม่ถูกต้อง (รูปแบบที่ถูกต้อง เช่น W3500, W0752)",
+    showSchedule: "แสดงตารางรับประทานยา",
+    patientName: "ชื่อผู้ป่วย / Patient Name",
+    hn: "หมายเลขประจำตัวผู้ป่วย (HN)",
+    appointment: "วันนัดตรวจครั้งถัดไป / Next Appointment",
+    physicianSignature: "ลายมือชื่อแพทย์ / เภสัชกร",
+    weeklyDose: "ขนาดยารวมต่อสัปดาห์",
+    targetInr: "เป้าหมายค่า INR",
+    issued: "วันที่สั่งยา",
+    firstWeekTitle: "สัปดาห์แรก (หลังวันตรวจนัด)",
+    firstWeekSubtitle: "ตารางกินยาช่วงเริ่มต้น",
+    maintenanceWeekTitle: "สัปดาห์ถัดไป (ทานต่อเนื่อง)",
+    maintenanceWeekSubtitle: "ทานซ้ำแบบเดิมในทุกสัปดาห์ (จันทร์-อาทิตย์)",
+    warningTitle: "ข้อควรระวังสำคัญ! (โปรดอ่านและจำไว้เสมอ)",
+    warningText: "หากท่านมีอาการเลือดออกผิดปกติ อุจจาระดำหรือแดง ปัสสาวะเป็นเลือด เวียนศีรษะอย่างรุนแรง หรือหกล้มศีรษะกระแทก ให้รีบเดินทางไปพบแพทย์ที่โรงพยาบาลทันที!",
+    zoomText: "ซูมตัวอักษรใหญ่พิเศษ (สำหรับผู้สูงอายุ)",
+    zoomNormal: "ย่อขนาดตัวอักษรปกติ",
+  },
+  en: {
+    doctor: "Doctor",
+    patient: "Patient",
+    patientViewer: "Medication Dosing Plan",
+    noPatientId: "No personal identifiers are stored in this plan for privacy.",
+    changeWCode: "Change W-code",
+    listenThai: "Listen Guidance",
+    addToCal: "Add to Calendar",
+    downloadIcs: "Download (.ics)",
+    addToGoogle: "Google Calendar",
+    saveOffline: "Save Offline",
+    print: "Print Plan",
+    savedPlans: "Saved Dosing Plans",
+    noSavedPlans: "No saved plans on this device.",
+    enterWCode: "Enter Dosing Plan Code (W-code)",
+    wcodePlaceholder: "e.g., W3500 or W0752",
+    wcodeError: "Invalid format (Example format: W3500, W0752)",
+    showSchedule: "Display Schedule",
+    patientName: "Patient Name / ชื่อผู้ป่วย",
+    hn: "Hospital Number (HN)",
+    appointment: "Next Appointment / วันนัดตรวจครั้งถัดไป",
+    physicianSignature: "Physician/Pharmacist Signature",
+    weeklyDose: "Weekly Dose",
+    targetInr: "Target INR",
+    issued: "Issued Date",
+    firstWeekTitle: "First Week",
+    firstWeekSubtitle: "Initial dosing schedule",
+    maintenanceWeekTitle: "Maintenance Week",
+    maintenanceWeekSubtitle: "Repeatable weekly schedule (Mon-Sun)",
+    warningTitle: "Critical Safety Warnings!",
+    warningText: "If you experience any abnormal bleeding, black or red stools, blood in urine, severe dizziness, or hit your head in a fall, seek immediate medical attention at the hospital!",
+    zoomText: "Zoom Large Text (For Seniors)",
+    zoomNormal: "Use Normal Text Size",
+  }
+};
+
+const getDayLabel = (day: DayKey, lang: "th" | "en") => {
+  if (lang === "en") {
+    const en: Record<DayKey, string> = {
+      mon: "Monday",
+      tue: "Tuesday",
+      wed: "Wednesday",
+      thu: "Thursday",
+      fri: "Friday",
+      sat: "Saturday",
+      sun: "Sunday",
+    };
+    return en[day];
+  } else {
+    const th: Record<DayKey, string> = {
+      mon: "วันจันทร์",
+      tue: "วันอังคาร",
+      wed: "วันพุธ",
+      thu: "วันพฤหัสบดี",
+      fri: "วันศุกร์",
+      sat: "วันเสาร์",
+      sun: "วันอาทิตย์",
+    };
+    return th[day];
+  }
+};
+
 export default function App() {
   const [active, setActive] = useState<"doctor" | "patient">("doctor");
   const [openedPlan, setOpenedPlan] = useState<MedicationPlan | null>(null);
   const [savedPlans, setSavedPlans] = useState<MedicationPlan[]>([]);
+  const [lang, setLang] = useState<"th" | "en">("th");
 
   useEffect(() => {
     setSavedPlans(loadSavedPlans());
@@ -67,16 +166,27 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold leading-tight">WarfarinPro</h1>
-              <p className="text-xs text-slate-600">Physician-directed warfarin support</p>
+              <p className="text-xs text-slate-600">{lang === "th" ? "ระบบแนะนำการรับประทานยาวาร์ฟาริน" : "Physician-directed warfarin support"}</p>
             </div>
           </div>
-          <div className="segmented print:hidden">
-            <button className={active === "doctor" ? "active" : ""} onClick={() => setActive("doctor")}>
-              <ShieldAlert size={16} /> Doctor
-            </button>
-            <button className={active === "patient" ? "active" : ""} onClick={() => setActive("patient")}>
-              <UserRound size={16} /> Patient
-            </button>
+          <div className="flex items-center gap-3 print:hidden">
+            <div className="segmented">
+              <button className={lang === "th" ? "active" : ""} onClick={() => setLang("th")}>
+                TH
+              </button>
+              <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")}>
+                EN
+              </button>
+            </div>
+
+            <div className="segmented">
+              <button className={active === "doctor" ? "active" : ""} onClick={() => setActive("doctor")}>
+                <ShieldAlert size={16} /> {lang === "th" ? "แพทย์" : "Doctor"}
+              </button>
+              <button className={active === "patient" ? "active" : ""} onClick={() => setActive("patient")}>
+                <UserRound size={16} /> {lang === "th" ? "ผู้ป่วย" : "Patient"}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -87,6 +197,7 @@ export default function App() {
             setOpenedPlan(plan);
             setActive("patient");
           }}
+          lang={lang}
         />
       ) : (
         <PatientMode
@@ -95,13 +206,14 @@ export default function App() {
           onSave={(plan) => setSavedPlans(savePlan(plan))}
           onDelete={(id) => setSavedPlans(deleteSavedPlan(id))}
           onSelect={setOpenedPlan}
+          lang={lang}
         />
       )}
     </main>
   );
 }
 
-function DoctorMode({ onOpenPatient }: { onOpenPatient: (plan: MedicationPlan) => void }) {
+function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationPlan) => void; lang: "th" | "en" }) {
   const [inr, setInr] = useState(2.4);
   const [previousDose, setPreviousDose] = useState(35);
   const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">("standard");
@@ -286,7 +398,7 @@ function DoctorMode({ onOpenPatient }: { onOpenPatient: (plan: MedicationPlan) =
               <>
                 <SharePanel plan={plan} disabled={!canShare} onOpenPatient={onOpenPatient} />
                 <div className="hidden print:block">
-                  <MedicationSheet plan={plan} />
+                  <MedicationSheet plan={plan} lang={lang} />
                 </div>
               </>
             ) : null}
@@ -303,17 +415,20 @@ function PatientMode({
   onSave,
   onDelete,
   onSelect,
+  lang = "th",
 }: {
   plan: MedicationPlan | null;
   savedPlans: MedicationPlan[];
   onSave: (plan: MedicationPlan) => void;
   onDelete: (id: string) => void;
   onSelect: (plan: MedicationPlan) => void;
+  lang?: "th" | "en";
 }) {
   const [showCalMenu, setShowCalMenu] = useState(false);
   const [speakGender, setSpeakGender] = useState<"female" | "male">("female");
   const [wCodeInput, setWCodeInput] = useState("");
   const [wCodeError, setWCodeError] = useState("");
+  const [isLargeFont, setIsLargeFont] = useState(false);
 
   useEffect(() => {
     if (!showCalMenu) return;
@@ -348,19 +463,19 @@ function PatientMode({
         setWCodeError("");
         onSelect(parsed);
       } else {
-        setWCodeError("รหัส W-code ไม่ถูกต้อง (รูปแบบที่ถูกต้อง เช่น W3500, W0752)");
+        setWCodeError(t[lang].wcodeError);
       }
     };
 
     return (
       <div className="mx-auto max-w-xl px-4 py-8 space-y-6">
-        <Panel title="ป้อนรหัสแผนยา (Patient Viewer)" icon={<UserRound size={18} />}>
+        <Panel title={t[lang].enterWCode} icon={<UserRound size={18} />}>
           <form onSubmit={handleWCodeSubmit} className="space-y-4">
             <label className="field">
-              ระบุรหัสแผนยา (W-code)
+              {t[lang].enterWCode}
               <input
                 type="text"
-                placeholder="เช่น W3500 หรือ W0752"
+                placeholder={t[lang].wcodePlaceholder}
                 value={wCodeInput}
                 onChange={(e) => {
                   setWCodeInput(e.target.value);
@@ -372,14 +487,14 @@ function PatientMode({
             </label>
             {wCodeError && <p className="text-xs text-clinic-red font-bold">{wCodeError}</p>}
             <button type="submit" className="icon-button w-full" style={{ justifyContent: "center" }}>
-              แสดงตารางรับประทานยา
+              {t[lang].showSchedule}
             </button>
           </form>
         </Panel>
 
-        <Panel title="แผนยาที่บันทึกไว้ล่าสุด" icon={<Home size={18} />}>
+        <Panel title={t[lang].savedPlans} icon={<Home size={18} />}>
           {savedPlans.length === 0 ? (
-            <p className="text-slate-500 text-sm">ยังไม่มีแผนยาที่บันทึกไว้ในเครื่องนี้</p>
+            <p className="text-slate-500 text-sm">{t[lang].noSavedPlans}</p>
           ) : (
             <SavedPlanList plans={savedPlans} onSelect={onSelect} onDelete={onDelete} />
           )}
@@ -393,29 +508,35 @@ function PatientMode({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold">Patient Viewer</h2>
+            <h2 className="text-2xl font-bold">{t[lang].patientViewer}</h2>
             <button 
               onClick={() => onSelect(null as any)} 
               className="text-xs text-slate-500 hover:text-clinic-blue font-semibold border border-clinic-line rounded-lg px-2.5 py-1 hover:border-clinic-blue transition-all bg-white hover:bg-clinic-cyan/10"
             >
-              เปลี่ยนรหัส W-code
+              {t[lang].changeWCode}
             </button>
           </div>
-          <p className="text-sm text-slate-600">No patient identity is stored in this plan.</p>
+          <p className="text-sm text-slate-600">{t[lang].noPatientId}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="segmented print:hidden">
             <button className={speakGender === "female" ? "active" : ""} onClick={() => setSpeakGender("female")}>
-              👩‍⚕️ หญิง
+              👩‍⚕️ {lang === "th" ? "หญิง" : "Female"}
             </button>
             <button className={speakGender === "male" ? "active" : ""} onClick={() => setSpeakGender("male")}>
-              👨‍⚕️ ชาย
+              👨‍⚕️ {lang === "th" ? "ชาย" : "Male"}
             </button>
           </div>
-          <IconButton icon={<Speaker size={17} />} onClick={() => speakPlan(plan, speakGender)} label="ฟังเสียงไทย" />
+          <IconButton icon={<Speaker size={17} />} onClick={() => speakPlan(plan, speakGender)} label={t[lang].listenThai} />
           
+          <IconButton 
+            icon={<ZoomIn size={17} />} 
+            onClick={() => setIsLargeFont(!isLargeFont)} 
+            label={isLargeFont ? t[lang].zoomNormal : t[lang].zoomText} 
+          />
+
           <div className="relative dropdown-container">
-            <IconButton icon={<CalendarDays size={17} />} onClick={() => setShowCalMenu(!showCalMenu)} label="เพิ่มลงปฏิทิน" />
+            <IconButton icon={<CalendarDays size={17} />} onClick={() => setShowCalMenu(!showCalMenu)} label={t[lang].addToCal} />
             {showCalMenu && (
               <div className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-40 dropdown-menu">
                 <div className="py-1" role="menu" aria-orientation="vertical">
@@ -427,7 +548,7 @@ function PatientMode({
                     }}
                   >
                     <CalendarDays size={15} className="text-clinic-blue" />
-                    <span>ดาวน์โหลดปฏิทิน (.ics)</span>
+                    <span>{t[lang].downloadIcs}</span>
                   </button>
                   <button
                     className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
@@ -437,21 +558,25 @@ function PatientMode({
                     }}
                   >
                     <CalendarDays size={15} className="text-orange-500" />
-                    <span>เพิ่มลง Google Calendar</span>
+                    <span>{t[lang].addToGoogle}</span>
                   </button>
                 </div>
               </div>
             )}
           </div>
 
-          <IconButton icon={<Save size={17} />} onClick={() => onSave(plan)} label="Save offline" />
-          <IconButton icon={<Printer size={17} />} onClick={() => window.print()} label="Print" />
+          <IconButton icon={<Save size={17} />} onClick={() => onSave(plan)} label={t[lang].saveOffline} />
+          <IconButton icon={<Printer size={17} />} onClick={() => window.print()} label={t[lang].print} />
         </div>
       </div>
-      <MedicationSheet plan={plan} />
+      
+      <div className={isLargeFont ? "elderly-mode" : ""}>
+        <MedicationSheet plan={plan} lang={lang} />
+      </div>
+
       {savedPlans.length ? (
         <div className="mt-5 print:hidden">
-          <Panel title="Saved Plans" icon={<Home size={18} />}>
+          <Panel title={t[lang].savedPlans} icon={<Home size={18} />}>
             <SavedPlanList plans={savedPlans} onSelect={onSelect} onDelete={onDelete} />
           </Panel>
         </div>
@@ -492,35 +617,35 @@ function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; d
   );
 }
 
-function MedicationSheet({ plan }: { plan: MedicationPlan }) {
+function MedicationSheet({ plan, lang = "th" }: { plan: MedicationPlan; lang?: "th" | "en" }) {
   return (
     <section className="sheet">
       <div className="sheet-head">
         <div>
-          <h2>Warfarin Medication Sheet</h2>
-          <p>แผนยาวาร์ฟารินสำหรับผู้ป่วย</p>
+          <h2>{lang === "th" ? "ตารางแนะนำการรับประทานยา" : "Warfarin Medication Sheet"}</h2>
+          <p>{lang === "th" ? "Warfarin Medication Sheet" : "Medication dosing plan for patients"}</p>
         </div>
         <div className="wcode">{plan.wCode}</div>
       </div>
 
       <div className="blank-grid">
-        <span>ชื่อผู้ป่วย: ____________________</span>
-        <span>HN: ____________________</span>
-        <span>วันนัด: ____________________</span>
-        <span>ลายเซ็นแพทย์: ____________________</span>
+        <span>{t[lang].patientName}: ____________________</span>
+        <span>{t[lang].hn}: ____________________</span>
+        <span>{t[lang].appointment}: ____________________</span>
+        <span>{t[lang].physicianSignature}: ____________________</span>
       </div>
 
       <div className="sheet-metrics">
-        <Metric label="Weekly dose" value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} />
-        <Metric label="Target INR" value={`${plan.target.lower.toFixed(1)}-${plan.target.upper.toFixed(1)}`} />
-        <Metric label="Issued" value={plan.issuedDate} />
+        <Metric label={t[lang].weeklyDose} value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} />
+        <Metric label={t[lang].targetInr} value={`${plan.target.lower.toFixed(1)}-${plan.target.upper.toFixed(1)}`} />
+        <Metric label={t[lang].issued} value={plan.issuedDate} />
       </div>
 
       {plan.safety.severity !== "normal" || plan.safety.messages.length ? (
         <div className={`safety ${plan.safety.severity}`}>
           <AlertTriangle size={18} />
           <div>
-            <strong>Safety review</strong>
+            <strong>{lang === "th" ? "การประเมินความปลอดภัย" : "Safety review"}</strong>
             {plan.safety.messages.map((message) => (
               <p key={message}>{message}</p>
             ))}
@@ -529,19 +654,39 @@ function MedicationSheet({ plan }: { plan: MedicationPlan }) {
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ScheduleView title="First Week" subtitle={`เริ่มวัน${dayLabels[plan.clinicDay]}`} schedule={plan.firstWeek} />
-        <ScheduleView title="Maintenance Week" subtitle="ตารางประจำ จันทร์-อาทิตย์" schedule={plan.maintenanceWeek} />
+        <ScheduleView
+          title={t[lang].firstWeekTitle}
+          subtitle={lang === "th" ? `เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
+          schedule={plan.firstWeek}
+          lang={lang}
+        />
+        <ScheduleView
+          title={t[lang].maintenanceWeekTitle}
+          subtitle={t[lang].maintenanceWeekSubtitle}
+          schedule={plan.maintenanceWeek}
+          lang={lang}
+        />
       </div>
 
       <div className="instructions">
-        <strong>คำเตือน</strong>
-        <p>หากมีเลือดออกผิดปกติ อุจจาระดำ ปัสสาวะเป็นเลือด เวียนศีรษะมาก หรือหกล้มกระแทกศีรษะ ให้ติดต่อโรงพยาบาลทันที</p>
+        <strong>{t[lang].warningTitle}</strong>
+        <p>{t[lang].warningText}</p>
       </div>
     </section>
   );
 }
 
-function ScheduleView({ title, subtitle, schedule }: { title: string; subtitle: string; schedule: DayDose[] }) {
+function ScheduleView({
+  title,
+  subtitle,
+  schedule,
+  lang = "th",
+}: {
+  title: string;
+  subtitle: string;
+  schedule: DayDose[];
+  lang?: "th" | "en";
+}) {
   return (
     <div className="schedule-block">
       <div className="mb-3">
@@ -552,10 +697,10 @@ function ScheduleView({ title, subtitle, schedule }: { title: string; subtitle: 
         {schedule.map((day) => (
           <div key={day.day} className={`day-row ${day.hold ? "hold" : ""}`}>
             <div>
-              <strong>{dayLabels[day.day]}</strong>
-              <span>{day.hold ? "งดยา" : `${day.dose} mg`}</span>
+              <strong>{getDayLabel(day.day, lang)}</strong>
+              <span>{day.hold ? (lang === "th" ? "งดทานยา" : "HOLD") : `${day.dose} mg`}</span>
             </div>
-            <PillVisual combo={day.combo} hold={day.hold} />
+            <PillVisual combo={day.combo} hold={day.hold} lang={lang} />
           </div>
         ))}
       </div>
@@ -585,15 +730,15 @@ function ScheduleEditor({ schedule, onChange }: { schedule: DayDose[]; onChange:
             </select>
             <ChevronDown size={16} />
           </span>
-          <PillVisual combo={day.combo} />
+          <PillVisual combo={day.combo} lang="en" />
         </label>
       ))}
     </div>
   );
 }
 
-function PillVisual({ combo, hold }: { combo: DayDose["combo"]; hold?: boolean }) {
-  if (hold || combo.dose === 0) return <span className="hold-pill">HOLD</span>;
+function PillVisual({ combo, hold, lang = "th" }: { combo: DayDose["combo"]; hold?: boolean; lang?: "th" | "en" }) {
+  if (hold || combo.dose === 0) return <span className="hold-pill">{lang === "th" ? "งดทานยา" : "HOLD"}</span>;
   const pills = [
     ...Array.from({ length: combo.orangeWhole }, (_, index) => <span key={`ow-${index}`} className="pill orange">2</span>),
     ...Array.from({ length: combo.orangeHalf }, (_, index) => <span key={`oh-${index}`} className="pill orange half">1/2</span>),

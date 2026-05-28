@@ -691,3 +691,75 @@ select {
   border-bottom: 1px solid #eef4f6;
 }
 
+/* Elderly Mode / Large Font Mode Styles */
+.elderly-mode {
+  font-size: 1.2rem;
+}
+
+.elderly-mode .sheet-head h2 {
+  font-size: 34px !important;
+}
+
+.elderly-mode .sheet-head p {
+  font-size: 18px !important;
+}
+
+.elderly-mode .wcode {
+  font-size: 32px !important;
+  padding: 12px 20px !important;
+}
+
+.elderly-mode .blank-grid {
+  font-size: 18px !important;
+  gap: 16px !important;
+}
+
+.elderly-mode .metric span {
+  font-size: 14px !important;
+}
+
+.elderly-mode .metric strong {
+  font-size: 26px !important;
+}
+
+.elderly-mode .schedule-block h3 {
+  font-size: 26px !important;
+}
+
+.elderly-mode .schedule-block p {
+  font-size: 17px !important;
+}
+
+.elderly-mode .day-row {
+  padding: 12px 18px !important;
+}
+
+.elderly-mode .day-row strong {
+  font-size: 22px !important;
+}
+
+.elderly-mode .day-row span {
+  font-size: 18px !important;
+}
+
+.elderly-mode .pill {
+  min-width: 48px !important;
+  height: 32px !important;
+  font-size: 15px !important;
+}
+
+.elderly-mode .hold-pill {
+  min-width: 90px !important;
+  height: 38px !important;
+  font-size: 15px !important;
+}
+
+.elderly-mode .instructions strong {
+  font-size: 18px !important;
+}
+
+.elderly-mode .instructions p {
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+
