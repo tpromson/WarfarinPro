@@ -74,6 +74,7 @@ export interface MedicationPlan {
     contextFlags: ContextFlag[];
     complexSchedule: boolean;
     roundedSchedule: boolean;
+    majorBleeding: boolean;
   };
   firstWeek: DayDose[];
   maintenanceWeek: DayDose[];

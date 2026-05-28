@@ -600,7 +600,7 @@ function SharePanel({ plan, disabled, onOpenPatient }: { plan: MedicationPlan; d
   }, [url]);
 
   useEffect(() => {
-    QRCode.toDataURL(url, { margin: 1, width: 240 }).then(setQr).catch(() => setQr(""));
+    QRCode.toDataURL(url, { errorCorrectionLevel: "L", margin: 1, width: 240 }).then(setQr).catch((err) => console.error("QR Code Error in SharePanel:", err));
   }, [url]);
 
   const lineText = `WarfarinPro ${plan.wCode}\nWeekly dose ${plan.scheduleWeeklyDose.toFixed(1)} mg\nOpen plan: ${url}`;
@@ -636,7 +636,7 @@ function MedicationSheet({ plan, lang = "th" }: { plan: MedicationPlan; lang?: "
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
 
   useEffect(() => {
-    QRCode.toDataURL(url, { margin: 1, width: 140 }).then(setQr).catch(() => setQr(""));
+    QRCode.toDataURL(url, { errorCorrectionLevel: "L", margin: 1, width: 140 }).then(setQr).catch((err) => console.error("QR Code Error in MedicationSheet:", err));
   }, [url]);
 
   return (
