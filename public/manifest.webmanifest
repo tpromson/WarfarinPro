@@ -1,0 +1,17 @@
+{
+  "name": "WarfarinPro",
+  "short_name": "WarfarinPro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7fbfb",
+  "theme_color": "#176087",
+  "description": "Local-first warfarin medication plan viewer and clinician support tool.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
