@@ -925,7 +925,55 @@ function BookletAndSharePanelContent({
   const [qr, setQr] = useState("");
   const [copiedWCode, setCopiedWCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [dispenseWeeks, setDispenseWeeks] = useState(4);
+  const [isCustomWeeks, setIsCustomWeeks] = useState(false);
+  const [customWeeksInput, setCustomWeeksInput] = useState("4");
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
+
+  const pillSums = useMemo(() => {
+    let w1OrangeWhole = 0;
+    let w1OrangeHalf = 0;
+    let w1BlueWhole = 0;
+    let w1BlueHalf = 0;
+
+    plan.firstWeek.forEach((d) => {
+      w1OrangeWhole += d.combo.orangeWhole || 0;
+      w1OrangeHalf += d.combo.orangeHalf || 0;
+      w1BlueWhole += d.combo.blueWhole || 0;
+      w1BlueHalf += d.combo.blueHalf || 0;
+    });
+
+    let maintOrangeWhole = 0;
+    let maintOrangeHalf = 0;
+    let maintBlueWhole = 0;
+    let maintBlueHalf = 0;
+
+    plan.maintenanceWeek.forEach((d) => {
+      maintOrangeWhole += d.combo.orangeWhole || 0;
+      maintOrangeHalf += d.combo.orangeHalf || 0;
+      maintBlueWhole += d.combo.blueWhole || 0;
+      maintBlueHalf += d.combo.blueHalf || 0;
+    });
+
+    const multiplier = Math.max(0, dispenseWeeks - 1);
+
+    const totalOrangeWhole = w1OrangeWhole + (maintOrangeWhole * multiplier);
+    const totalOrangeHalf = w1OrangeHalf + (maintOrangeHalf * multiplier);
+    const totalBlueWhole = w1BlueWhole + (maintBlueWhole * multiplier);
+    const totalBlueHalf = w1BlueHalf + (maintBlueHalf * multiplier);
+
+    const dispenseOrange = totalOrangeWhole + Math.ceil(totalOrangeHalf / 2);
+    const dispenseBlue = totalBlueWhole + Math.ceil(totalBlueHalf / 2);
+
+    return {
+      orangeWhole: totalOrangeWhole,
+      orangeHalf: totalOrangeHalf,
+      dispenseOrange,
+      blueWhole: totalBlueWhole,
+      blueHalf: totalBlueHalf,
+      dispenseBlue,
+    };
+  }, [plan, dispenseWeeks]);
 
   const shortUrl = useMemo(() => {
     try {
@@ -1174,6 +1222,132 @@ function BookletAndSharePanelContent({
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Step 3: Pharmacist Dispensing Calculator */}
+          <div className="space-y-2.5 pt-3.5 border-t border-clinic-line/60 border-dashed">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs text-slate-500 block font-bold">
+                {lang === "th"
+                  ? "3. จำนวนเม็ดยารวมสำหรับจ่ายยา (สำหรับเภสัชกร)"
+                  : "3. Total Tablets for Dispensing (Pharmacist Calculator)"}
+              </span>
+              
+              <div className="flex items-center gap-1 text-[11px] border border-clinic-line/80 rounded-lg p-0.5 bg-white shadow-sm">
+                {[4, 8, 12].map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    className={`px-2 py-0.5 rounded-md font-bold transition-all focus:outline-none ${
+                      dispenseWeeks === w && !isCustomWeeks
+                        ? "bg-clinic-blue text-white shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                    onClick={() => {
+                      setDispenseWeeks(w);
+                      setIsCustomWeeks(false);
+                      setCustomWeeksInput(w.toString());
+                    }}
+                  >
+                    {w} {lang === "th" ? "สัปดาห์" : "W"}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`px-2 py-0.5 rounded-md font-bold transition-all focus:outline-none ${
+                    isCustomWeeks
+                      ? "bg-clinic-blue text-white shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                  onClick={() => {
+                    setIsCustomWeeks(true);
+                    const val = parseInt(customWeeksInput, 10);
+                    if (!isNaN(val) && val > 0) {
+                      setDispenseWeeks(val);
+                    }
+                  }}
+                >
+                  {lang === "th" ? "กำหนดเอง" : "Custom"}
+                </button>
+
+                {isCustomWeeks && (
+                  <input
+                    type="number"
+                    min="1"
+                    max="52"
+                    className="w-10 px-1 py-0.5 text-center border border-slate-200 rounded focus:outline-none focus:border-clinic-blue font-bold text-slate-800 bg-slate-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    value={customWeeksInput}
+                    onChange={(e) => {
+                      setCustomWeeksInput(e.target.value);
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val) && val > 0) {
+                        setDispenseWeeks(val);
+                      }
+                    }}
+                    onBlur={() => {
+                      const val = parseInt(customWeeksInput, 10);
+                      if (isNaN(val) || val <= 0) {
+                        setCustomWeeksInput("4");
+                        setDispenseWeeks(4);
+                        setIsCustomWeeks(false);
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3.5">
+              {/* Orange 2mg Card */}
+              <div className="bg-orange-50/50 border border-orange-100/70 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-10 w-10 bg-orange-500/5 rounded-bl-full flex items-center justify-end pr-2 pb-2">
+                  <span className="pill orange !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">2</span>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-orange-700">
+                    {lang === "th" ? "เม็ดสีส้ม 2 mg" : "Orange 2 mg"}
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-black text-orange-950 font-mono">
+                      {pillSums.dispenseOrange}
+                    </span>
+                    <span className="text-[10px] text-orange-800 font-bold">
+                      {lang === "th" ? "เม็ดเต็ม" : "tabs"}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[9px] text-orange-850 mt-1.5 border-t border-orange-100/60 pt-1 font-bold leading-normal">
+                  {lang === "th" 
+                    ? `รายละเอียด: เม็ดเต็ม ${pillSums.orangeWhole} + แบบครึ่ง ${pillSums.orangeHalf} ชิ้น`
+                    : `Breakdown: ${pillSums.orangeWhole} whole + ${pillSums.orangeHalf} half`}
+                </p>
+              </div>
+
+              {/* Blue 3mg Card */}
+              <div className="bg-blue-50/50 border border-blue-100/70 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-10 w-10 bg-blue-500/5 rounded-bl-full flex items-center justify-end pr-2 pb-2">
+                  <span className="pill blue !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">3</span>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-blue-700">
+                    {lang === "th" ? "เม็ดสีฟ้า 3 mg" : "Blue 3 mg"}
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-black text-blue-950 font-mono">
+                      {pillSums.dispenseBlue}
+                    </span>
+                    <span className="text-[10px] text-blue-850 font-bold">
+                      {lang === "th" ? "เม็ดเต็ม" : "tabs"}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-[9px] text-blue-850 mt-1.5 border-t border-blue-100/60 pt-1 font-bold leading-normal">
+                  {lang === "th" 
+                    ? `รายละเอียด: เม็ดเต็ม ${pillSums.blueWhole} + แบบครึ่ง ${pillSums.blueHalf} ชิ้น`
+                    : `Breakdown: ${pillSums.blueWhole} whole + ${pillSums.blueHalf} half`}
+                </p>
+              </div>
             </div>
           </div>
 
