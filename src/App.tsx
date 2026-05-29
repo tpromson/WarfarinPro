@@ -751,7 +751,7 @@ function PatientMode({
         </div>
       )}
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold">{t[lang].patientViewer}</h2>
@@ -764,55 +764,103 @@ function PatientMode({
           </div>
           <p className="text-sm text-slate-600">{t[lang].noPatientId}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <div className="segmented print:hidden">
-            <button className={speakGender === "female" ? "active" : ""} onClick={() => setSpeakGender("female")}>
-              👩‍⚕️ {lang === "th" ? "หญิง" : "Female"}
-            </button>
-            <button className={speakGender === "male" ? "active" : ""} onClick={() => setSpeakGender("male")}>
-              👨‍⚕️ {lang === "th" ? "ชาย" : "Male"}
-            </button>
-          </div>
-          <IconButton icon={<Speaker size={17} />} onClick={() => speakPlan(plan, speakGender)} label={t[lang].listenThai} />
-          
-          <IconButton 
-            icon={<ZoomIn size={17} />} 
-            onClick={() => setIsLargeFont(!isLargeFont)} 
-            label={isLargeFont ? t[lang].zoomNormal : t[lang].zoomText} 
-          />
+      </div>
 
-          <div className="relative dropdown-container">
-            <IconButton icon={<CalendarDays size={17} />} onClick={() => setShowCalMenu(!showCalMenu)} label={t[lang].addToCal} />
-            {showCalMenu && (
-              <div className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-40 dropdown-menu">
-                <div className="py-1" role="menu" aria-orientation="vertical">
-                  <button
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
-                    onClick={() => {
-                      setShowCalMenu(false);
-                      handleDownloadIcs(plan);
-                    }}
-                  >
-                    <CalendarDays size={15} className="text-clinic-blue" />
-                    <span>{t[lang].downloadIcs}</span>
-                  </button>
-                  <button
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
-                    onClick={() => {
-                      setShowCalMenu(false);
-                      window.open(generateGoogleCalendarUrl(plan), "_blank");
-                    }}
-                  >
-                    <CalendarDays size={15} className="text-orange-500" />
-                    <span>{t[lang].addToGoogle}</span>
-                  </button>
+      {/* Patient Toolkit Panel */}
+      <div className="mb-6 bg-white border border-clinic-line rounded-2xl p-4 shadow-soft flex flex-wrap gap-6 items-center justify-between print:hidden">
+        <div className="space-y-1">
+          <h3 className="text-sm font-extrabold text-clinic-ink">
+            {lang === "th" ? "🛠️ เครื่องมือช่วยผู้ป่วย (Patient Toolkit)" : "🛠️ Patient Toolkit"}
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
+            {lang === "th" 
+              ? "ใช้ระบบเสียงแนะนำการทานยา, ซูมขนาดตัวอักษร, บันทึกลงปฏิทินมือถือ หรือสั่งพิมพ์ตารางยา" 
+              : "Use audio guidance, zoom text size, add calendar reminders, or print schedule"}
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* Group 1: Audio Dosing Guidance */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 mr-0.5 tracking-wider">Audio</span>
+            <div className="segmented !shadow-none !border-0 !p-0 !bg-transparent mr-1">
+              <button className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "female" ? "active" : ""}`} onClick={() => setSpeakGender("female")}>
+                👩‍⚕️ {lang === "th" ? "หญิง" : "Female"}
+              </button>
+              <button className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "male" ? "active" : ""}`} onClick={() => setSpeakGender("male")}>
+                👨‍⚕️ {lang === "th" ? "ชาย" : "Male"}
+              </button>
+            </div>
+            <IconButton 
+              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5" 
+              icon={<Speaker size={14} />} 
+              onClick={() => speakPlan(plan, speakGender)} 
+              label={t[lang].listenThai} 
+            />
+          </div>
+
+          {/* Group 2: Dosing Tools & Reminders */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 mr-0.5 tracking-wider">Tools</span>
+            <IconButton 
+              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+              icon={<ZoomIn size={14} />} 
+              onClick={() => setIsLargeFont(!isLargeFont)} 
+              label={isLargeFont ? t[lang].zoomNormal : t[lang].zoomText} 
+            />
+
+            <div className="relative dropdown-container">
+              <IconButton 
+                className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+                icon={<CalendarDays size={14} />} 
+                onClick={() => setShowCalMenu(!showCalMenu)} 
+                label={t[lang].addToCal} 
+              />
+              {showCalMenu && (
+                <div className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-40 dropdown-menu">
+                  <div className="py-1" role="menu" aria-orientation="vertical">
+                    <button
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
+                      onClick={() => {
+                        setShowCalMenu(false);
+                        handleDownloadIcs(plan);
+                      }}
+                    >
+                      <CalendarDays size={15} className="text-clinic-blue" />
+                      <span>{t[lang].downloadIcs}</span>
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
+                      onClick={() => {
+                        setShowCalMenu(false);
+                        window.open(generateGoogleCalendarUrl(plan), "_blank");
+                      }}
+                    >
+                      <CalendarDays size={15} className="text-orange-500" />
+                      <span>{t[lang].addToGoogle}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          <IconButton icon={<Save size={17} />} onClick={() => onSave(plan)} label={t[lang].saveOffline} />
-          <IconButton icon={<Printer size={17} />} onClick={() => window.print()} label={t[lang].print} />
+          {/* Group 3: File Management */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 mr-0.5 tracking-wider">File</span>
+            <IconButton 
+              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+              icon={<Save size={14} />} 
+              onClick={() => onSave(plan)} 
+              label={t[lang].saveOffline} 
+            />
+            <IconButton 
+              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+              icon={<Printer size={14} />} 
+              onClick={() => window.print()} 
+              label={t[lang].print} 
+            />
+          </div>
         </div>
       </div>
       
@@ -1497,6 +1545,7 @@ function IconButton({
   disabled,
   id,
   shortcut,
+  className,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -1504,11 +1553,12 @@ function IconButton({
   disabled?: boolean;
   id?: string;
   shortcut?: string;
+  className?: string;
 }) {
   return (
     <button
       id={id}
-      className="icon-button"
+      className={`icon-button ${className || ""}`}
       onClick={onClick}
       disabled={disabled}
       title={shortcut ? `${label} [${shortcut}]` : label}
