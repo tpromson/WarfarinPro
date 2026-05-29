@@ -312,10 +312,15 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
         }
       } else if (key === "o") {
         e.preventDefault();
-        document.getElementById("btn-open-patient")?.click();
+        if (canShare && plan) {
+          onOpenPatient(plan);
+        }
       } else if (key === "c") {
         e.preventDefault();
-        document.getElementById("btn-copy-link")?.click();
+        if (canShare && plan) {
+          navigator.clipboard.writeText(buildPatientUrl(plan));
+          alert(lang === "th" ? "คัดลอกลิงก์คนไข้เรียบร้อยแล้ว!" : "Patient link copied to clipboard!");
+        }
       } else if (key === "h") {
         e.preventDefault();
         window.print();
@@ -599,6 +604,7 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
                   onOpenPatient(p);
                 }}
                 lang={lang}
+                idPrefix="modal-"
               />
             </div>
 
@@ -847,10 +853,12 @@ function BookletAndSharePanelContent({
   plan,
   onOpenPatient,
   lang,
+  idPrefix = "",
 }: {
   plan: MedicationPlan;
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
+  idPrefix?: string;
 }) {
   const [qr, setQr] = useState("");
   const [copiedWCode, setCopiedWCode] = useState(false);
@@ -958,7 +966,7 @@ function BookletAndSharePanelContent({
 
           <div className="grid grid-cols-2 gap-1.5">
             <IconButton
-              id="btn-copy-link"
+              id={`${idPrefix}btn-copy-link`}
               icon={<Copy size={14} />}
               onClick={handleCopyLink}
               label={
@@ -973,7 +981,7 @@ function BookletAndSharePanelContent({
               shortcut="Alt+C"
             />
             <IconButton
-              id="btn-open-patient"
+              id={`${idPrefix}btn-open-patient`}
               icon={<UserRound size={14} />}
               onClick={() => onOpenPatient(plan)}
               label={lang === "th" ? "เปิดหน้าผู้ป่วย" : "Patient View"}
@@ -1176,6 +1184,7 @@ function BookletAndSharePanel({
         plan={plan}
         onOpenPatient={onOpenPatient}
         lang={lang}
+        idPrefix="inline-"
       />
     </Panel>
   );
