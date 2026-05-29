@@ -591,8 +591,14 @@ function DoctorMode({ onOpenPatient, lang }: { onOpenPatient: (plan: MedicationP
       </section>
 
       {showSummaryModal && plan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden">
-          <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-soft border border-clinic-line overflow-hidden flex flex-col max-h-[90vh]">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden cursor-pointer"
+          onClick={() => setShowSummaryModal(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl bg-white rounded-2xl shadow-soft border border-clinic-line overflow-hidden flex flex-col max-h-[90vh] cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="bg-clinic-blue text-white p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
