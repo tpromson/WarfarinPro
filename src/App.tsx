@@ -183,11 +183,25 @@ export default function App() {
             </div>
           </button>
           <div className="flex items-center gap-3 print:hidden">
-            <div className="segmented">
-              <button className={lang === "th" ? "active" : ""} onClick={() => setLang("th")}>
+            <div className="flex items-center gap-0.5 border border-clinic-line/60 rounded-lg p-0.5 bg-slate-50 shadow-sm text-[10px]">
+              <button
+                className={`px-2.5 py-0.5 rounded font-black transition-all focus:outline-none ${
+                  lang === "th"
+                    ? "bg-clinic-blue text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+                onClick={() => setLang("th")}
+              >
                 TH
               </button>
-              <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")}>
+              <button
+                className={`px-2.5 py-0.5 rounded font-black transition-all focus:outline-none ${
+                  lang === "en"
+                    ? "bg-clinic-blue text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+                onClick={() => setLang("en")}
+              >
                 EN
               </button>
             </div>
