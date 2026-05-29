@@ -1236,8 +1236,8 @@ function BookletAndSharePanelContent({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-slate-500 block font-bold">
                 {lang === "th"
-                  ? "3. จำนวนเม็ดยารวมสำหรับจ่ายยา (สำหรับเภสัชกร)"
-                  : "3. Total Tablets for Dispensing (Pharmacist Calculator)"}
+                  ? `3. จำนวนเม็ดยารวมสำหรับจ่ายยา (สำหรับเภสัชกร) - ${dispenseWeeks} สัปดาห์ (${dispenseWeeks * 7} วัน)`
+                  : `3. Total Tablets for Dispensing (Pharmacist Calculator) - ${dispenseWeeks} Weeks (${dispenseWeeks * 7} Days)`}
               </span>
               
               <div className="flex items-center gap-1 text-[11px] border border-clinic-line/80 rounded-lg p-0.5 bg-white shadow-sm">
