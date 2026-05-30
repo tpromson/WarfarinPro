@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { BookOpen, Check, Copy, MessageCircle, Printer, QrCode, UserRound } from "lucide-react";
+import { BookOpen, Check, Copy, FileDown, MessageCircle, Printer, QrCode, UserRound } from "lucide-react";
 import { buildPatientUrl, days } from "../clinical";
 import { getDayLabel, getPillComboDesc, t } from "../i18n";
+import { downloadPdf } from "../pdf";
 import IconButton from "./IconButton";
 import PillVisual from "./PillVisual";
 import type { MedicationPlan } from "../types";
@@ -238,7 +239,7 @@ export default function BookletAndSharePanelContent({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5">
             <button
               onClick={() =>
                 window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
@@ -248,6 +249,11 @@ export default function BookletAndSharePanelContent({
               <MessageCircle size={14} className="text-[#06C755]" />
               <span>LINE Share</span>
             </button>
+            <IconButton
+              icon={<FileDown size={14} />}
+              onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
+              label={t[lang].downloadPdf}
+            />
             <IconButton
               icon={<Printer size={14} />}
               onClick={() => window.print()}
@@ -485,10 +491,17 @@ export default function BookletAndSharePanelContent({
           </div>
 
           {/* Print advice helper */}
-          <div className="pt-2 text-right">
+          <div className="pt-2 flex items-center justify-end gap-2">
+            <button
+              onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
+              className="px-4 py-2 border border-clinic-blue text-clinic-blue hover:bg-clinic-cyan/10 font-extrabold text-xs rounded-xl shadow-sm transition-all focus:outline-none flex items-center justify-center gap-2"
+            >
+              <FileDown size={15} />
+              <span>{t[lang].downloadPdf}</span>
+            </button>
             <button
               onClick={() => window.print()}
-              className="px-4 py-2 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-xs rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2 inline-flex"
+              className="px-4 py-2 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-xs rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2"
             >
               <Printer size={15} />
               <span>

@@ -43,13 +43,13 @@ export default function MedicationSheet({
   }, [url]);
 
   const pageStyle = printLayout === "half-a4"
-    ? `@media print { @page { size: A5 portrait; margin: 5mm; } }`
+    ? `@media print { @page { size: A5 landscape; margin: 5mm; } }`
     : `@media print { @page { size: 90mm 80mm; margin: 0; } }`;
 
   if (printLayout === "label") {
     return (
       <>
-        <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
+        {pageStyle && <style dangerouslySetInnerHTML={{ __html: pageStyle }} />}
         <section className="sheet layout-label">
           <div className="label-header">
             <div className="label-title-group">
@@ -128,10 +128,10 @@ export default function MedicationSheet({
     );
   }
 
-  // Original Half A4 (A5) Layout
+  // A5 Landscape Layout
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
+      {pageStyle && <style dangerouslySetInnerHTML={{ __html: pageStyle }} />}
       <section className="sheet layout-half-a4">
         <div className="sheet-head">
           <div>
@@ -141,30 +141,31 @@ export default function MedicationSheet({
           <div className="flex items-center gap-3">
             {qr && (
               <div className="flex flex-col items-center gap-0.5">
-                <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="h-24 w-24 border border-clinic-line rounded p-0.5 bg-white" />
-                <span className="text-[10px] text-slate-500 font-extrabold">{lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}</span>
+                <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="h-20 w-20 border border-clinic-line rounded p-0.5 bg-white" />
+                <span className="text-[9px] text-slate-500 font-extrabold">{lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}</span>
               </div>
             )}
             <div className="wcode">{plan.wCode}</div>
           </div>
         </div>
 
-        <div className="blank-grid">
-          <span>{t[lang].patientName}: ____________________</span>
-          <span>{t[lang].hn}: ____________________</span>
-          <span>{t[lang].appointment}: ____________________</span>
-          <span>{t[lang].physicianSignature}: ____________________</span>
-        </div>
-
-        <div className="sheet-metrics">
-          <Metric label={t[lang].weeklyDose} value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} />
-          <Metric label={t[lang].targetInr} value={`${plan.target.lower.toFixed(1)}-${plan.target.upper.toFixed(1)}`} />
-          <Metric label={t[lang].issued} value={plan.issuedDate} />
+        <div className="sheet-info-row">
+          <div className="blank-grid">
+            <span>{t[lang].patientName}: ____________________</span>
+            <span>{t[lang].hn}: ____________________</span>
+            <span>{t[lang].appointment}: ____________________</span>
+            <span>{t[lang].physicianSignature}: ____________________</span>
+          </div>
+          <div className="sheet-metrics">
+            <Metric label={t[lang].weeklyDose} value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} />
+            <Metric label={t[lang].targetInr} value={`${plan.target.lower.toFixed(1)}-${plan.target.upper.toFixed(1)}`} />
+            <Metric label={t[lang].issued} value={plan.issuedDate} />
+          </div>
         </div>
 
         {plan.safety.severity !== "normal" || plan.safety.messages.length ? (
           <div className={`safety ${plan.safety.severity}`}>
-            <AlertTriangle size={18} />
+            <AlertTriangle size={16} />
             <div>
               <strong>{lang === "th" ? "การประเมินความปลอดภัย" : "Safety review"}</strong>
               {plan.safety.messages.map((message) => (
@@ -174,7 +175,7 @@ export default function MedicationSheet({
           </div>
         ) : null}
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 landscape-grid-cols-2">
           <ScheduleView
             title={t[lang].firstWeekTitle}
             subtitle={lang === "th" ? `เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   CalendarDays,
   ChevronDown,
+  FileDown,
   Home,
   Printer,
   Save,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import { generateGoogleCalendarUrl, generateIcsFile, parseWCodeToPlan } from "../clinical";
 import { t } from "../i18n";
+import { downloadPdf } from "../pdf";
 import { speakPlan } from "../tts";
 import type { MedicationPlan } from "../types";
 import Panel from "./Panel";
@@ -264,6 +266,12 @@ export default function PatientMode({
               icon={<Save size={14} />}
               onClick={() => onSave(plan)}
               label={t[lang].saveOffline}
+            />
+            <IconButton
+              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+              icon={<FileDown size={14} />}
+              onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
+              label={t[lang].downloadPdf}
             />
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"

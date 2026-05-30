@@ -37,6 +37,7 @@ export const t = {
     printLayout: "รูปแบบการพิมพ์",
     printHalfA4: "ครึ่ง A4 (A5)",
     printLabel: "ฉลากยา (Sticker)",
+    downloadPdf: "ดาวน์โหลด PDF",
   },
   en: {
     doctor: "Doctor",
@@ -74,6 +75,7 @@ export const t = {
     printLayout: "Print Layout",
     printHalfA4: "Half A4 (A5)",
     printLabel: "Medicine Label Sticker",
+    downloadPdf: "Download PDF",
   }
 };
 
