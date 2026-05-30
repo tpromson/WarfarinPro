@@ -125,9 +125,9 @@ export default function BookletAndSharePanelContent({
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+    <div className="grid gap-6 md:grid-cols-[300px_1fr]">
       {/* Left Column: W-Code, QR Code & Links */}
-      <div className="space-y-5 border-b border-clinic-line lg:border-b-0 lg:border-r border-dashed border-clinic-line pb-6 lg:pb-0 lg:pr-6 flex flex-col justify-between">
+      <div className="space-y-5 border-b border-clinic-line md:border-b-0 md:border-r border-dashed border-clinic-line pb-6 md:pb-0 md:pr-6 flex flex-col justify-between">
         <div className="space-y-4">
           {/* W-Code Ticket */}
           <div className="bg-clinic-paper border-2 border-dashed border-clinic-blue/40 rounded-xl p-4 text-center space-y-2.5 relative overflow-hidden shadow-sm">
@@ -327,7 +327,7 @@ export default function BookletAndSharePanelContent({
             </span>
 
             <div className="border border-clinic-line/60 rounded-xl overflow-hidden bg-white shadow-sm overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse min-w-[400px]">
+              <table className="w-full text-xs text-left border-collapse min-w-0 md:min-w-[400px]">
                 <thead>
                   <tr className="bg-slate-100 text-slate-600 border-b border-clinic-line font-bold">
                     <th className="p-2.5 w-28">{lang === "th" ? "วัน" : "Day"}</th>

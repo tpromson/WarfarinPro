@@ -659,6 +659,29 @@ select {
   transform: scale(1.05);
 }
 
+@media (max-width: 640px) {
+  .editor-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-head {
+    display: grid;
+  }
+
+  .blank-grid,
+  .sheet-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-editor {
+    gap: 6px;
+  }
+
+  .landscape-grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 760px) {
   .editor-row {
     grid-template-columns: 1fr;
@@ -671,6 +694,12 @@ select {
 
   .sheet-head {
     display: grid;
+  }
+}
+
+@media (max-width: 480px) {
+  .check-grid {
+    grid-template-columns: 1fr;
   }
 }
 

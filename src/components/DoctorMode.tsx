@@ -193,7 +193,7 @@ export default function DoctorMode({
   }
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 lg:grid-cols-[360px_1fr]">
+    <div className="mx-auto grid gap-5 px-4 py-5 lg:grid-cols-[360px_1fr] grid-cols-1">
       <section className="space-y-4">
         <Panel title="Clinical Inputs" icon={<HeartPulse size={18} />}>
           <NumberField
@@ -280,7 +280,7 @@ export default function DoctorMode({
               Alt+B
             </kbd>
           </label>
-          <div className="check-grid">
+          <div className="check-grid md:grid-cols-2">
             {contextKeys.map((flag) => (
               <label key={flag} className="check">
                 <input type="checkbox" checked={contexts.includes(flag)} onChange={() => toggleContext(flag)} />
@@ -289,7 +289,7 @@ export default function DoctorMode({
             ))}
           </div>
           <div className="mt-3 text-xs font-semibold uppercase text-slate-500">Interaction flags</div>
-          <div className="check-grid">
+          <div className="check-grid md:grid-cols-2">
             {interactionKeys.map((flag) => (
               <label key={flag} className="check">
                 <input type="checkbox" checked={interactions.includes(flag)} onChange={() => toggleInteraction(flag)} />

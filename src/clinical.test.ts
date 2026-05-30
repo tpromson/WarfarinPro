@@ -38,27 +38,42 @@ describe("roundToHalf", () => {
 // ─── W-code ────────────────────────────────────────────────
 
 describe("makeWCode", () => {
-  it("encodes weekly dose and hold count", () => {
-    expect(makeWCode(21, 1)).toBe("W2101");
-    expect(makeWCode(35, 2)).toBe("W3502");
-    expect(makeWCode(0, 0)).toBe("W0000");
+  it("encodes weekly dose, hold count, and clinicDay (default 0=sun)", () => {
+    expect(makeWCode(21, 1)).toBe("W21010"); // clinicDay defaults to 0 (sun)
+    expect(makeWCode(35, 2)).toBe("W35020");
+    expect(makeWCode(0, 0)).toBe("W00000");
+  });
+it("encodes clinicDay when provided", () => {
+    expect(makeWCode(21, 1, "mon")).toBe("W21011"); // mon → 1
+    expect(makeWCode(21, 1, "thu")).toBe("W21014"); // thu → 4
+    expect(makeWCode(35, 2, "sat")).toBe("W35026"); // sat → 6
   });
   it("pads with zeros", () => {
-    expect(makeWCode(5, 0)).toBe("W0500");
-    expect(makeWCode(7.5, 0)).toBe("W0750");
+    expect(makeWCode(5, 0)).toBe("W05000");
+    expect(makeWCode(7.5, 0)).toBe("W07500");
   });
   it("returns W---- for out-of-range", () => {
     expect(makeWCode(-1, 0)).toBe("W----");
     expect(makeWCode(1000, 0)).toBe("W----");
   });
-  it("clamps holdDoses to 0-9", () => {
-    expect(makeWCode(21, -1)).toBe("W2100");
-    expect(makeWCode(21, 15)).toBe("W2109");
+  it("clamps holdDoses to 0-9, dayIndex defaults to 0", () => {
+    expect(makeWCode(21, -1)).toBe("W21000"); // hold clamped to 0, day=0
+    expect(makeWCode(21, 15)).toBe("W21090"); // hold clamped to 9, day=0
   });
 });
 
 describe("parseWCodeToPlan", () => {
-  it("parses a valid W-code into a plan", () => {
+  it("parses a 6-char W-code with clinicDay", () => {
+    const plan = parseWCodeToPlan("W21011");
+    expect(plan).not.toBeNull();
+    expect(plan!.wCode).toBe("W21011");
+    expect(plan!.calculatedWeeklyDose).toBe(21);
+    expect(plan!.firstWeekHoldDoses).toBe(1);
+    expect(plan!.clinicDay).toBe("mon"); // digit 1 → mon
+    expect(plan!.maintenanceWeek).toHaveLength(7);
+    expect(plan!.firstWeek).toHaveLength(7);
+  });
+  it("falls back to today when clinicDay omitted (5-char, backward compat)", () => {
     const plan = parseWCodeToPlan("W2101");
     expect(plan).not.toBeNull();
     expect(plan!.wCode).toBe("W2101");
@@ -70,13 +85,14 @@ describe("parseWCodeToPlan", () => {
   it("returns null for invalid format", () => {
     expect(parseWCodeToPlan("")).toBeNull();
     expect(parseWCodeToPlan("ABC")).toBeNull();
-    expect(parseWCodeToPlan("W12345")).toBeNull();
-    expect(parseWCodeToPlan("X1234")).toBeNull();
+    expect(parseWCodeToPlan("W123456")).toBeNull();
+    expect(parseWCodeToPlan("X12345")).toBeNull();
   });
   it("handles lowercase input", () => {
-    const plan = parseWCodeToPlan("w2101");
+    const plan = parseWCodeToPlan("w21014");
     expect(plan).not.toBeNull();
-    expect(plan!.wCode).toBe("W2101");
+    expect(plan!.wCode).toBe("W21014");
+    expect(plan!.clinicDay).toBe("thu"); // digit 4 → thu
   });
 });
 
@@ -343,7 +359,7 @@ describe("makePlan", () => {
     expect(plan.firstWeek).toHaveLength(7);
     expect(plan.maintenanceWeek).toHaveLength(7);
     expect(plan.firstWeek[0].day).toBe("wed");
-    expect(plan.wCode).toMatch(/^W\d{4}$/);
+    expect(plan.wCode).toMatch(/^W\d{5}$/);
   });
   it("applies custom maintenance schedule", () => {
     const customSchedule: DayDose[] = [
