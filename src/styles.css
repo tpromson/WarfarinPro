@@ -640,14 +640,52 @@ select {
 }
 
 @media print {
-  body {
-    background: white;
+  /* Complete layout reset for printing */
+  html, body, #root, main {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    box-sizing: border-box !important;
   }
 
+  /* Hide screen-only components and standard inputs/panels */
   header,
   .print\:hidden,
-  .panel:not(:has(.sheet)) {
+  .voice-prompt-banner,
+  .status,
+  .panel,
+  .instructions:not(.sheet .instructions) {
     display: none !important;
+  }
+
+  /* Reset outer grid/flex containers to block layout to avoid pagination overflow */
+  .mx-auto.grid,
+  .mx-auto.max-w-7xl,
+  .mx-auto.max-w-6xl,
+  main > div,
+  main > div > section {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    gap: 0 !important;
+  }
+
+  /* Position print sheet wrapper cleanly */
+  .print-sheet-wrapper {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .sheet {
@@ -807,5 +845,365 @@ select {
 
 .voice-prompt-banner:hover {
   border-color: rgba(23, 96, 135, 0.4);
+}
+
+/* Medicine Label (Sticker) Print Layout Styles */
+.sheet.layout-label {
+  max-width: 480px;
+  margin: 0 auto;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  background: white;
+  color: black;
+  padding: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+}
+
+.layout-label .label-header {
+  border-bottom: 2px solid black;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.layout-label .label-title-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.layout-label .label-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0;
+  color: black !important;
+}
+
+.layout-label .label-drug {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.layout-label .label-fields {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.layout-label .label-body {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 12px;
+  margin-bottom: 8px;
+  margin-top: 10px;
+}
+
+.layout-label .label-schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.layout-label .label-schedule-table th,
+.layout-label .label-schedule-table td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 4px 2px;
+  text-align: left;
+}
+
+.layout-label .label-schedule-table th {
+  font-weight: 800;
+  color: #475569;
+  border-bottom: 2px solid black;
+}
+
+.layout-label .label-schedule-table td {
+  font-weight: 700;
+}
+
+.layout-label .label-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.layout-label .label-qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.layout-label .label-qr-img {
+  width: 65px;
+  height: 65px;
+  border: 1px solid #cbd5e1;
+  padding: 2px;
+  background: white;
+}
+
+.layout-label .label-qr-caption {
+  font-size: 8px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.layout-label .label-wcode-box {
+  border: 2px solid black;
+  border-radius: 4px;
+  padding: 2px 4px;
+  text-align: center;
+  width: 100%;
+  background: white;
+}
+
+.layout-label .label-wcode-title {
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 1px;
+}
+
+.layout-label .label-wcode {
+  font-size: 14px;
+  font-weight: 900;
+  color: black;
+  letter-spacing: 0.05em;
+}
+
+.layout-label .label-footer {
+  border-top: 1px dashed black;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.layout-label .label-warning-text {
+  font-size: 10px;
+  font-weight: 800;
+  color: #b91c1c;
+}
+
+/* Specific media print styling for layouts */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body:has(.sheet.layout-label) {
+    background: white;
+  }
+
+  .print-sheet-wrapper:has(.layout-label) {
+    display: block !important;
+    position: static !important;
+    width: 90mm !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .sheet.layout-label {
+    width: 90mm !important;
+    max-width: 90mm !important;
+    min-height: 80mm !important;
+    border: 1px solid black !important;
+    border-radius: 0 !important;
+    padding: 2mm !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+  }
+
+  .layout-label .label-title {
+    font-size: 13px !important;
+  }
+
+  .layout-label .label-drug {
+    font-size: 11px !important;
+  }
+
+  .layout-label .label-fields {
+    font-size: 10px !important;
+  }
+
+  .layout-label .label-schedule-table {
+    font-size: 10px !important;
+  }
+
+  .layout-label .label-schedule-table th,
+  .layout-label .label-schedule-table td {
+    border-bottom: 1px solid black !important;
+  }
+
+  .layout-label .label-schedule-table th {
+    border-bottom: 1.5px solid black !important;
+  }
+
+  .layout-label .label-qr-img {
+    border: 1px solid black !important;
+  }
+
+  .layout-label .label-wcode-box {
+    border: 1.5px solid black !important;
+  }
+
+  .layout-label .label-footer {
+    border-top: 1px dashed black !important;
+    font-size: 10px !important;
+  }
+
+  /* A5 print overrides to fit everything on a single A5 sheet */
+  .print-sheet-wrapper:has(.layout-half-a4) {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+  }
+
+  .sheet.layout-half-a4 {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 6mm !important;
+    box-sizing: border-box !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+  }
+
+  .sheet.layout-half-a4 .sheet-head h2 {
+    font-size: 18px !important;
+  }
+
+  .sheet.layout-half-a4 .sheet-head p {
+    font-size: 11px !important;
+  }
+
+  .sheet.layout-half-a4 .blank-grid {
+    font-size: 11px !important;
+    margin: 12px 0 !important;
+    gap: 8px !important;
+  }
+
+  .sheet.layout-half-a4 .sheet-metrics {
+    margin: 12px 0 !important;
+    gap: 8px !important;
+  }
+
+  .sheet.layout-half-a4 .metric {
+    padding: 8px !important;
+  }
+
+  .sheet.layout-half-a4 .metric span {
+    font-size: 10px !important;
+  }
+
+  .sheet.layout-half-a4 .metric strong {
+    font-size: 14px !important;
+    margin-top: 2px !important;
+  }
+
+  .sheet.layout-half-a4 .schedule-block {
+    padding: 10px !important;
+  }
+
+  .sheet.layout-half-a4 .schedule-block h3 {
+    font-size: 14px !important;
+  }
+
+  .sheet.layout-half-a4 .schedule-block p {
+    font-size: 10px !important;
+  }
+
+  .sheet.layout-half-a4 .day-row {
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+  }
+
+  .sheet.layout-half-a4 .day-row strong {
+    font-size: 12px !important;
+  }
+
+  .sheet.layout-half-a4 .day-row span {
+    font-size: 11px !important;
+  }
+
+  .sheet.layout-half-a4 .pill {
+    min-width: 32px !important;
+    height: 22px !important;
+    font-size: 10px !important;
+    box-shadow: none !important;
+  }
+
+  .sheet.layout-half-a4 .pill.orange {
+    background: #ffedd5 !important;
+    border: 1.5px solid #d97706 !important;
+    color: #78350f !important;
+  }
+
+  .sheet.layout-half-a4 .pill.blue {
+    background: #dbeafe !important;
+    border: 1.5px solid #2563eb !important;
+    color: #1e3a8a !important;
+  }
+
+  .sheet.layout-half-a4 .hold-pill {
+    min-width: 60px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+    background: #fee2e2 !important;
+    border: 1.5px solid #dc2626 !important;
+    color: #991b1b !important;
+    box-shadow: none !important;
+  }
+
+  .sheet.layout-half-a4 .instructions {
+    margin-top: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  .sheet.layout-half-a4 .instructions strong {
+    font-size: 11px !important;
+  }
+
+  .sheet.layout-half-a4 .instructions p {
+    font-size: 10px !important;
+    margin-top: 2px !important;
+    line-height: 1.3 !important;
+  }
+}
+
+/* Sharp crisp QR code rendering for printing */
+.label-qr-img,
+.sheet-head img,
+.qr-box img {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -o-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 
