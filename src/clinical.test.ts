@@ -400,13 +400,14 @@ describe("generateIcsFile", () => {
       selectedAdjustment: 0,
       holdDoses: 0,
     });
-    const ics = generateIcsFile(plan);
+    const ics = generateIcsFile(plan, "2026-05-30", "2026-06-13", "th");
     expect(ics).toContain("BEGIN:VCALENDAR");
     expect(ics).toContain("END:VCALENDAR");
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("END:VEVENT");
     expect(ics).toContain("VERSION:2.0");
     expect(ics).toContain(`SUMMARY:`);
+    expect(ics).toContain("BEGIN:VALARM");
     expect(ics).toContain(plan.wCode);
   });
   it("includes hold events for first week holds", () => {
@@ -419,7 +420,7 @@ describe("generateIcsFile", () => {
       selectedAdjustment: -15,
       holdDoses: 2,
     });
-    const ics = generateIcsFile(plan);
+    const ics = generateIcsFile(plan, "2026-05-30", "2026-06-13", "th");
     expect(ics).toContain("⚠️ งดยาวาร์ฟาริน");
   });
 });
@@ -437,10 +438,11 @@ describe("generateGoogleCalendarUrl", () => {
       selectedAdjustment: 0,
       holdDoses: 0,
     });
-    const url = generateGoogleCalendarUrl(plan);
+    const url = generateGoogleCalendarUrl(plan, "2026-05-30", "2026-06-27", "th");
     expect(url).toContain("https://calendar.google.com/calendar/render");
     expect(url).toContain("action=TEMPLATE");
     expect(url).toContain(plan.wCode);
+    expect(url).toContain("UNTIL=20260627");
   });
 });
 

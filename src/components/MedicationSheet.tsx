@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { AlertTriangle } from "lucide-react";
-import { buildPatientUrl, days } from "../clinical";
+import { buildPatientUrl, days, isFirstWeekOver } from "../clinical";
 import { getDayLabel, getPillComboDesc, t } from "../i18n";
 import Metric from "./Metric";
 import ScheduleView from "./ScheduleView";
@@ -128,6 +128,8 @@ export default function MedicationSheet({
     );
   }
 
+  const firstWeekPassed = isFirstWeekOver(plan);
+
   // A5 Landscape Layout
   return (
     <>
@@ -175,20 +177,39 @@ export default function MedicationSheet({
           </div>
         ) : null}
 
-        <div className="grid gap-3 landscape-grid-cols-2">
-          <ScheduleView
-            title={t[lang].firstWeekTitle}
-            subtitle={lang === "th" ? `เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
-            schedule={plan.firstWeek}
-            lang={lang}
-          />
-          <ScheduleView
-            title={t[lang].maintenanceWeekTitle}
-            subtitle={t[lang].maintenanceWeekSubtitle}
-            schedule={plan.maintenanceWeek}
-            lang={lang}
-          />
-        </div>
+        {firstWeekPassed ? (
+          <div className="space-y-3">
+            <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-3 text-xs font-bold flex items-center gap-2">
+              <span>✓</span>
+              <span>
+                {lang === "th"
+                  ? `ผ่านช่วงสัปดาห์แรกแล้ว (${plan.firstWeekHoldDoses > 0 ? `งดยา ${plan.firstWeekHoldDoses} วันแรก เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : "ไม่มีงดยา"} — ใช้ตารางปกติต่อไปนี้)`
+                  : `First week completed (${plan.firstWeekHoldDoses > 0 ? `${plan.firstWeekHoldDoses} hold day(s) starting ${getDayLabel(plan.clinicDay, "en")}` : "no holds"} — follow regular schedule below)`}
+              </span>
+            </div>
+            <ScheduleView
+              title={t[lang].maintenanceWeekTitle}
+              subtitle={t[lang].maintenanceWeekSubtitle}
+              schedule={plan.maintenanceWeek}
+              lang={lang}
+            />
+          </div>
+        ) : (
+          <div className="grid gap-3 landscape-grid-cols-2">
+            <ScheduleView
+              title={t[lang].firstWeekTitle}
+              subtitle={lang === "th" ? `เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
+              schedule={plan.firstWeek}
+              lang={lang}
+            />
+            <ScheduleView
+              title={t[lang].maintenanceWeekTitle}
+              subtitle={t[lang].maintenanceWeekSubtitle}
+              schedule={plan.maintenanceWeek}
+              lang={lang}
+            />
+          </div>
+        )}
 
         <div className="instructions">
           <strong>{t[lang].warningTitle}</strong>

@@ -47,6 +47,31 @@ export default function PatientMode({
   const [isLargeFont, setIsLargeFont] = useState(false);
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
 
+  const [calStartDate, setCalStartDate] = useState(() => plan?.issuedDate || "");
+  const [calEndDate, setCalEndDate] = useState(() => {
+    if (!plan?.issuedDate) return "";
+    const [y, m, d] = plan.issuedDate.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + 28); // default 4 weeks
+    const cy = date.getFullYear();
+    const cm = String(date.getMonth() + 1).padStart(2, "0");
+    const cd = String(date.getDate()).padStart(2, "0");
+    return `${cy}-${cm}-${cd}`;
+  });
+
+  useEffect(() => {
+    if (plan) {
+      setCalStartDate(plan.issuedDate);
+      const [y, m, d] = plan.issuedDate.split("-").map(Number);
+      const date = new Date(y, m - 1, d);
+      date.setDate(date.getDate() + 28); // default 4 weeks
+      const cy = date.getFullYear();
+      const cm = String(date.getMonth() + 1).padStart(2, "0");
+      const cd = String(date.getDate()).padStart(2, "0");
+      setCalEndDate(`${cy}-${cm}-${cd}`);
+    }
+  }, [plan?.id, plan?.issuedDate]);
+
   useEffect(() => {
     if (!showCalMenu) return;
     const handleOutsideClick = (e: MouseEvent) => {
@@ -59,8 +84,8 @@ export default function PatientMode({
     return () => document.removeEventListener("click", handleOutsideClick);
   }, [showCalMenu]);
 
-  const handleDownloadIcs = (plan: MedicationPlan) => {
-    const icsContent = generateIcsFile(plan);
+  const handleDownloadIcs = (plan: MedicationPlan, startDate: string, endDate: string) => {
+    const icsContent = generateIcsFile(plan, startDate, endDate, lang);
     const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -224,26 +249,50 @@ export default function PatientMode({
                 aria-expanded={showCalMenu}
               />
               {showCalMenu && (
-                <div className="absolute right-0 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-40 dropdown-menu">
-                  <div className="py-1" role="menu" aria-orientation="vertical">
+                <div className="absolute right-0 mt-2 w-72 rounded-xl bg-white shadow-xl ring-1 ring-black/5 p-4 z-40 dropdown-menu space-y-3">
+                  <h4 className="text-xs font-black text-clinic-ink uppercase tracking-wider border-b pb-1.5 border-slate-100">
+                    {lang === "th" ? "ตั้งค่าปฏิทินกินยา" : "Calendar Reminders"}
+                  </h4>
+                  
+                  <label className="flex flex-col gap-1 text-left">
+                    <span className="text-[11px] font-bold text-slate-500">{lang === "th" ? "วันเริ่มต้นทานยา" : "Start Date"}</span>
+                    <input
+                      type="date"
+                      value={calStartDate}
+                      onChange={(e) => setCalStartDate(e.target.value)}
+                      className="text-xs font-bold border border-slate-200 rounded px-2 py-1 bg-slate-50"
+                    />
+                  </label>
+                  
+                  <label className="flex flex-col gap-1 text-left">
+                    <span className="text-[11px] font-bold text-slate-500">{lang === "th" ? "วันนัดตรวจครั้งถัดไป" : "Next Appointment"}</span>
+                    <input
+                      type="date"
+                      value={calEndDate}
+                      onChange={(e) => setCalEndDate(e.target.value)}
+                      className="text-xs font-bold border border-slate-200 rounded px-2 py-1 bg-slate-50"
+                    />
+                  </label>
+
+                  <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-100">
                     <button
-                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left font-bold rounded-lg border border-slate-100"
                       onClick={() => {
                         setShowCalMenu(false);
-                        handleDownloadIcs(plan);
+                        handleDownloadIcs(plan, calStartDate, calEndDate);
                       }}
                     >
-                      <CalendarDays size={15} className="text-clinic-blue" />
+                      <CalendarDays size={14} className="text-clinic-blue" />
                       <span>{t[lang].downloadIcs}</span>
                     </button>
                     <button
-                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 text-left font-semibold"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left font-bold rounded-lg border border-slate-100"
                       onClick={() => {
                         setShowCalMenu(false);
-                        window.open(generateGoogleCalendarUrl(plan), "_blank");
+                        window.open(generateGoogleCalendarUrl(plan, calStartDate, calEndDate, lang), "_blank");
                       }}
                     >
-                      <CalendarDays size={15} className="text-orange-500" />
+                      <CalendarDays size={14} className="text-orange-500" />
                       <span>{t[lang].addToGoogle}</span>
                     </button>
                   </div>
