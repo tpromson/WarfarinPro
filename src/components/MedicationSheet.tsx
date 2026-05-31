@@ -146,8 +146,8 @@ export default function MedicationSheet({
           <div className="flex items-center gap-3">
             {qr && (
               <div className="flex flex-col items-center gap-0.5">
-                <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="h-20 w-20 border border-clinic-line rounded p-0.5 bg-white" />
-                <span className="text-[9px] text-slate-500 font-extrabold">{lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}</span>
+                <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="h-24 w-24 border border-clinic-line rounded p-0.5 bg-white" />
+                <span className="text-[10px] text-slate-500 font-extrabold">{lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}</span>
               </div>
             )}
             <div className="wcode">{plan.wCode}</div>

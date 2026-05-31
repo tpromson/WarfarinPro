@@ -1200,12 +1200,13 @@ select {
   }
 
   .sheet.layout-half-a4 .sheet-head img {
-    height: 75px !important;
-    width: 75px !important;
+    height: 95px !important;
+    width: 95px !important;
   }
 
   .sheet.layout-half-a4 .sheet-head span {
-    font-size: 9px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
   }
 
   .sheet.layout-half-a4 .blank-grid {
