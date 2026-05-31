@@ -491,4 +491,35 @@ describe("planSpeech", () => {
     expect(planSpeech(plan, "female")).toContain("ค่ะ");
     expect(planSpeech(plan, "male")).toContain("ครับ");
   });
+  it("omits first week days before clinic day (e.g. clinicDay = thu)", () => {
+    const plan = makePlan({
+      inr: 2.5,
+      previousWeeklyDose: 21,
+      target: standardTarget,
+      safety: emptySafety,
+      clinicDay: "thu",
+      selectedAdjustment: 0,
+      holdDoses: 0,
+    });
+    const speech = planSpeech(plan, "female");
+    
+    // Extract first week speech block
+    const firstWeekStart = speech.indexOf("สัปดาห์แรก:");
+    const firstWeekEnd = speech.indexOf("สัปดาห์ถัดไป:");
+    expect(firstWeekStart).toBeGreaterThan(-1);
+    expect(firstWeekEnd).toBeGreaterThan(-1);
+    
+    const firstWeekSpeechText = speech.substring(firstWeekStart, firstWeekEnd);
+    
+    // Thu, Fri, Sat, Sun should be present
+    expect(firstWeekSpeechText).toContain("วันพฤหัสบดี");
+    expect(firstWeekSpeechText).toContain("วันศุกร์");
+    expect(firstWeekSpeechText).toContain("วันเสาร์");
+    expect(firstWeekSpeechText).toContain("วันอาทิตย์");
+    
+    // Mon, Tue, Wed should be omitted in the first week part
+    expect(firstWeekSpeechText).not.toContain("วันจันทร์");
+    expect(firstWeekSpeechText).not.toContain("วันอังคาร");
+    expect(firstWeekSpeechText).not.toContain("วันพุธ");
+  });
 });

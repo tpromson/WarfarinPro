@@ -540,7 +540,10 @@ export function planSpeech(plan: MedicationPlan, gender: "female" | "male" = "fe
     return `<speak>${speech}</speak>`;
   }
 
-  const firstWeekSpeech = speakWeekSchedule(plan.firstWeek, gender);
+  const firstWeekToSpeak = plan.firstWeek.filter(
+    (item) => days.indexOf(item.day) >= days.indexOf(plan.clinicDay)
+  );
+  const firstWeekSpeech = speakWeekSchedule(firstWeekToSpeak, gender);
 
   const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> สัปดาห์แรก: ${firstWeekSpeech} <break time="500ms"/> สัปดาห์ถัดไป: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis>`;
 
