@@ -43,7 +43,7 @@ export default function MedicationSheet({
   }, [url]);
 
   const pageStyle = printLayout === "half-a4"
-    ? `@media print { @page { size: A5 landscape; margin: 5mm; } }`
+    ? `@media print { @page { size: A5 portrait; margin: 5mm; } }`
     : `@media print { @page { size: 90mm 80mm; margin: 0; } }`;
 
   if (printLayout === "label") {

@@ -22,11 +22,11 @@ export async function downloadPdf(filename: string) {
        html, body { margin: 0 !important; padding: 0 !important; background: white !important; width: 90mm !important; height: 80mm !important; }
        body { display: flex !important; }
        .sheet.layout-label { width: 90mm !important; max-width: 90mm !important; min-height: 80mm !important; border: none !important; border-radius: 0 !important; padding: 2mm !important; box-shadow: none !important; margin: 0 !important; page-break-inside: avoid !important; }`
-    : `@page { size: A5 landscape !important; margin: 0 !important; }
+    : `@page { size: A5 portrait !important; margin: 0 !important; }
        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-       html, body { margin: 0 !important; padding: 0 !important; background: white !important; width: 210mm !important; height: 148mm !important; }
+       html, body { margin: 0 !important; padding: 0 !important; background: white !important; width: 148mm !important; height: 210mm !important; }
        body { display: flex !important; }
-       .layout-half-a4 { width: 210mm !important; height: 148mm !important; padding: 5mm !important; margin: 0 !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; max-width: none !important; }
+       .layout-half-a4 { width: 148mm !important; height: 210mm !important; padding: 5mm !important; margin: 0 !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; max-width: none !important; }
        .print-sheet-wrapper { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; left: auto !important; top: auto !important; }`;
 
   printWindow.document.write(`<!DOCTYPE html>

@@ -514,8 +514,23 @@ select {
 
 /* A5 screen preview sizing */
 .sheet.layout-half-a4 {
-  max-width: min(100%, 210mm);
+  max-width: min(100%, 148mm);
+  min-height: 210mm;
   margin: 0 auto;
+}
+
+/* Vertical stacking for portrait A5 sheet info row and weekly schedule grid on screen */
+.sheet.layout-half-a4 .sheet-info-row {
+  flex-direction: column;
+  gap: 12px;
+}
+.sheet.layout-half-a4 .blank-grid,
+.sheet.layout-half-a4 .sheet-metrics {
+  width: 100%;
+  margin: 0;
+}
+.sheet.layout-half-a4 .landscape-grid-cols-2 {
+  grid-template-columns: 1fr;
 }
 
 .sheet {
@@ -1157,7 +1172,7 @@ select {
     font-size: 10px !important;
   }
 
-  /* A5 Landscape print overrides */
+  /* A5 Portrait print overrides */
   .print-sheet-wrapper:has(.layout-half-a4) {
     display: block !important;
     position: static !important;
@@ -1174,7 +1189,7 @@ select {
     max-height: 100% !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 6px !important;
-    padding: 4mm !important;
+    padding: 3mm !important;
     box-sizing: border-box !important;
     margin: 0 auto !important;
     page-break-inside: avoid !important;
@@ -1230,16 +1245,20 @@ select {
   }
 
   .sheet.layout-half-a4 .schedule-block {
-    padding: 8px !important;
+    padding: 6px !important;
     border-color: #cbd5e1 !important;
   }
 
   .sheet.layout-half-a4 .schedule-block h3 {
-    font-size: 12px !important;
+    font-size: 11px !important;
   }
 
   .sheet.layout-half-a4 .schedule-block p {
-    font-size: 9px !important;
+    font-size: 8px !important;
+  }
+
+  .sheet.layout-half-a4 .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 4px !important;
   }
 
   .sheet.layout-half-a4 .day-row {
@@ -1327,12 +1346,20 @@ select {
   }
 
   .sheet.layout-half-a4 .sheet-info-row {
-    gap: 10px !important;
-    margin: 8px 0 !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin: 6px 0 !important;
+  }
+
+  .sheet.layout-half-a4 .sheet-info-row .blank-grid,
+  .sheet.layout-half-a4 .sheet-info-row .sheet-metrics {
+    width: 100% !important;
+    margin: 0 !important;
   }
 
   .sheet.layout-half-a4 .landscape-grid-cols-2 {
-    gap: 8px !important;
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
   }
 
   .sheet.layout-half-a4 .safety {
