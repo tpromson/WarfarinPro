@@ -514,8 +514,7 @@ select {
 
 /* A5 screen preview sizing */
 .sheet.layout-half-a4 {
-  max-width: min(100%, 148mm);
-  min-height: 210mm;
+  max-width: min(100%, 210mm);
   margin: 0 auto;
 }
 
