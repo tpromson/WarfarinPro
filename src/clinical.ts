@@ -722,23 +722,25 @@ export function generateIcsFile(
     let description = "";
     let isHold = false;
 
-    if (i < 7) {
-      const dayDose = plan.firstWeek[i];
-      isHold = !!dayDose.hold;
+    const weekdayIndex = current.getDay();
+    const dayKey = dayKeys[weekdayIndex];
+
+    const issuedDateObj = new Date(plan.issuedDate + "T12:00:00");
+    const diffTime = current.getTime() - issuedDateObj.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    const isDateInFirstWeek = diffDays >= 0 && diffDays < 7;
+
+    const dayDose = isDateInFirstWeek
+      ? plan.firstWeek.find((d) => d.day === dayKey)
+      : plan.maintenanceWeek.find((d) => d.day === dayKey);
+
+    if (dayDose) {
+      isHold = !!dayDose.hold || dayDose.dose === 0;
       doseText = isHold ? (lang === "th" ? "งดยา" : "HOLD") : `${dayDose.dose} mg`;
       description = getPillDescription(dayDose, lang);
     } else {
-      const weekdayIndex = current.getDay();
-      const dayKey = dayKeys[weekdayIndex];
-      const dayDose = plan.maintenanceWeek.find((d) => d.day === dayKey);
-      if (dayDose) {
-        isHold = dayDose.dose === 0;
-        doseText = isHold ? (lang === "th" ? "งดยา" : "HOLD") : `${dayDose.dose} mg`;
-        description = getPillDescription(dayDose, lang);
-      } else {
-        doseText = "0 mg";
-        description = lang === "th" ? "ไม่มีข้อมูลการกินยา" : "No dosing details available";
-      }
+      doseText = "0 mg";
+      description = lang === "th" ? "ไม่มีข้อมูลการกินยา" : "No dosing details available";
     }
 
     const summary = isHold
