@@ -654,6 +654,7 @@ export function generateIcsFile(
       ? (lang === "th" ? `⚠️ งดยาวาร์ฟาริน (Hold)` : `⚠️ Hold Warfarin`)
       : (lang === "th" ? `💊 ทานยาวาร์ฟาริน ${doseText}` : `💊 Take Warfarin ${doseText}`);
     const url = buildPatientUrl(plan);
+    const descSuffix = i === 0 ? `\\nลิงก์ดูแผนยา/URL: ${url}` : "";
 
     lines.push(
       "BEGIN:VEVENT",
@@ -662,7 +663,7 @@ export function generateIcsFile(
       `DTSTART:${dateStr}T180000`,
       `DTEND:${dateStr}T183000`,
       `SUMMARY:${summary}`,
-      `DESCRIPTION:${description}\\nรหัสแผนยา/Code: ${plan.wCode}\\nลิงก์ดูแผนยา/URL: ${url}`,
+      `DESCRIPTION:${description}\\nรหัสแผนยา/Code: ${plan.wCode}${descSuffix}`,
       "BEGIN:VALARM",
       "TRIGGER:-PT0M",
       "ACTION:DISPLAY",

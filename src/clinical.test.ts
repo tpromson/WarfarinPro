@@ -409,6 +409,19 @@ describe("generateIcsFile", () => {
     expect(ics).toContain(`SUMMARY:`);
     expect(ics).toContain("BEGIN:VALARM");
     expect(ics).toContain(plan.wCode);
+
+    // Verify patient URL link is included ONLY in the first day event
+    const events = ics.split("BEGIN:VEVENT");
+    // events[0] is the header (before the first VEVENT)
+    // events[1] is the first VEVENT (i = 0)
+    // events[2] is the second VEVENT (i = 1)
+    expect(events.length).toBeGreaterThan(2);
+    expect(events[1]).toContain("ลิงก์ดูแผนยา/URL:");
+    expect(events[2]).not.toContain("ลิงก์ดูแผนยา/URL:");
+    
+    // Count total occurrences of the URL prefix in the entire string to be absolutely sure
+    const occurrences = (ics.match(/ลิงก์ดูแผนยา\/URL:/g) || []).length;
+    expect(occurrences).toBe(1);
   });
   it("includes hold events for first week holds", () => {
     const plan = makePlan({
