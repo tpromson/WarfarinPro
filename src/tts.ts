@@ -2,7 +2,7 @@ import { MedicationPlan } from "./types";
 import { planSpeech } from "./clinical";
 
 async function synthesizeGoogleTts(text: string, apiKey: string, gender: "female" | "male"): Promise<string> {
-  const voiceName = gender === "female" ? "th-TH-Neural2-C" : "th-TH-Chirp3-HD-Achird";
+  const voiceName = gender === "female" ? "th-TH-Chirp3-HD-Kore" : "th-TH-Chirp3-HD-Achird";
   const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
     method: "POST",
     headers: {
@@ -16,7 +16,7 @@ async function synthesizeGoogleTts(text: string, apiKey: string, gender: "female
       },
       audioConfig: {
         audioEncoding: "MP3",
-        speakingRate: 0.93,
+        speakingRate: gender === "female" ? 0.98 : 0.93,
       },
     }),
   });
@@ -57,6 +57,7 @@ export async function speakPlan(plan: MedicationPlan, gender: "female" | "male" 
   const plainText = speechText.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
   const utterance = new SpeechSynthesisUtterance(plainText);
   utterance.lang = "th-TH";
-  utterance.rate = 0.75;
+  utterance.rate = gender === "female" ? 0.85 : 0.78;
+  utterance.pitch = gender === "female" ? 1.15 : 1.0;
   window.speechSynthesis.speak(utterance);
 }

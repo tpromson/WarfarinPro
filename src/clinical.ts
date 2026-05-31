@@ -140,10 +140,11 @@ export function decodePlan(encoded: string): MedicationPlan | null {
           roundedSchedule,
           majorBleeding: safetyInputs.majorBleeding,
         },
-        firstWeek,
-        maintenanceWeek,
-      };
-    }
+firstWeek,
+    maintenanceWeek,
+    source: "wcode",
+  };
+}
     return null;
   } catch (error) {
     console.error("Failed to decode plan:", error);
@@ -523,7 +524,12 @@ export function planSpeech(plan: MedicationPlan, gender: "female" | "male" = "fe
   const politeIntro = gender === "female" ? "ค่ะ" : "ครับ";
   const politeWarn = gender === "female" ? "นะคะ" : "นะครับ";
 
-  return `<speak>ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> สัปดาห์แรก: ${firstWeekSpeech} <break time="500ms"/> สัปดาห์ถัดไป: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis></speak>`;
+  const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> สัปดาห์แรก: ${firstWeekSpeech} <break time="500ms"/> สัปดาห์ถัดไป: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis>`;
+
+  if (gender === "female") {
+    return `<speak><prosody rate="105%" pitch="+4%">${speech}</prosody></speak>`;
+  }
+  return `<speak>${speech}</speak>`;
 }
 
 function getPillDescription(dayDose: DayDose): string {
@@ -649,6 +655,7 @@ export function parseWCodeToPlan(wCode: string): MedicationPlan | null {
     clinicDay = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][jsDayIndex] as DayKey;
   }
 
+  const target = { preset: "standard" as TargetPreset, lower: 2, upper: 3 };
   const maintenanceWeek = buildMaintenanceSchedule(weeklyDose);
   const firstWeek = buildFirstWeek(maintenanceWeek, clinicDay, holdDoses);
 
@@ -657,7 +664,7 @@ export function parseWCodeToPlan(wCode: string): MedicationPlan | null {
     id: `wcode-${code}-${Date.now()}`,
     issuedDate: new Date().toISOString().slice(0, 10),
     clinicDay,
-    target: { preset: "standard", lower: 2, upper: 3 },
+    target,
     currentInr: 2.5,
     previousWeeklyDose: weeklyDose,
     calculatedWeeklyDose: weeklyDose,

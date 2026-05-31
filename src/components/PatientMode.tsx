@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  AlertCircle,
   CalendarDays,
   ChevronDown,
   FileDown,
@@ -121,9 +122,9 @@ export default function PatientMode({
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-5">
+    <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5">
       {showVoicePrompt && (
-        <div className="mb-4 rounded-xl p-4 flex items-center justify-between gap-4 voice-prompt-banner print:hidden">
+        <div className="mb-4 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 voice-prompt-banner print:hidden">
           <div className="flex items-center gap-3 min-w-0">
             <div className="grid h-10 w-10 place-items-center rounded-lg bg-clinic-cyan text-clinic-blue text-xl flex-shrink-0">
               🔊
@@ -144,17 +145,17 @@ export default function PatientMode({
               speakPlan(plan, speakGender);
               setShowVoicePrompt(false);
             }}
-            className="flex-shrink-0 px-4 py-2 bg-clinic-blue text-white rounded-lg font-bold text-sm shadow hover:bg-clinic-blue/90 active:scale-95 transition-all flex items-center gap-2"
+            className="flex-shrink-0 px-4 py-2 bg-clinic-blue text-white rounded-lg font-bold text-sm shadow hover:bg-clinic-blue/90 active:scale-95 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <span>{lang === "th" ? "กดฟังเสียงแนะนำยา" : "Listen Dosing"}</span>
           </button>
         </div>
       )}
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold">{t[lang].patientViewer}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">{t[lang].patientViewer}</h2>
             <button
               onClick={() => onSelect(null as any)}
               className="text-xs text-slate-500 hover:text-clinic-blue font-semibold border border-clinic-line rounded-lg px-2.5 py-1 hover:border-clinic-blue transition-all bg-white hover:bg-clinic-cyan/10"
@@ -162,28 +163,32 @@ export default function PatientMode({
               {t[lang].changeWCode}
             </button>
           </div>
-          <p className="text-sm text-slate-600">{t[lang].noPatientId}</p>
+          <p className="text-xs sm:text-sm text-slate-600">{t[lang].noPatientId}</p>
         </div>
       </div>
 
       {/* Patient Toolkit Panel */}
-      <div className="mb-6 bg-white border border-clinic-line rounded-2xl p-4 shadow-soft flex flex-wrap gap-6 items-center justify-between print:hidden">
-        <div className="space-y-1">
-          <h3 className="text-sm font-extrabold text-clinic-ink">
-            {lang === "th" ? "🛠️ เครื่องมือช่วยผู้ป่วย (Patient Toolkit)" : "🛠️ Patient Toolkit"}
-          </h3>
-          <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
-            {lang === "th"
-              ? "ใช้ระบบเสียงแนะนำการทานยา, ซูมขนาดตัวอักษร, บันทึกลงปฏิทินมือถือ หรือสั่งพิมพ์ตารางยา"
-              : "Use audio guidance, zoom text size, add calendar reminders, or print schedule"}
-          </p>
+      <div className="mb-6 bg-white border border-clinic-line rounded-2xl p-3 sm:p-4 shadow-soft print:hidden">
+        {/* Toolkit header */}
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div>
+            <h3 className="text-sm font-extrabold text-clinic-ink">
+              {lang === "th" ? "🛠️ เครื่องมือช่วยผู้ป่วย" : "🛠️ Patient Toolkit"}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed hidden sm:block">
+              {lang === "th"
+                ? "ใช้ระบบเสียงแนะนำการทานยา, ซูมขนาดตัวอักษร, บันทึกลงปฏิทินมือถือ หรือสั่งพิมพ์ตารางยา"
+                : "Use audio guidance, zoom text size, add calendar reminders, or print schedule"}
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 items-center">
+        {/* Toolkit tools - mobile: stacked, desktop: row */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
           {/* Group 1: Audio Dosing Guidance */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm">
-            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 mr-0.5 tracking-wider">Audio</span>
-            <div className="segmented !shadow-none !border-0 !p-0 !bg-transparent mr-1" role="radiogroup" aria-label={lang === "th" ? "เลือกเสียงนำทาง" : "Voice guidance gender"}>
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">Audio</span>
+            <div className="segmented !shadow-none !border-0 !p-0 !bg-transparent" role="radiogroup" aria-label={lang === "th" ? "เลือกเสียงนำทาง" : "Voice guidance gender"}>
               <button role="radio" aria-checked={speakGender === "female"} className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "female" ? "active" : ""}`} onClick={() => setSpeakGender("female")}>
                 👩‍⚕️ {lang === "th" ? "หญิง" : "Female"}
               </button>
@@ -200,8 +205,8 @@ export default function PatientMode({
           </div>
 
           {/* Group 2: Dosing Tools & Reminders */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm">
-            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 mr-0.5 tracking-wider">Tools</span>
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">Tools</span>
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<ZoomIn size={14} />}
@@ -248,9 +253,9 @@ export default function PatientMode({
           </div>
 
           {/* Group 3: File Management */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm">
-            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 mr-0.5 tracking-wider">File</span>
-            <span className="select-wrap mr-1 !h-[32px] !min-h-[32px] flex items-center">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">File</span>
+            <span className="select-wrap !h-[32px] !min-h-[32px] flex items-center">
               <select
                 value={printLayout}
                 onChange={(e) => setPrintLayout(e.target.value as "half-a4" | "label")}
@@ -265,23 +270,37 @@ export default function PatientMode({
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<Save size={14} />}
               onClick={() => onSave(plan)}
-              label={t[lang].saveOffline}
+              label={lang === "th" ? "บันทึก" : "Save"}
             />
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<FileDown size={14} />}
               onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
-              label={t[lang].downloadPdf}
+              label="PDF"
             />
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<Printer size={14} />}
               onClick={() => window.print()}
-              label={t[lang].print}
+              label={lang === "th" ? "พิมพ์" : "Print"}
             />
           </div>
         </div>
       </div>
+
+      {plan.source === "wcode" && (
+        <div className="mb-4 rounded-xl p-4 flex items-start gap-3 bg-orange-50 border border-orange-200 print:hidden">
+          <AlertCircle size={20} className="text-orange-500 shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-orange-800">
+              {lang === "th" ? "ข้อมูลจาก W-code" : "W-code Schedule"}
+            </h3>
+            <p className="text-xs text-orange-700 mt-0.5">
+              {t[lang].wcodeWarning}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className={isLargeFont ? "elderly-mode" : ""}>
         <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />

@@ -78,6 +78,7 @@ export interface MedicationPlan {
   };
   firstWeek: DayDose[];
   maintenanceWeek: DayDose[];
+  source?: "wcode";
 }
 
 export interface PlanPayload {

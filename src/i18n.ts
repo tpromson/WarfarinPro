@@ -38,6 +38,7 @@ export const t = {
     printHalfA4: "ครึ่ง A4 (A5)",
     printLabel: "ฉลากยา (Sticker)",
     downloadPdf: "ดาวน์โหลด PDF",
+    wcodeWarning: "ตารางยานี้คำนวณจาก W-code อาจแตกต่างจากแผนยาที่แพทย์สั่ง กรุณาใช้ลิงก์หรือ QR code จากแพทย์เพื่อข้อมูลที่ถูกต้องที่สุด",
   },
   en: {
     doctor: "Doctor",
@@ -76,6 +77,7 @@ export const t = {
     printHalfA4: "Half A4 (A5)",
     printLabel: "Medicine Label Sticker",
     downloadPdf: "Download PDF",
+    wcodeWarning: "This schedule is generated from a W-code and may differ from your doctor's exact prescription. Use the link or QR code from your doctor for the most accurate information.",
   }
 };
 
