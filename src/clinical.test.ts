@@ -501,7 +501,7 @@ describe("planSpeech", () => {
       selectedAdjustment: 0,
       holdDoses: 0,
     });
-    const speech = planSpeech(plan, "female");
+    const speech = planSpeech(plan, "female", "th");
     
     // Extract first week speech block
     const firstWeekStart = speech.indexOf("สัปดาห์แรก:");
@@ -521,5 +521,41 @@ describe("planSpeech", () => {
     expect(firstWeekSpeechText).not.toContain("วันจันทร์");
     expect(firstWeekSpeechText).not.toContain("วันอังคาร");
     expect(firstWeekSpeechText).not.toContain("วันพุธ");
+  });
+  it("generates correct English speech structure and filters past days", () => {
+    const plan = makePlan({
+      inr: 2.5,
+      previousWeeklyDose: 21,
+      target: standardTarget,
+      safety: emptySafety,
+      clinicDay: "thu",
+      selectedAdjustment: 0,
+      holdDoses: 0,
+    });
+    const speech = planSpeech(plan, "female", "en");
+    expect(speech).toContain("<speak>");
+    expect(speech).toContain("</speak>");
+    expect(speech).toContain("Warfarin");
+    expect(speech).toContain("double-u");
+    expect(speech).toContain("First week schedule:");
+
+    // Extract first week speech block
+    const firstWeekStart = speech.indexOf("First week schedule:");
+    const firstWeekEnd = speech.indexOf("Maintenance schedule:");
+    expect(firstWeekStart).toBeGreaterThan(-1);
+    expect(firstWeekEnd).toBeGreaterThan(-1);
+    
+    const firstWeekSpeechText = speech.substring(firstWeekStart, firstWeekEnd);
+    
+    // English day names for Thu-Sun should be present
+    expect(firstWeekSpeechText).toContain("Thursday");
+    expect(firstWeekSpeechText).toContain("Friday");
+    expect(firstWeekSpeechText).toContain("Saturday");
+    expect(firstWeekSpeechText).toContain("Sunday");
+    
+    // Mon-Wed should be omitted in the first week part
+    expect(firstWeekSpeechText).not.toContain("Monday");
+    expect(firstWeekSpeechText).not.toContain("Tuesday");
+    expect(firstWeekSpeechText).not.toContain("Wednesday");
   });
 });

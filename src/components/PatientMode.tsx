@@ -10,11 +10,15 @@ import {
   Speaker,
   UserRound,
   ZoomIn,
+  Play,
+  Pause,
+  Square,
+  WifiOff,
 } from "lucide-react";
 import { generateGoogleCalendarUrl, generateIcsFile, parseWCodeToPlan } from "../clinical";
 import { t } from "../i18n";
 import { downloadPdf } from "../pdf";
-import { speakPlan } from "../tts";
+import { speechController, SpeechStatus } from "../tts";
 import type { MedicationPlan } from "../types";
 import Panel from "./Panel";
 import IconButton from "./IconButton";
@@ -46,6 +50,23 @@ export default function PatientMode({
   const [wCodeError, setWCodeError] = useState("");
   const [isLargeFont, setIsLargeFont] = useState(false);
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
+  const [audioStatus, setAudioStatus] = useState<SpeechStatus>("idle");
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    return speechController.subscribe(setAudioStatus);
+  }, []);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const [calStartDate, setCalStartDate] = useState(() => plan?.issuedDate || "");
   const [calEndDate, setCalEndDate] = useState(() => {
@@ -148,6 +169,20 @@ export default function PatientMode({
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5">
+      {isOffline && (
+        <div className="mb-4 rounded-xl p-3 bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-between gap-3 text-xs font-bold print:hidden">
+          <div className="flex items-center gap-2">
+            <WifiOff size={16} className="text-slate-500 shrink-0" />
+            <span>
+              {lang === "th"
+                ? "คุณกำลังใช้งานแบบออฟไลน์ (ตารางกินยายังคงทำงานได้ปกติโดยดึงข้อมูลจากหน่วยความจำ)"
+                : "You are offline (medication schedule is active offline from cache)"}
+            </span>
+          </div>
+          <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase shrink-0">PWA Cache</span>
+        </div>
+      )}
+
       {showVoicePrompt && (
         <div className="mb-4 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 voice-prompt-banner print:hidden">
           <div className="flex items-center gap-3 min-w-0">
@@ -167,7 +202,7 @@ export default function PatientMode({
           </div>
           <button
             onClick={() => {
-              speakPlan(plan, speakGender);
+              speechController.play(plan, speakGender, lang);
               setShowVoicePrompt(false);
             }}
             className="flex-shrink-0 px-4 py-2 bg-clinic-blue text-white rounded-lg font-bold text-sm shadow hover:bg-clinic-blue/90 active:scale-95 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
@@ -221,12 +256,46 @@ export default function PatientMode({
                 👨‍⚕️ {lang === "th" ? "ชาย" : "Male"}
               </button>
             </div>
-            <IconButton
-              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
-              icon={<Speaker size={14} />}
-              onClick={() => speakPlan(plan, speakGender)}
-              label={t[lang].listenThai}
-            />
+            {audioStatus === "idle" && (
+              <IconButton
+                className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+                icon={<Play size={14} />}
+                onClick={() => speechController.play(plan, speakGender, lang)}
+                label={lang === "th" ? "ฟังคำแนะนำยา" : "Listen Dosing"}
+              />
+            )}
+            {audioStatus === "playing" && (
+              <>
+                <IconButton
+                  className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 text-yellow-800"
+                  icon={<Pause size={14} />}
+                  onClick={() => speechController.pause()}
+                  label={lang === "th" ? "หยุดชั่วคราว" : "Pause"}
+                />
+                <IconButton
+                  className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800"
+                  icon={<Square size={14} />}
+                  onClick={() => speechController.stop()}
+                  label={lang === "th" ? "หยุด" : "Stop"}
+                />
+              </>
+            )}
+            {audioStatus === "paused" && (
+              <>
+                <IconButton
+                  className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-green-50 hover:bg-green-100 border border-green-200 text-green-800"
+                  icon={<Play size={14} />}
+                  onClick={() => speechController.resume()}
+                  label={lang === "th" ? "ฟังต่อ" : "Resume"}
+                />
+                <IconButton
+                  className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800"
+                  icon={<Square size={14} />}
+                  onClick={() => speechController.stop()}
+                  label={lang === "th" ? "หยุด" : "Stop"}
+                />
+              </>
+            )}
           </div>
 
           {/* Group 2: Dosing Tools & Reminders */}
