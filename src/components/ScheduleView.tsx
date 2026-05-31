@@ -65,11 +65,11 @@ export default function ScheduleView({
                     </span>
                   ) : (
                     <>
-                      <span className="text-[14px]">
+                      <span className={`text-[14px] ${day.hold ? "text-clinic-red font-extrabold" : ""}`}>
                         {day.hold ? (lang === "th" ? "งดทานยา" : "HOLD") : `${day.dose} mg`}
                       </span>
                       {!day.hold && (
-                        <span className="text-[11px] text-slate-500 font-bold bg-slate-100 rounded px-1.5 py-0.5 print:bg-transparent print:p-0">
+                        <span className="text-[11px] text-slate-500 font-semibold ml-1">
                           ({getPillComboDesc(day.combo, day.hold, lang)})
                         </span>
                       )}

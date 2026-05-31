@@ -186,7 +186,7 @@ export default function MedicationSheet({
               <span>✓</span>
               <span>
                 {lang === "th"
-                  ? `ผ่านช่วงสัปดาห์แรกแล้ว (${plan.firstWeekHoldDoses > 0 ? `งดยา ${plan.firstWeekHoldDoses} วันแรก เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : "ไม่มีงดยา"} — ใช้ตารางปกติต่อไปนี้)`
+                  ? `ผ่านช่วงสัปดาห์แรกแล้ว (${plan.firstWeekHoldDoses > 0 ? `งดยา ${plan.firstWeekHoldDoses} วันแรก เริ่ม${getDayLabel(plan.clinicDay, "th")}` : "ไม่มีงดยา"} — ใช้ตารางปกติต่อไปนี้)`
                   : `First week completed (${plan.firstWeekHoldDoses > 0 ? `${plan.firstWeekHoldDoses} hold day(s) starting ${getDayLabel(plan.clinicDay, "en")}` : "no holds"} — follow regular schedule below)`}
               </span>
             </div>
@@ -201,7 +201,7 @@ export default function MedicationSheet({
           <div className="grid gap-3 landscape-grid-cols-2">
             <ScheduleView
               title={t[lang].firstWeekTitle}
-              subtitle={lang === "th" ? `เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
+              subtitle={lang === "th" ? `เริ่ม${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
               schedule={plan.firstWeek}
               lang={lang}
               isFirstWeek={true}

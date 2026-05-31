@@ -382,6 +382,11 @@ select {
   gap: 6px;
 }
 
+.day-row .pills,
+.day-row .hold-pill {
+  margin-left: auto;
+}
+
 .pill {
   display: inline-grid;
   min-width: 38px;
@@ -412,8 +417,11 @@ select {
 }
 
 .pill.half {
-  min-width: 46px;
-  clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%);
+  min-width: 24px;
+  border-radius: 999px 0 0 999px;
+  border-right: none;
+  clip-path: none;
+  padding-right: 4px;
 }
 
 .hold-pill {
@@ -601,6 +609,7 @@ select {
 .instructions {
   margin-top: 20px;
   border-radius: 10px;
+  border: 1px solid #fed7aa;
   border-left: 4px solid #f97316;
   background: #fff7ed;
   padding: 14px;
@@ -1208,6 +1217,7 @@ select {
 
   .sheet.layout-half-a4 .metric {
     padding: 6px !important;
+    border-left: 3px solid #176087 !important;
   }
 
   .sheet.layout-half-a4 .metric span {
@@ -1238,6 +1248,15 @@ select {
     border-color: #cbd5e1 !important;
   }
 
+  .sheet.layout-half-a4 .day-row.hold {
+    border-color: #fca5a5 !important;
+    background: #fff5f5 !important;
+  }
+
+  .sheet.layout-half-a4 .day-row.hold span {
+    color: #c24132 !important;
+  }
+
   .sheet.layout-half-a4 .day-row.past {
     border-style: dashed !important;
     background: #f8fafc !important;
@@ -1259,6 +1278,14 @@ select {
     box-shadow: none !important;
   }
 
+  .sheet.layout-half-a4 .pill.half {
+    min-width: 16px !important;
+    border-radius: 9px 0 0 9px !important;
+    border-right: none !important;
+    clip-path: none !important;
+    padding-right: 2px !important;
+  }
+
   .sheet.layout-half-a4 .pill.orange {
     background: #ffedd5 !important;
     border: 1.5px solid #d97706 !important;
@@ -1275,15 +1302,18 @@ select {
     min-width: 50px !important;
     height: 20px !important;
     font-size: 9px !important;
-    background: #fee2e2 !important;
-    border: 1.5px solid #dc2626 !important;
-    color: #991b1b !important;
+    background: #dc2626 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 999px !important;
     box-shadow: none !important;
   }
 
   .sheet.layout-half-a4 .instructions {
     margin-top: 6px !important;
     padding: 4px 8px !important;
+    border: 1px solid #fed7aa !important;
+    border-left: 3px solid #f97316 !important;
   }
 
   .sheet.layout-half-a4 .instructions strong {
