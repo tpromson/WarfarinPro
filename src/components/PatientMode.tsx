@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   CalendarDays,
@@ -15,9 +15,10 @@ import {
   Square,
   WifiOff,
 } from "lucide-react";
-import { generateGoogleCalendarUrl, generateIcsFile, parseWCodeToPlan } from "../clinical";
+import QRCode from "qrcode";
+import { buildPatientUrl, generateGoogleCalendarUrl, generateIcsFile, parseWCodeToPlan } from "../clinical";
 import { t } from "../i18n";
-import { downloadPdf } from "../pdf";
+import { generateMedicationSheetPdf } from "../pdf";
 import { speechController, SpeechStatus } from "../tts";
 import type { MedicationPlan } from "../types";
 import Panel from "./Panel";
@@ -52,6 +53,17 @@ export default function PatientMode({
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
   const [audioStatus, setAudioStatus] = useState<SpeechStatus>("idle");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [qr, setQr] = useState("");
+
+  const url = useMemo(() => plan ? buildPatientUrl(plan) : "", [plan]);
+
+  useEffect(() => {
+    if (!url) return;
+    QRCode.toDataURL(url, { errorCorrectionLevel: "Q", margin: 3, width: 300 })
+      .then(setQr)
+      .catch(() => setQr(""));
+  }, [url]);
 
   useEffect(() => {
     return speechController.subscribe(setAudioStatus);
@@ -116,6 +128,18 @@ export default function PatientMode({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = async (filename: string) => {
+    if (!plan || !qr) return;
+    setPdfLoading(true);
+    try {
+      await generateMedicationSheetPdf(plan, qr, lang, filename);
+    } catch (err) {
+      console.error("PDF error:", err);
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   if (!plan) {
@@ -393,7 +417,7 @@ export default function PatientMode({
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<FileDown size={14} />}
-              onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
+              onClick={() => handleDownloadPdf(`warfarin-${plan.wCode}.pdf`)}
               label="PDF"
             />
             <IconButton

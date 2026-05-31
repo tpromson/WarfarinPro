@@ -418,7 +418,16 @@ select {
 
 .pill.half {
   min-width: 46px;
-  clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%);
+  position: relative;
+}
+.pill.half::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 22%;
+  height: 100%;
+  background: white;
 }
 
 .hold-pill {

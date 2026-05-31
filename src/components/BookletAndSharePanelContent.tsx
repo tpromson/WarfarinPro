@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import { BookOpen, Check, Copy, FileDown, MessageCircle, Printer, QrCode, UserRound } from "lucide-react";
 import { buildPatientUrl, days } from "../clinical";
 import { getDayLabel, getPillComboDesc, t } from "../i18n";
-import { downloadPdf } from "../pdf";
+import { generateMedicationSheetPdf } from "../pdf";
 import IconButton from "./IconButton";
 import PillVisual from "./PillVisual";
 import type { MedicationPlan } from "../types";
@@ -251,8 +251,8 @@ export default function BookletAndSharePanelContent({
             </button>
             <IconButton
               icon={<FileDown size={14} />}
-              onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
-              label={t[lang].downloadPdf}
+onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)}
+               label={t[lang].downloadPdf}
             />
             <IconButton
               icon={<Printer size={14} />}
@@ -493,7 +493,7 @@ export default function BookletAndSharePanelContent({
           {/* Print advice helper */}
           <div className="pt-2 flex items-center justify-end gap-2">
             <button
-              onClick={() => downloadPdf(`warfarin-${plan.wCode}.pdf`)}
+              onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)}
               className="px-4 py-2 border border-clinic-blue text-clinic-blue hover:bg-clinic-cyan/10 font-extrabold text-xs rounded-xl shadow-sm transition-all focus:outline-none flex items-center justify-center gap-2"
             >
               <FileDown size={15} />
