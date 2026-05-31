@@ -1171,19 +1171,36 @@ select {
   .sheet.layout-half-a4 {
     width: 100% !important;
     max-width: 100% !important;
-    height: 100% !important;
-    max-height: 100% !important;
+    height: 198mm !important;
+    max-height: 198mm !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
     padding: 6mm !important;
     box-sizing: border-box !important;
     margin: 0 auto !important;
     page-break-inside: avoid !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
   .sheet.layout-half-a4 .sheet-head {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
     padding-bottom: 12px !important;
     border-bottom: 2px solid #176087 !important;
+  }
+
+  .sheet.layout-half-a4 .sheet-head > div:first-child {
+    max-width: 60% !important;
+  }
+
+  .sheet.layout-half-a4 .header-meta-group {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 6px !important;
   }
 
   .sheet.layout-half-a4 .sheet-head h2 {
@@ -1200,8 +1217,8 @@ select {
   }
 
   .sheet.layout-half-a4 .sheet-head img {
-    height: 95px !important;
-    width: 95px !important;
+    height: 120px !important;
+    width: 120px !important;
   }
 
   .sheet.layout-half-a4 .sheet-head span {
@@ -1246,11 +1263,11 @@ select {
   }
 
   .sheet.layout-half-a4 .space-y-2 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 6px !important;
+    margin-top: 8px !important;
   }
 
   .sheet.layout-half-a4 .day-row {
-    padding: 6px 8px !important;
+    padding: 8px 10px !important;
     border-radius: 6px !important;
     border-color: #cbd5e1 !important;
   }

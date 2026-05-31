@@ -143,7 +143,7 @@ export default function MedicationSheet({
             <h2>{lang === "th" ? "ตารางแนะนำการรับประทานยา" : "Warfarin Medication Sheet"}</h2>
             <p>{lang === "th" ? "Warfarin Medication Sheet" : "Medication dosing plan for patients"}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="header-meta-group flex items-center gap-3">
             {qr && (
               <div className="flex flex-col items-center gap-0.5">
                 <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="h-24 w-24 border border-clinic-line rounded p-0.5 bg-white" />
