@@ -519,19 +519,6 @@ select {
   margin: 0 auto;
 }
 
-/* Vertical stacking for portrait A5 sheet info row and weekly schedule grid on screen */
-.sheet.layout-half-a4 .sheet-info-row {
-  flex-direction: column;
-  gap: 12px;
-}
-.sheet.layout-half-a4 .blank-grid,
-.sheet.layout-half-a4 .sheet-metrics {
-  width: 100%;
-  margin: 0;
-}
-.sheet.layout-half-a4 .landscape-grid-cols-2 {
-  grid-template-columns: 1fr;
-}
 
 .sheet {
   border: 1px solid #d8e4e8;
@@ -1346,20 +1333,29 @@ select {
   }
 
   .sheet.layout-half-a4 .sheet-info-row {
-    flex-direction: column !important;
-    gap: 6px !important;
-    margin: 6px 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    margin: 8px 0 !important;
+    align-items: start !important;
   }
 
-  .sheet.layout-half-a4 .sheet-info-row .blank-grid,
+  .sheet.layout-half-a4 .sheet-info-row .blank-grid {
+    flex: 1.4 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
   .sheet.layout-half-a4 .sheet-info-row .sheet-metrics {
-    width: 100% !important;
+    flex: 1 !important;
+    min-width: 0 !important;
     margin: 0 !important;
   }
 
   .sheet.layout-half-a4 .landscape-grid-cols-2 {
-    grid-template-columns: 1fr !important;
-    gap: 6px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
   }
 
   .sheet.layout-half-a4 .safety {
