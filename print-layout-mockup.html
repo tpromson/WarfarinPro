@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WarfarinPro — A5 Print Layout Mockup (แบบลากปรับขนาด)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clinic-blue: #176087;
+      --clinic-dark: #17324d;
+      --clinic-line: #d8e4e8;
+      --clinic-red: #b91c1c;
+      --clinic-orange: #f59a68;
+      --clinic-blue-pill: #5fa9e7;
+      --bg: #0f1923;
+      --surface: #1e2d3d;
+      --panel: #243444;
+      --border: #2e4057;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(14, 22, 32, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .toolbar-brand span { color: var(--muted); font-weight: 600; font-size: 13px; }
+
+    .toolbar-divider { width: 1px; height: 28px; background: var(--border); }
+
+    .tb-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .tb-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .tb-badge:hover { border-color: var(--accent); color: var(--accent); }
+    .tb-badge.active { border-color: var(--accent); background: rgba(56,189,248,0.12); color: var(--accent); }
+
+    .tb-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dim-display {
+      font-family: 'Inter', monospace;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--accent);
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .tb-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      background: rgba(56,189,248,0.15);
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .tb-btn:hover { background: rgba(56,189,248,0.25); }
+
+    .tb-reset {
+      border-color: var(--border);
+      background: var(--surface);
+      color: var(--muted);
+    }
+    .tb-reset:hover { border-color: #f87171; color: #f87171; background: rgba(248,113,113,0.1); }
+
+    .toolbar-spacer { flex: 1; }
+
+    /* ── MAIN WORKSPACE ── */
+    .workspace {
+      margin-top: 56px;
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 32px;
+      padding: 32px 24px;
+    }
+
+    /* ── SIDE PANEL ── */
+    .side-panel {
+      position: sticky;
+      top: 72px;
+      width: 240px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .sp-card h4 {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .sp-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .sp-row label { color: var(--muted); font-weight: 600; }
+    .sp-row .val {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 12px;
+      min-width: 52px;
+      text-align: right;
+    }
+    .hint-text {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .hint-text strong { color: var(--text); }
+
+    /* ── A5 PAPER ── */
+    .paper-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .paper-shadow {
+      filter: drop-shadow(0 20px 60px rgba(0,0,0,0.6));
+    }
+
+    /* The paper itself — fixed A5 portrait at 96dpi screen = 559x794px */
+    .paper {
+      width: 559px;
+      height: 794px;
+      background: white;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+      color: #17324d;
+      cursor: default;
+      user-select: none;
+    }
+
+    /* ── SECTION DRAG HANDLES ── */
+    .section-divider {
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.5), transparent);
+      cursor: ns-resize;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+      transition: background 0.2s;
+    }
+    .section-divider::before {
+      content: '⋯';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      color: rgba(56,189,248,0.7);
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
+    .section-divider:hover {
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,0.85), transparent);
+    }
+    .section-divider.dragging {
+      background: linear-gradient(90deg, transparent, rgba(56,189,248,1), transparent);
+    }
+
+    /* ── HORIZONTAL (column) DRAG HANDLE ── */
+    .col-divider {
+      width: 6px;
+      align-self: stretch;
+      background: linear-gradient(180deg, transparent, rgba(251,191,36,0.5), transparent);
+      cursor: ew-resize;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+      transition: background 0.2s;
+    }
+    .col-divider::before {
+      content: '⋮';
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 11px;
+      color: rgba(251,191,36,0.7);
+      pointer-events: none;
+      letter-spacing: 1px;
+    }
+    .col-divider:hover {
+      background: linear-gradient(180deg, transparent, rgba(251,191,36,0.85), transparent);
+    }
+    .col-divider.dragging {
+      background: linear-gradient(180deg, transparent, rgba(251,191,36,1), transparent);
+    }
+
+    /* ── HEADER SECTION ── */
+    #sec-header {
+      padding: 12px 16px;
+      border-bottom: 2px solid #176087;
+      display: flex;
+      align-items: flex-start;
+      flex-shrink: 0;
+      overflow: hidden;
+      min-height: 60px;
+      gap: 0;
+    }
+    #sec-header .hd-title { overflow: hidden; min-width: 80px; }
+    #sec-header h2 { font-size: 17px; font-weight: 900; color: #17324d; letter-spacing: -0.02em; margin: 0; }
+    #sec-header p { font-size: 10px; color: #64748b; font-weight: 700; margin: 3px 0 0; }
+
+    .header-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+    .qr-placeholder {
+      width: 100px; height: 100px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 4px;
+      background: #f8fbfc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 4px;
+      color: #94a3b8;
+      font-size: 9px;
+      font-weight: 800;
+      text-align: center;
+      position: relative;
+      transition: width 0.05s, height 0.05s;
+      flex-shrink: 0;
+    }
+    .qr-placeholder svg { width: 55%; height: 55%; opacity: 0.4; }
+
+    /* QR drag handle — bottom-right corner */
+    .qr-resize-handle {
+      position: absolute;
+      bottom: -4px; right: -4px;
+      width: 14px; height: 14px;
+      background: #176087;
+      border: 2px solid white;
+      border-radius: 3px;
+      cursor: nwse-resize;
+      z-index: 30;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      transition: background 0.15s;
+    }
+    .qr-resize-handle:hover { background: #38bdf8; }
+    .qr-resize-handle::before {
+      content: '';
+      display: block;
+      width: 5px; height: 5px;
+      border-right: 2px solid white;
+      border-bottom: 2px solid white;
+      position: absolute;
+      bottom: 2px; right: 2px;
+    }
+
+    /* QR slider in side panel */
+    .qr-slider-wrap {
+      margin-top: 4px;
+    }
+    .qr-slider-wrap input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 4px;
+    }
+    .qr-slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .wcode-badge {
+      background: #17324d;
+      color: white;
+      font-size: 16px;
+      font-weight: 900;
+      padding: 6px 14px;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── PATIENT FIELDS SECTION (ชื่อ + HN) ── */
+    #sec-patient {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      min-height: 36px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .blank-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 16px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .blank-grid span::before { content: ''; }
+
+    /* ── METRICS SECTION (Weekly dose + INR) ── */
+    #sec-metrics {
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      overflow: hidden;
+      min-height: 36px;
+    }
+    .metrics-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .metric-card {
+      border: 1px solid #d8e4e8;
+      border-left: 3.5px solid #176087;
+      border-radius: 6px;
+      background: #f8fbfc;
+      padding: 6px;
+    }
+    .metric-card .mc-label {
+      display: block;
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+    .metric-card .mc-val {
+      display: block;
+      font-size: 13px;
+      font-weight: 800;
+      color: #17324d;
+      margin-top: 1px;
+    }
+
+    /* ── SCHEDULE SECTION ── */
+    #sec-schedules {
+      padding: 6px 16px;
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      flex: 1;
+      min-height: 60px;
+      overflow: hidden;
+    }
+    #sec-schedules .schedule-block {
+      overflow: hidden;
+      min-width: 60px;
+    }
+    .schedule-block {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #f8fbfc;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow: hidden;
+    }
+    .schedule-block h3 { font-size: 12px; font-weight: 900; color: #17324d; }
+    .schedule-block p { font-size: 9px; color: #64748b; font-weight: 700; margin: 0; }
+    .schedule-rows { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+    .day-row {
+      display: grid;
+      grid-template-columns: minmax(80px, 120px) 1fr;
+      gap: 6px;
+      align-items: center;
+      border: 1px solid #d8e4e8;
+      border-radius: 5px;
+      padding: 5px 8px;
+      background: white;
+    }
+    .day-row.hold { border: 1.5px solid #b91c1c; background: #fff5f5; }
+    .day-row.past { border-style: dashed; opacity: 0.55; }
+    .day-row .dl { display: grid; }
+    .day-row .dl strong { font-size: 10px; color: #17324d; }
+    .day-row .dl .dose-text { font-size: 10px; color: #64748b; font-weight: 700; }
+    .day-row .dl .hold-text { font-size: 10px; color: #b91c1c; font-weight: 900; }
+    .pills { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .pill {
+      display: inline-grid;
+      min-width: 28px; height: 20px;
+      place-items: center;
+      border-radius: 999px;
+      font-size: 9px; font-weight: 900; color: white;
+    }
+    .pill.orange { background: #ffedd5; border: 1.5px solid #d97706; color: #78350f; }
+    .pill.blue { background: #dbeafe; border: 1.5px solid #2563eb; color: #1e3a8a; }
+    .pill.half { clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%); min-width: 34px; }
+    .hold-pill {
+      display: inline-grid;
+      min-width: 56px; height: 22px;
+      place-items: center;
+      border-radius: 999px;
+      background: #b91c1c;
+      color: white;
+      font-size: 9px; font-weight: 900;
+    }
+
+    /* ── INSTRUCTIONS SECTION ── */
+    #sec-instructions {
+      padding: 8px 16px;
+      flex-shrink: 0;
+      min-height: 40px;
+      overflow: hidden;
+    }
+    .instructions-box {
+      border: 1px solid #fed7aa;
+      border-left: 3.5px solid #f97316;
+      border-radius: 7px;
+      background: #fff7ed;
+      padding: 8px 10px;
+      height: 100%;
+    }
+    .instructions-box strong { font-size: 10px; font-weight: 800; color: #9a3412; display: block; }
+    .instructions-box p { font-size: 9px; color: #9a3412; line-height: 1.45; margin-top: 3px; }
+
+    /* ── HIGHLIGHT OVERLAY for active section ── */
+    .section-highlight {
+      outline: 2px dashed rgba(56,189,248,0.7);
+      outline-offset: -1px;
+    }
+
+    /* ── SECTION LABELS ── */
+    .section-label {
+      position: absolute;
+      top: 2px; right: 3px;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 3px;
+      pointer-events: none;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: none;
+      z-index: 20;
+    }
+    .section-highlight .section-label { display: block; }
+    .section-label.h { background: rgba(56,189,248,0.85); color: #0f1923; }
+    .section-label.i { background: rgba(52,211,153,0.85); color: #0f1923; }
+    .section-label.s { background: rgba(251,191,36,0.85); color: #0f1923; }
+    .section-label.w { background: rgba(249,115,22,0.85); color: #0f1923; }
+
+    .section-container {
+      position: relative;
+    }
+
+    /* ── BOTTOM: size readout ── */
+    .paper-dims {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-align: center;
+    }
+    .paper-dims span { color: var(--accent); }
+
+    /* ── PRINT CSS ── */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      @page { size: A5 portrait; margin: 5mm; }
+      body { background: white !important; }
+      .toolbar, .side-panel, .paper-shadow, .paper-dims, .section-divider { display: none !important; }
+      .workspace { margin: 0; padding: 0; display: block; }
+      .paper-wrapper { margin: 0; padding: 0; display: block; }
+      .paper {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 190mm !important;
+        border-radius: 0 !important;
+        filter: none !important;
+        overflow: visible !important;
+      }
+      #sec-header, #sec-info, #sec-schedules, #sec-instructions {
+        outline: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── TOOLBAR ── -->
+<div class="toolbar">
+  <div class="toolbar-brand">
+    💊 WarfarinPro <span>A5 Print Layout Mockup</span>
+  </div>
+  <div class="toolbar-divider"></div>
+
+  <div class="tb-group">
+    <span class="tb-label">แสดงผล</span>
+    <button class="tb-badge active" id="btn-labels" onclick="toggleLabels()">🏷 Label</button>
+    <button class="tb-badge" id="btn-grid" onclick="toggleGrid()">⊞ Grid</button>
+    <button class="tb-badge" id="btn-print-mode" onclick="togglePrintMode()">🖨 ขาวดำ</button>
+  </div>
+
+  <div class="toolbar-divider"></div>
+
+  <div class="tb-group">
+    <span class="tb-label">ขนาดส่วน</span>
+    <div class="dim-display" id="dim-display">ลาก Handle ด้านล่าง</div>
+  </div>
+
+  <div class="toolbar-spacer"></div>
+
+  <div class="tb-group">
+    <button class="tb-btn" onclick="window.print()">🖨 พิมพ์ทดสอบ</button>
+    <button class="tb-btn tb-reset" onclick="resetAll()">↺ รีเซ็ต</button>
+    <button class="tb-btn" onclick="exportConfig()">📋 Copy Config</button>
+  </div>
+</div>
+
+<!-- ── WORKSPACE ── -->
+<div class="workspace">
+
+  <!-- SIDE PANEL -->
+  <div class="side-panel">
+    <div class="sp-card">
+      <h4>📐 ขนาดปัจจุบัน</h4>
+      <!-- Header height -->
+      <div class="sp-row"><label>Header (สูง)</label><span class="val" id="sp-header">—</span></div>
+      <div class="sp-row" style="padding-left:8px; border-left:2px solid rgba(56,189,248,0.4); margin-bottom:3px">
+        <label style="color:#38bdf8; font-size:11px">└ ชื่อ:QR</label>
+        <span class="val" id="sp-hd-col" style="font-size:11px">—</span>
+      </div>
+      <!-- Patient / Metrics rows -->
+      <div class="sp-row" style="padding-left:8px; border-left:2px solid rgba(52,211,153,0.5)">
+        <label style="color:#34d399">├ ชื่อ + HN</label><span class="val" id="sp-patient">—</span>
+      </div>
+      <div class="sp-row" style="padding-left:8px; border-left:2px solid rgba(251,191,36,0.5)">
+        <label style="color:#fbbf24">├ Weekly dose + INR</label><span class="val" id="sp-metrics">—</span>
+      </div>
+      <!-- Schedules height + col split -->
+      <div class="sp-row"><label>Schedules (สูง)</label><span class="val" id="sp-sched">—</span></div>
+      <div class="sp-row" style="padding-left:8px; border-left:2px solid rgba(251,191,36,0.4); margin-bottom:3px">
+        <label style="color:#fbbf24; font-size:11px">└ แรก:ถัดไป</label>
+        <span class="val" id="sp-sched-col" style="font-size:11px">—</span>
+      </div>
+      <div class="sp-row"><label>Instructions</label><span class="val" id="sp-instr">—</span></div>
+      <div class="sp-row" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border)">
+        <label style="color:var(--text); font-weight:800">รวม (สูง)</label>
+        <span class="val" id="sp-total">794px</span>
+      </div>
+    </div>
+
+    <!-- QR SIZE CARD -->
+    <div class="sp-card">
+      <h4>🔲 ขนาด QR Code</h4>
+      <div class="sp-row">
+        <label>ขนาดปัจจุบัน</label>
+        <span class="val" id="sp-qr-size">100px</span>
+      </div>
+      <div class="qr-slider-wrap">
+        <input type="range" id="qr-slider"
+          min="60" max="200" step="2" value="100"
+          oninput="onQrSlider(this.value)"
+        />
+        <div class="qr-slider-labels">
+          <span>เล็ก (60px)</span>
+          <span>ใหญ่ (200px)</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+        <button class="tb-badge" onclick="setQr(80)" style="font-size:11px; padding:3px 8px;">S · 80px</button>
+        <button class="tb-badge" onclick="setQr(100)" style="font-size:11px; padding:3px 8px;">M · 100px</button>
+        <button class="tb-badge" onclick="setQr(130)" style="font-size:11px; padding:3px 8px;">L · 130px</button>
+        <button class="tb-badge" onclick="setQr(160)" style="font-size:11px; padding:3px 8px;">XL · 160px</button>
+      </div>
+      <p class="hint-text" style="margin-top:8px;">
+        หรือ <strong>ลากมุม</strong> กรอบ QR บนกระดาษโดยตรง
+      </p>
+    </div>
+
+    <div class="sp-card">
+      <h4>💡 วิธีใช้</h4>
+      <p class="hint-text">
+        <strong>ลาก</strong> แถบสีฟ้าระหว่างส่วน เพื่อปรับขนาดส่วน<br>
+        <strong>ลากมุม</strong> กรอบ QR เพื่อปรับขนาด QR<br><br>
+        <strong>Label</strong> — แสดง/ซ่อนชื่อส่วน<br>
+        <strong>Grid</strong> — แสดงเส้น guide<br>
+        <strong>ขาวดำ</strong> — จำลองการพิมพ์ขาวดำ<br><br>
+        <strong>พิมพ์ทดสอบ</strong> — ส่งไปพรินเตอร์<br>
+        <strong>Copy Config</strong> — คัดลอกค่าไป CSS
+      </p>
+    </div>
+
+    <div class="sp-card" id="css-hint" style="display:none">
+      <h4>🎨 CSS Values</h4>
+      <pre id="css-output" style="font-size:10px; color:var(--accent); white-space:pre-wrap; line-height:1.6; font-family:monospace"></pre>
+    </div>
+  </div>
+
+  <!-- PAPER -->
+  <div class="paper-wrapper">
+    <div class="paper-shadow">
+      <div class="paper" id="paper">
+
+        <!-- HEADER -->
+        <div class="section-container">
+          <div id="sec-header" style="height:128px;">
+            <div class="hd-title" id="hd-left" style="width:62%">
+              <h2>ตารางแนะนำการรับประทานยา</h2>
+              <p>Warfarin Medication Sheet</p>
+            </div>
+            <div class="col-divider" id="col-div-header" title="ลากเพื่อปรับความกว้างซ้าย–ขวา"></div>
+            <div class="header-meta" id="hd-right" style="flex:1; align-items:flex-end; display:flex; flex-direction:column; gap:5px; padding-left:8px">
+              <div class="qr-placeholder" id="qr-box">
+                <svg viewBox="0 0 100 100" fill="currentColor">
+                  <rect x="10" y="10" width="30" height="30" rx="3"/>
+                  <rect x="60" y="10" width="30" height="30" rx="3"/>
+                  <rect x="10" y="60" width="30" height="30" rx="3"/>
+                  <rect x="60" y="60" width="12" height="12" rx="1"/>
+                  <rect x="78" y="60" width="12" height="12" rx="1"/>
+                  <rect x="60" y="78" width="12" height="12" rx="1"/>
+                  <rect x="78" y="78" width="12" height="12" rx="1"/>
+                </svg>
+                สแกนดูตารางยา
+                <!-- Drag handle for QR resize -->
+                <div class="qr-resize-handle" id="qr-handle" title="ลากเพื่อปรับขนาด QR"></div>
+              </div>
+              <div class="wcode-badge">W3421</div>
+            </div>
+          </div>
+          <span class="section-label h">Header</span>
+        </div>
+
+        <div class="section-divider" id="div-1" title="ลากเพื่อปรับขนาด Header"></div>
+
+        <!-- PATIENT FIELDS: ชื่อ + HN -->
+        <div class="section-container">
+          <div id="sec-patient" style="height:46px;">
+            <div class="blank-grid">
+              <span>ชื่อ: ____________________</span>
+              <span>HN: ____________________</span>
+              <span>นัดครั้งต่อไป: ______________</span>
+              <span>แพทย์ผู้สั่งยา: _____________</span>
+            </div>
+          </div>
+          <span class="section-label" style="background:rgba(52,211,153,0.85);color:#0f1923">ชื่อ + HN</span>
+        </div>
+
+        <div class="section-divider" id="div-1b" title="ลากเพื่อปรับขนาด ชื่อ+HN"></div>
+
+        <!-- METRICS: Weekly dose + INR -->
+        <div class="section-container">
+          <div id="sec-metrics" style="height:48px;">
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <span class="mc-label">Weekly dose</span>
+                <span class="mc-val">27.5mg</span>
+              </div>
+              <div class="metric-card">
+                <span class="mc-label">Target INR</span>
+                <span class="mc-val">2.0–3.0</span>
+              </div>
+              <div class="metric-card">
+                <span class="mc-label">วันที่ออก</span>
+                <span class="mc-val">31 พ.ค.</span>
+              </div>
+            </div>
+          </div>
+          <span class="section-label" style="background:rgba(251,191,36,0.85);color:#0f1923">Weekly dose + INR</span>
+        </div>
+
+        <div class="section-divider" id="div-2" title="ลากเพื่อปรับขนาด Metrics"></div>
+
+        <!-- SCHEDULES -->
+        <div class="section-container" style="flex:1; display:flex; flex-direction:column; min-height:0;">
+          <div id="sec-schedules" style="flex:1; display:flex; flex-direction:row; gap:0; padding:6px 16px;">
+            <!-- First Week -->
+            <div class="schedule-block">
+              <h3>สัปดาห์แรก</h3>
+              <p>เริ่มวันพฤหัสบดี</p>
+              <div class="schedule-rows">
+                <div class="day-row past">
+                  <div class="dl"><strong>จันทร์</strong><span class="dose-text italic" style="color:#94a3b8">ก่อนวันปรับยา</span></div>
+                  <div class="pills"><span style="color:#94a3b8; font-size:14px; font-weight:800">–</span></div>
+                </div>
+                <div class="day-row past">
+                  <div class="dl"><strong>อังคาร</strong><span class="dose-text italic" style="color:#94a3b8">ก่อนวันปรับยา</span></div>
+                  <div class="pills"><span style="color:#94a3b8; font-size:14px; font-weight:800">–</span></div>
+                </div>
+                <div class="day-row past">
+                  <div class="dl"><strong>พุธ</strong><span class="dose-text italic" style="color:#94a3b8">ก่อนวันปรับยา</span></div>
+                  <div class="pills"><span style="color:#94a3b8; font-size:14px; font-weight:800">–</span></div>
+                </div>
+                <div class="day-row hold">
+                  <div class="dl"><strong>พฤหัสบดี</strong><span class="hold-text">งดทานยา</span></div>
+                  <div class="pills"><div class="hold-pill">งดยา</div></div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>ศุกร์</strong><span class="dose-text">2.5 mg (ส้ม ½)</span></div>
+                  <div class="pills">
+                    <div class="pill orange half">½</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>เสาร์</strong><span class="dose-text">5 mg (ส้ม 1+ส้ม ½)</span></div>
+                  <div class="pills">
+                    <div class="pill orange">1</div>
+                    <div class="pill orange half">½</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>อาทิตย์</strong><span class="dose-text">5 mg (ส้ม 1+ส้ม ½)</span></div>
+                  <div class="pills">
+                    <div class="pill orange">1</div>
+                    <div class="pill orange half">½</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- horizontal col divider between schedules -->
+            <div class="col-divider" id="col-div-sched" title="ลากเพื่อปรับความกว้างตาราง"></div>
+
+            <!-- Maintenance Week -->
+            <div class="schedule-block" style="flex:1">
+              <h3>สัปดาห์ถัดไป</h3>
+              <p>ทำซ้ำทุกสัปดาห์</p>
+              <div class="schedule-rows">
+                <div class="day-row">
+                  <div class="dl"><strong>จันทร์</strong><span class="dose-text">5 mg (ส้ม 2)</span></div>
+                  <div class="pills"><div class="pill orange">2</div></div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>อังคาร</strong><span class="dose-text">2.5 mg (ส้ม ½)</span></div>
+                  <div class="pills"><div class="pill orange half">½</div></div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>พุธ</strong><span class="dose-text">5 mg (ส้ม 2)</span></div>
+                  <div class="pills"><div class="pill orange">2</div></div>
+                </div>
+                <div class="day-row hold">
+                  <div class="dl"><strong>พฤหัสบดี</strong><span class="hold-text">งดทานยา</span></div>
+                  <div class="pills"><div class="hold-pill">งดยา</div></div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>ศุกร์</strong><span class="dose-text">2.5 mg (ส้ม ½)</span></div>
+                  <div class="pills"><div class="pill orange half">½</div></div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>เสาร์</strong><span class="dose-text">5 mg (ส้ม 1+ฟ้า 1)</span></div>
+                  <div class="pills">
+                    <div class="pill orange">1</div>
+                    <div class="pill blue">1</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div class="dl"><strong>อาทิตย์</strong><span class="dose-text">7.5 mg (ส้ม 1+ฟ้า 1+ส้ม ½)</span></div>
+                  <div class="pills">
+                    <div class="pill orange">1</div>
+                    <div class="pill blue">1</div>
+                    <div class="pill orange half">½</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="section-label s">Schedules</span>
+        </div>
+
+        <div class="section-divider" id="div-3" title="ลากเพื่อปรับขนาด Schedules"></div>
+
+        <!-- INSTRUCTIONS -->
+        <div class="section-container">
+          <div id="sec-instructions" style="height:80px;">
+            <div class="instructions-box" style="height:100%">
+              <strong>⚠️ คำเตือนสำคัญ</strong>
+              <p>รับประทานยาตรงเวลา ห้ามหยุดยาเองโดยไม่ปรึกษาแพทย์ หากลืมทาน ให้ทานทันทีที่นึกได้ ยกเว้นใกล้มื้อถัดไป ห้ามทานยาแก้ปวดกลุ่ม NSAIDs เช่น Aspirin, Ibuprofen พบแพทย์ทันทีหากมีเลือดออกผิดปกติ เช่น อุจจาระดำ ปัสสาวะเป็นเลือด</p>
+            </div>
+          </div>
+          <span class="section-label w">Instructions</span>
+        </div>
+
+      </div><!-- /paper -->
+    </div><!-- /paper-shadow -->
+
+    <div class="paper-dims" id="paper-dims">A5 Portrait — <span>148mm × 210mm</span> — หน้า: <span id="page-fill">100%</span></div>
+  </div>
+
+</div><!-- /workspace -->
+
+<script>
+  // ── CONFIG ──
+  const PAPER_H = 794; // px at 96dpi ≈ A5 portrait height
+  const DIVIDER_H = 6;
+  const MIN_SECTION = 40;
+
+  const sections = ['sec-header', 'sec-info', 'sec-schedules', 'sec-instructions'];
+  const dividers = ['div-1', 'div-1b', 'div-2', 'div-3'];
+  const labels   = ['sp-header', 'sp-patient', 'sp-metrics', 'sp-sched', 'sp-instr'];
+
+  // Default heights (px)
+  let heights = { 'sec-header': 128, 'sec-patient': 46, 'sec-metrics': 48, 'sec-schedules': 0, 'sec-instructions': 80 };
+
+  // ── COLUMN WIDTHS (%) ──
+  // colWidths: left-column percentage of its parent container
+  let colWidths = { 'header': 62, 'sched': 50 };
+  const COL_MIN = 15; // min % per side
+
+  function applyColWidths() {
+    // Header: hd-left width %
+    const hdLeft = document.getElementById('hd-left');
+    if (hdLeft) hdLeft.style.width = colWidths['header'] + '%';
+    // Schedules: first block width, second block flex:1
+    const schedBlocks = document.querySelectorAll('#sec-schedules .schedule-block');
+    if (schedBlocks.length >= 2) {
+      schedBlocks[0].style.width = colWidths['sched'] + '%';
+      schedBlocks[0].style.flex  = 'none';
+    }
+    // Update side panel
+    const hdPct  = colWidths['header'];
+    const scPct  = colWidths['sched'];
+    const hdEl = document.getElementById('sp-hd-col');
+    const scEl = document.getElementById('sp-sched-col');
+    if (hdEl) hdEl.textContent = `ชื่อ ${hdPct}% | QR ${100-hdPct}%`;
+    if (scEl) scEl.textContent = `สัปดาห์แรก ${scPct}% | ถัดไป ${100-scPct}%`;
+  }
+
+  // ── COL DRAG STATE ──
+  let colDragging = null; // 'header' | 'sched' | null
+  let colStartX = 0, colStartPct = 0, colParentW = 0;
+
+  function setupColDividers() {
+    const colDefs = [
+      { id: 'col-div-header', key: 'header', getParent: () => document.getElementById('sec-header') },
+      { id: 'col-div-sched',  key: 'sched',  getParent: () => document.getElementById('sec-schedules') },
+    ];
+    colDefs.forEach(({ id, key, getParent }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('mousedown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        colDragging = key;
+        colStartX   = e.clientX;
+        colStartPct = colWidths[key];
+        colParentW  = getParent().getBoundingClientRect().width;
+        el.classList.add('dragging');
+        document.body.style.cursor = 'ew-resize';
+        document.body.style.userSelect = 'none';
+      });
+    });
+  }
+
+  // ── QR SIZE ──
+  let qrSize = 100; // px
+  const QR_MIN = 60;
+  const QR_MAX = 200;
+
+  function setQr(px) {
+    qrSize = Math.max(QR_MIN, Math.min(QR_MAX, px));
+    const box = document.getElementById('qr-box');
+    box.style.width  = qrSize + 'px';
+    box.style.height = qrSize + 'px';
+    document.getElementById('qr-slider').value = qrSize;
+    const mm = px2mm(qrSize);
+    document.getElementById('sp-qr-size').textContent = `${qrSize}px (${mm}mm)`;
+    document.getElementById('dim-display').textContent = `QR = ${qrSize}px / ${mm}mm`;
+    // Mark preset buttons as active
+    document.querySelectorAll('.sp-card button[onclick^="setQr"]').forEach(b => {
+      b.classList.toggle('active', parseInt(b.getAttribute('onclick').match(/\d+/)[0]) === qrSize);
+    });
+  }
+
+  function onQrSlider(val) {
+    setQr(parseInt(val));
+  }
+
+  // ── QR CORNER DRAG ──
+  let qrDragging = false;
+  let qrStartX = 0, qrStartY = 0, qrStartSize = 0;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const handle = document.getElementById('qr-handle');
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      qrDragging = true;
+      qrStartX = e.clientX;
+      qrStartY = e.clientY;
+      qrStartSize = qrSize;
+      document.body.style.cursor = 'nwse-resize';
+      document.body.style.userSelect = 'none';
+    });
+  });
+
+  function totalFixed() {
+    return heights['sec-header'] + heights['sec-patient'] + heights['sec-metrics'] + heights['sec-instructions']
+      + dividers.length * DIVIDER_H;
+  }
+  function schedHeight() {
+    return PAPER_H - totalFixed();
+  }
+
+  function applyHeights() {
+    document.getElementById('sec-header').style.height      = heights['sec-header'] + 'px';
+    document.getElementById('sec-patient').style.height     = heights['sec-patient'] + 'px';
+    document.getElementById('sec-metrics').style.height     = heights['sec-metrics'] + 'px';
+    document.getElementById('sec-instructions').style.height = heights['sec-instructions'] + 'px';
+
+    // Schedule section fills remaining space
+    const sh = schedHeight();
+    heights['sec-schedules'] = sh;
+    document.getElementById('sec-schedules').style.minHeight = sh + 'px';
+    document.getElementById('sec-schedules').style.maxHeight = sh + 'px';
+
+    updateSidePanel();
+  }
+
+  function px2mm(px) { return Math.round((px / 96) * 25.4); }
+
+  function updateSidePanel() {
+    const map = {
+      'sp-header':  heights['sec-header'],
+      'sp-patient': heights['sec-patient'],
+      'sp-metrics': heights['sec-metrics'],
+      'sp-sched':   heights['sec-schedules'],
+      'sp-instr':   heights['sec-instructions'],
+    };
+    for (const [id, h] of Object.entries(map)) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${h}px (${px2mm(h)}mm)`;
+    }
+    const total = Object.values(heights).reduce((a,b) => a+b, 0) + dividers.length * DIVIDER_H;
+    document.getElementById('sp-total').textContent = `${total}px`;
+
+    const pct = Math.round((total / PAPER_H) * 100);
+    document.getElementById('page-fill').textContent = pct + '%';
+  }
+
+  // ── SECTION DRAG LOGIC ──
+  let dragging = null;
+  let startY = 0;
+  let startH = {};
+
+  dividers.forEach((divId, i) => {
+    const el = document.getElementById(divId);
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      dragging = i; // 0 = between header/info, 1 = between info/sched, 2 = between sched/instr
+      startY = e.clientY;
+      startH = { ...heights };
+      el.classList.add('dragging');
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+    });
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (dragging === null && !qrDragging && !colDragging) return;
+
+    if (dragging !== null) {
+      const dy = e.clientY - startY;
+
+      if (dragging === 0) {
+        // div-1: header ↔ sec-patient
+        const newH = Math.max(MIN_SECTION, startH['sec-header']  + dy);
+        const newP = Math.max(MIN_SECTION, startH['sec-patient'] - dy);
+        if (newH + newP <= startH['sec-header'] + startH['sec-patient']) {
+          heights['sec-header']  = newH;
+          heights['sec-patient'] = newP;
+        }
+      } else if (dragging === 1) {
+        // div-1b: sec-patient ↔ sec-metrics
+        const newP = Math.max(MIN_SECTION, startH['sec-patient'] + dy);
+        const newM = Math.max(MIN_SECTION, startH['sec-metrics'] - dy);
+        if (newP + newM <= startH['sec-patient'] + startH['sec-metrics']) {
+          heights['sec-patient'] = newP;
+          heights['sec-metrics'] = newM;
+        }
+      } else if (dragging === 2) {
+        // div-2: sec-metrics edge (grows metrics, shrinks schedules)
+        heights['sec-metrics'] = Math.max(MIN_SECTION, startH['sec-metrics'] + dy);
+      } else if (dragging === 3) {
+        // div-3: sec-schedules ↔ sec-instructions
+        heights['sec-instructions'] = Math.max(MIN_SECTION, startH['sec-instructions'] - dy);
+      }
+
+      applyHeights();
+
+      const names = ['Header', 'ชื่อ+HN', 'Weekly dose+INR', 'Instructions'];
+      const keys  = ['sec-header', 'sec-patient', 'sec-metrics', 'sec-instructions'];
+      const k = keys[Math.min(dragging, 3)];
+      document.getElementById('dim-display').textContent =
+        `${names[Math.min(dragging,3)]}: ${heights[k]}px / ${px2mm(heights[k])}mm`;
+    }
+
+    // QR corner drag
+    if (qrDragging) {
+      const dx = e.clientX - qrStartX;
+      const dy = e.clientY - qrStartY;
+      setQr(qrStartSize + Math.round((dx + dy) / 2));
+    }
+
+    // Horizontal column drag
+    if (colDragging) {
+      const dx = e.clientX - colStartX;
+      const deltaPct = (dx / colParentW) * 100;
+      const newPct = Math.max(COL_MIN, Math.min(100 - COL_MIN, colStartPct + deltaPct));
+      colWidths[colDragging] = Math.round(newPct);
+      applyColWidths();
+      const label = colDragging === 'header' ? 'สัดส่วนหัว' : 'ตาราง';
+      document.getElementById('dim-display').textContent =
+        `${label}: ${colWidths[colDragging]}% | ${100 - colWidths[colDragging]}%`;
+    }
+  });
+
+  function updateActiveDimDisplay(di) {
+    const names = ['Header', 'ชื่อ+HN', 'Weekly dose+INR', 'Instructions'];
+    const keys  = ['sec-header', 'sec-patient', 'sec-metrics', 'sec-instructions'];
+    const h = heights[keys[Math.min(di, 3)]];
+    document.getElementById('dim-display').textContent = `${names[Math.min(di,3)]}: ${h}px / ${px2mm(h)}mm`;
+  }
+
+  document.addEventListener('mouseup', () => {
+    if (dragging !== null) {
+      dividers.forEach(d => document.getElementById(d).classList.remove('dragging'));
+      dragging = null;
+      applyHeights();
+    }
+    if (qrDragging) {
+      qrDragging = false;
+    }
+    if (colDragging) {
+      document.querySelectorAll('.col-divider.dragging').forEach(el => el.classList.remove('dragging'));
+      colDragging = null;
+    }
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // ── TOGGLE LABELS ──
+  let labelsOn = true;
+  function toggleLabels() {
+    labelsOn = !labelsOn;
+    document.querySelectorAll('.section-highlight').forEach(e => {
+      if (!labelsOn) e.classList.remove('section-highlight');
+    });
+    // re-enable hover highlights
+    document.getElementById('btn-labels').classList.toggle('active', labelsOn);
+    setupHovers();
+  }
+
+  function setupHovers() {
+    document.querySelectorAll('.section-container').forEach(sc => {
+      sc.onmouseenter = () => {
+        if (labelsOn) sc.classList.add('section-highlight');
+      };
+      sc.onmouseleave = () => {
+        sc.classList.remove('section-highlight');
+      };
+    });
+  }
+
+  // ── GRID TOGGLE ──
+  let gridOn = false;
+  function toggleGrid() {
+    gridOn = !gridOn;
+    document.getElementById('btn-grid').classList.toggle('active', gridOn);
+    const paper = document.getElementById('paper');
+    if (gridOn) {
+      paper.style.backgroundImage = 'repeating-linear-gradient(0deg, rgba(56,189,248,0.06) 0px, rgba(56,189,248,0.06) 1px, transparent 1px, transparent 10px), repeating-linear-gradient(90deg, rgba(56,189,248,0.06) 0px, rgba(56,189,248,0.06) 1px, transparent 1px, transparent 10px)';
+    } else {
+      paper.style.backgroundImage = '';
+    }
+  }
+
+  // ── PRINT MODE (B&W simulation) ──
+  let bwMode = false;
+  function togglePrintMode() {
+    bwMode = !bwMode;
+    document.getElementById('btn-print-mode').classList.toggle('active', bwMode);
+    const paper = document.getElementById('paper');
+    paper.style.filter = bwMode ? 'grayscale(1)' : '';
+  }
+
+  // ── RESET ──
+  function resetAll() {
+    heights = { 'sec-header': 128, 'sec-patient': 46, 'sec-metrics': 48, 'sec-schedules': 0, 'sec-instructions': 80 };
+    colWidths = { 'header': 62, 'sched': 50 };
+    applyHeights();
+    applyColWidths();
+    setQr(100);
+    document.getElementById('dim-display').textContent = 'ลาก Handle ปรับขนาด';
+  }
+
+  // ── EXPORT CONFIG ──
+  function exportConfig() {
+    const hH   = heights['sec-header'];
+    const pH   = heights['sec-patient'];
+    const mH   = heights['sec-metrics'];
+    const sH   = heights['sec-schedules'];
+    const wH   = heights['sec-instructions'];
+    const qrMm = px2mm(qrSize);
+    const hdPct = colWidths['header'];
+    const scPct = colWidths['sched'];
+
+    const css = `.sheet.layout-half-a4 { height: 198mm !important; }
+
+/* ─ Header (~${px2mm(hH)}mm) ─ */
+.sheet.layout-half-a4 .sheet-head {
+  padding-bottom: ${Math.max(4, Math.round(px2mm(hH)*0.12))}mm !important;
+}
+/* Header col split: ชื่อ ${hdPct}% | QR ${100-hdPct}% */
+.sheet.layout-half-a4 .hd-title {
+  flex: 0 0 ${hdPct}% !important;
+}
+/* QR Code: ${qrSize}px ≈ ${qrMm}mm */
+.sheet.layout-half-a4 .sheet-head img {
+  width: ${qrMm}mm !important;
+  height: ${qrMm}mm !important;
+}
+
+/* ─ ชื่อ+HN row (~${px2mm(pH)}mm) ─ */
+.sheet.layout-half-a4 .blank-grid {
+  padding: ${Math.max(2, Math.round(px2mm(pH)*0.1))}mm 0 !important;
+}
+/* ─ Weekly dose+INR row (~${px2mm(mH)}mm) ─ */
+.sheet.layout-half-a4 .sheet-metrics {
+  padding: ${Math.max(2, Math.round(px2mm(mH)*0.1))}mm 0 !important;
+}
+
+/* ─ Schedules (~${px2mm(sH)}mm, col split: ${scPct}%/${100-scPct}%) ─ */
+.sheet.layout-half-a4 .schedule-week-1 {
+  flex: 0 0 ${scPct}% !important;
+}
+.sheet.layout-half-a4 .schedule-week-2 {
+  flex: 1 !important;
+}
+
+/* ─ Instructions (~${px2mm(wH)}mm) ─ */
+.sheet.layout-half-a4 .instructions {
+  padding: ${Math.max(4, Math.round(px2mm(wH)*0.15))}mm !important;
+}`;
+
+    document.getElementById('css-output').textContent = css;
+    document.getElementById('css-hint').style.display = 'block';
+    navigator.clipboard.writeText(css).then(() => {
+      const btn = document.querySelector('button[onclick="exportConfig()"]');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Config', 2000);
+    });
+  }
+
+  // ── INIT ──
+  applyHeights();
+  applyColWidths();
+  setupColDividers();
+  setupHovers();
+  updateSidePanel();
+</script>
+</body>
+</html>

@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WarfarinPro Print Layout Mockup & Interactive Resizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Sarabun:ital,wght@0,400;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-app: #0f172a;
+      --bg-panel: rgba(30, 41, 59, 0.7);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-color: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Sarabun', sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Left Control Panel */
+    .control-panel {
+      width: 420px;
+      min-width: 420px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border-color);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .panel-header h1 {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .panel-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .control-group {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .control-group h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent-color);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .control-label span.val {
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      outline: none;
+      accent-color: var(--accent-color);
+      cursor: pointer;
+    }
+
+    /* Toggle Switches */
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider-round {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.2);
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider-round:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider-round {
+      background-color: var(--accent-color);
+    }
+
+    input:checked + .slider-round:before {
+      transform: translateX(20px);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 13px;
+    }
+
+    .btn-primary {
+      background: var(--accent-color);
+      color: #0f172a;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* CSS Output box */
+    .css-output {
+      font-family: monospace;
+      font-size: 11px;
+      background: #090d16;
+      color: #34d399;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      overflow-x: auto;
+      max-height: 150px;
+      white-space: pre;
+    }
+
+    /* Right Preview Canvas */
+    .preview-canvas {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    .paper-wrapper {
+      position: relative;
+      background: #fff;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: filter 0.3s ease;
+    }
+
+    /* Target proportions for A5 Portrait: 148mm width, 210mm height */
+    .paper-a5-portrait {
+      width: 148mm;
+      height: 210mm;
+      min-width: 148mm;
+      min-height: 210mm;
+      color: #17324d;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Grayscale Filter for B&W test */
+    .bw-filter {
+      filter: grayscale(1) contrast(1.15) !important;
+    }
+
+    /* Crop marks indicator */
+    .crop-mark {
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      border: 1px solid #e2e8f0;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .cm-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+    .cm-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+    .cm-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+    .cm-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+    /* --- Mockup Content Styling (representing .sheet.layout-half-a4) --- */
+    .sheet-mock {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #176087;
+    }
+
+    .title-group {
+      max-width: 60%;
+    }
+
+    .title-group h2 {
+      font-size: 20px;
+      font-weight: 900;
+      color: #17324d;
+      letter-spacing: -0.01em;
+    }
+
+    .title-group p {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .header-meta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .qr-img {
+      border: 1px solid #d8e4e8;
+      border-radius: 4px;
+      padding: 2px;
+      background: white;
+    }
+
+    .qr-caption {
+      color: #64748b;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .wcode {
+      background: #17324d;
+      color: white;
+      font-weight: 900;
+      border-radius: 6px;
+      text-align: center;
+      padding: 6px 12px;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .sheet-info-row {
+      display: flex;
+      flex-direction: row;
+      align-items: start;
+    }
+
+    .blank-grid {
+      flex: 1.4;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .blank-grid span {
+      display: block;
+      border-bottom: 1.5px dashed #cbd5e1;
+      padding-bottom: 2px;
+    }
+
+    .sheet-metrics {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .metric {
+      border: 1px solid #d8e4e8;
+      border-left: 3.5px solid #176087;
+      border-radius: 6px;
+      background: #f8fbfc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .metric span {
+      display: block;
+      color: #64748b;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      color: #17324d;
+    }
+
+    .safety-alert {
+      border: 1px solid #fed7aa;
+      border-left: 3.5px solid #f97316;
+      background: #fff7ed;
+      border-radius: 6px;
+      color: #9a3412;
+    }
+
+    .safety-alert strong {
+      display: block;
+      font-weight: 800;
+    }
+
+    .safety-alert p {
+      margin-top: 1px;
+    }
+
+    .landscape-grid-cols-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .schedule-block {
+      border: 1px solid #d8e4e8;
+      border-radius: 8px;
+      background: #f8fbfc;
+    }
+
+    .schedule-block h3 {
+      color: #17324d;
+      font-weight: 800;
+    }
+
+    .schedule-block p.sub {
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .day-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #d8e4e8;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .day-row strong {
+      color: #17324d;
+    }
+
+    .day-row .desc {
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .day-row.hold {
+      border: 1.5px solid #b91c1c;
+      background: #fff5f5;
+    }
+
+    .day-row.hold strong {
+      color: #991b1b;
+    }
+
+    .day-row.hold .desc {
+      color: #991b1b;
+      font-weight: 800;
+    }
+
+    .day-row.past {
+      border-style: dashed;
+      background: #f8fafc;
+      opacity: 0.65;
+    }
+
+    .day-row.past strong,
+    .day-row.past .desc {
+      color: #94a3b8;
+    }
+
+    .pill-group {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      gap: 4px;
+    }
+
+    .pill {
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      color: white;
+      font-weight: 900;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    }
+
+    .pill.orange {
+      background: #ffedd5;
+      border: 1.5px solid #d97706;
+      color: #78350f;
+    }
+
+    .pill.blue {
+      background: #dbeafe;
+      border: 1.5px solid #2563eb;
+      color: #1e3a8a;
+    }
+
+    .pill.half {
+      clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%);
+    }
+
+    .hold-badge {
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      background: #b91c1c;
+      color: white;
+      font-weight: 900;
+    }
+
+    .instructions-card {
+      border: 1px solid #fed7aa;
+      border-left: 3.5px solid #f97316;
+      background: #fff7ed;
+      border-radius: 8px;
+      color: #9a3412;
+    }
+
+    .instructions-card strong {
+      display: block;
+      font-weight: 800;
+    }
+
+    .instructions-card p {
+      line-height: 1.35;
+    }
+
+    /* CSS resizable class toggles */
+    .resizable-active {
+      resize: vertical;
+      overflow: auto;
+      border: 2px dashed #38bdf8 !important;
+    }
+  </style>
+  
+  <!-- Dynamic Styling Injector -->
+  <style id="dynamic-styles"></style>
+</head>
+<body>
+
+  <!-- Control Panel -->
+  <div class="control-panel">
+    <div class="panel-header">
+      <h1>Print Layout Interactive Mockup</h1>
+      <p>ปรับสไลเดอร์เพื่อจูนขนาด แล้วก็คัดลอกโค้ด CSS ด้านล่างไปใช้งานในโปรเจกต์จริงได้ทันที</p>
+    </div>
+
+    <!-- Toggle Options -->
+    <div class="control-group">
+      <h3>โหมดจำลอง</h3>
+      <div class="toggle-item">
+        <span>พิมพ์แบบขาวดำ (B&W Filter)</span>
+        <label class="switch">
+          <input type="checkbox" id="bw-toggle">
+          <span class="slider-round"></span>
+        </label>
+      </div>
+      <div class="toggle-item">
+        <span>ลากปรับความสูงอิสระ (Drag Resize)</span>
+        <label class="switch">
+          <input type="checkbox" id="drag-toggle">
+          <span class="slider-round"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Layout Spacing -->
+    <div class="control-group">
+      <h3>การจัดหน้ากระดาษ (Layout & Gaps)</h3>
+      
+      <div class="control-item">
+        <div class="control-label">
+          <span>ความสูงรวมของตารางการพิมพ์ (A5 Height)</span>
+          <span class="val" id="sheet-height-val">198mm</span>
+        </div>
+        <input type="range" id="sheet-height" min="150" max="205" value="198">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ระยะขอบหน้ากระดาษ (Page Padding)</span>
+          <span class="val" id="page-padding-val">6mm</span>
+        </div>
+        <input type="range" id="page-padding" min="2" max="15" value="6">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ระยะห่างระหว่างกลุ่มตาราง (Columns Gap)</span>
+          <span class="val" id="cols-gap-val">12px</span>
+        </div>
+        <input type="range" id="cols-gap" min="4" max="20" value="12">
+      </div>
+    </div>
+
+    <!-- Header & QR -->
+    <div class="control-group">
+      <h3>ส่วนหัว & QR Code</h3>
+      
+      <div class="control-item">
+        <div class="control-label">
+          <span>ขนาด QR Code (Massive Size)</span>
+          <span class="val" id="qr-size-val">120px</span>
+        </div>
+        <input type="range" id="qr-size" min="60" max="150" value="120">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ขนาดตัวอักษรใต้ QR Code</span>
+          <span class="val" id="qr-font-val">11px</span>
+        </div>
+        <input type="range" id="qr-font" min="8" max="14" value="11">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ระยะห่างในหัวกระดาษ (Header Gap)</span>
+          <span class="val" id="head-gap-val">6px</span>
+        </div>
+        <input type="range" id="head-gap" min="2" max="15" value="6">
+      </div>
+    </div>
+
+    <!-- Schedule Day Rows -->
+    <div class="control-group">
+      <h3>ตารางการกินยา (Day Rows)</h3>
+      
+      <div class="control-item">
+        <div class="control-label">
+          <span>ขนาดตัวอักษรวัน / ปริมาณยา</span>
+          <span class="val" id="row-font-val">11px</span>
+        </div>
+        <input type="range" id="row-font" min="9" max="15" value="11">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ความหนาแถววัน (Vertical Padding)</span>
+          <span class="val" id="row-pad-val">8px</span>
+        </div>
+        <input type="range" id="row-pad" min="3" max="15" value="8">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ระยะห่างระหว่างวัน (Days Spacing)</span>
+          <span class="val" id="days-gap-val">8px</span>
+        </div>
+        <input type="range" id="days-gap" min="2" max="12" value="8">
+      </div>
+    </div>
+
+    <!-- Pill Visuals -->
+    <div class="control-group">
+      <h3>เม็ดยา (Pill Visuals)</h3>
+      
+      <div class="control-item">
+        <div class="control-label">
+          <span>ขนาดเม็ดยาเต็มใบ (Pill Width)</span>
+          <span class="val" id="pill-width-val">32px</span>
+        </div>
+        <input type="range" id="pill-width" min="24" max="44" value="32">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ขนาดเม็ดยาครึ่งใบ (Half Pill Width)</span>
+          <span class="val" id="pill-half-width-val">38px</span>
+        </div>
+        <input type="range" id="pill-half-width" min="28" max="50" value="38">
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>ขนาดปุ่มป้ายงดยา (Hold Badge Width)</span>
+          <span class="val" id="hold-width-val">65px</span>
+        </div>
+        <input type="range" id="hold-width" min="45" max="85" value="65">
+      </div>
+    </div>
+
+    <!-- Action Buttons & CSS Code Export -->
+    <div class="control-group">
+      <h3>CSS Media Print Code</h3>
+      <div class="css-output" id="css-code"></div>
+      <button class="btn btn-primary" onclick="copyCss()">Copy CSS Code</button>
+      <button class="btn btn-secondary" onclick="resetControls()">Reset to Default</button>
+    </div>
+  </div>
+
+  <!-- Preview Canvas -->
+  <div class="preview-canvas">
+    <div class="paper-wrapper" id="paper-wrapper">
+      <!-- Crop Marks -->
+      <div class="crop-mark cm-tl"></div>
+      <div class="crop-mark cm-tr"></div>
+      <div class="crop-mark cm-bl"></div>
+      <div class="crop-mark cm-br"></div>
+
+      <!-- A5 Page Content -->
+      <div class="paper-a5-portrait" id="print-sheet">
+        <div class="sheet-mock">
+          
+          <!-- Header -->
+          <div class="sheet-head resize-target">
+            <div class="title-group">
+              <h2>ตารางแนะนำการรับประทานยา</h2>
+              <p>Warfarin Medication Sheet</p>
+            </div>
+            <div class="header-meta-group">
+              <div class="qr-container">
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 29 29' shape-rendering='crispEdges'><path fill='%23ffffff' d='M0 0h29v29H0z'/><path fill='%2317324d' d='M0 0h7v7H0zm22 0h7v7h-7zM0 22h7v7H0zm9-22h2v2H9zm2 2h2v2h-2zm-2 2h2v2H9zm4-4h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm2 2h2v2h-2zm-10 6h4v2h-4zm2 2h2v2h-2zm-2 2h2v2H9zm2 2h2v2h-2zm2-4h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm-8 4h2v2h-2zm2 2h2v2h-2zm4-4h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm-4 4h2v2h-2zm2 2h2v2h-2zm-12-6h2v2H2zm2 2h2v2H4zm-2 2h2v2H2zm2 2h2v2H4z'/></svg>" 
+                     alt="Mock QR Code" class="qr-img">
+                <span class="qr-caption">สแกนดูตารางยา</span>
+              </div>
+              <div class="wcode" style="margin-top: 6px;">W0751</div>
+            </div>
+          </div>
+
+          <!-- Info Row -->
+          <div class="sheet-info-row resize-target" style="margin: 12px 0;">
+            <div class="blank-grid" style="font-size: 11px; gap: 6px 12px;">
+              <span>ชื่อผู้ป่วย: สมชาย มีสุข</span>
+              <span>HN: 1234/69</span>
+              <span>วันนัดตรวจครั้งถัดไป: 2026-06-25</span>
+              <span>แพทย์/เภสัชกร: ____________</span>
+            </div>
+            <div class="sheet-metrics" style="gap: 6px;">
+              <div class="metric" style="padding: 8px;">
+                <span style="font-size: 10px;">ขนาดรวม</span>
+                <strong style="font-size: 14px;">7.5 mg</strong>
+              </div>
+              <div class="metric" style="padding: 8px;">
+                <span style="font-size: 10px;">เป้าหมาย</span>
+                <strong style="font-size: 14px;">2.0-3.0</strong>
+              </div>
+              <div class="metric" style="padding: 8px;">
+                <span style="font-size: 10px;">วันที่สั่ง</span>
+                <strong style="font-size: 14px;">2026-05-28</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Safety Card (optional, placeholder) -->
+          <div class="safety-alert resize-target" style="padding: 8px 12px; margin-bottom: 10px; font-size: 11px;">
+            <strong>การประเมินความปลอดภัย</strong>
+            <p>สร้างแผนยาโดยสรุปจากการป้อนรหัส W-code</p>
+          </div>
+
+          <!-- Schedules Grid -->
+          <div class="landscape-grid-cols-2 resize-target" style="gap: 12px;">
+            
+            <!-- First Week Schedule -->
+            <div class="schedule-block" style="padding: 10px;">
+              <h3 style="font-size: 13px;">สัปดาห์แรก (หลังวันตรวจนัด)</h3>
+              <p class="sub" style="font-size: 9px; margin-bottom: 8px;">เริ่มวันพฤหัสบดี (มีวันงดยาช่วงแรก)</p>
+              
+              <div class="day-list space-y-2">
+                <div class="day-row past">
+                  <div>
+                    <strong>วันจันทร์</strong>
+                    <div class="desc" style="font-size: 10px;">ก่อนวันปรับยา</div>
+                  </div>
+                  <div style="font-weight: bold; padding-right: 12px;">-</div>
+                </div>
+                <div class="day-row past">
+                  <div>
+                    <strong>วันอังคาร</strong>
+                    <div class="desc" style="font-size: 10px;">ก่อนวันปรับยา</div>
+                  </div>
+                  <div style="font-weight: bold; padding-right: 12px;">-</div>
+                </div>
+                <div class="day-row past">
+                  <div>
+                    <strong>วันพุธ</strong>
+                    <div class="desc" style="font-size: 10px;">ก่อนวันปรับยา</div>
+                  </div>
+                  <div style="font-weight: bold; padding-right: 12px;">-</div>
+                </div>
+                <!-- Hold Day Row -->
+                <div class="day-row hold">
+                  <div>
+                    <strong>วันพฤหัสบดี</strong>
+                    <div class="desc" style="font-size: 10px;">งดทานยา</div>
+                  </div>
+                  <div class="hold-badge">งดทานยา</div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันศุกร์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันเสาร์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันอาทิตย์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Maintenance Week Schedule -->
+            <div class="schedule-block" style="padding: 10px;">
+              <h3 style="font-size: 13px;">สัปดาห์ถัดไป (ทานต่อเนื่อง)</h3>
+              <p class="sub" style="font-size: 9px; margin-bottom: 8px;">ทานซ้ำแบบเดิมในทุกสัปดาห์ (จันทร์-อาทิตย์)</p>
+              
+              <div class="day-list space-y-2">
+                <div class="day-row">
+                  <div>
+                    <strong>วันจันทร์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันอังคาร</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันพุธ</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันพฤหัสบดี</strong>
+                    <div class="desc" style="font-size: 10px;">1.5 mg (สีฟ้า 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill blue half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันศุกร์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันเสาร์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+                <div class="day-row">
+                  <div>
+                    <strong>วันอาทิตย์</strong>
+                    <div class="desc" style="font-size: 10px;">1 mg (สีส้ม 1/2 เม็ด)</div>
+                  </div>
+                  <div class="pill-group">
+                    <div class="pill orange half">1/2</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Warnings -->
+          <div class="instructions-card resize-target" style="padding: 8px 12px; margin-top: 14px;">
+            <strong>ข้อควรระวังสำคัญ! (โปรดอ่านและจำไว้เสมอ)</strong>
+            <p style="font-size: 9px; margin-top: 2px;">หากท่านมีอาการเลือดออกผิดปกติ อุจจาระดำหรือแดง ปัสสาวะเป็นเลือด เวียนศีรษะอย่างรุนแรง หรือหกล้มศีรษะกระแทก ให้รีบเดินทางไปพบแพทย์ที่โรงพยาบาลทันที!</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sliders = [
+      { id: 'sheet-height', styleProp: 'height', selector: '#print-sheet', unit: 'mm' },
+      { id: 'page-padding', styleProp: 'padding', selector: '#print-sheet', unit: 'mm' },
+      { id: 'cols-gap', styleProp: 'gap', selector: '.landscape-grid-cols-2', unit: 'px' },
+      { id: 'qr-size', styleProp: 'width', selector: '.qr-img', unit: 'px' },
+      { id: 'qr-font', styleProp: 'fontSize', selector: '.qr-caption', unit: 'px' },
+      { id: 'head-gap', styleProp: 'gap', selector: '.header-meta-group', unit: 'px' },
+      { id: 'row-font', styleProp: 'fontSize', selector: '.day-row strong, .day-row .desc', unit: 'px' },
+      { id: 'row-pad', styleProp: 'padding', selector: '.day-row', unit: 'px' },
+      { id: 'days-gap', styleProp: 'marginTop', selector: '.day-list.space-y-2 > :not([hidden]) ~ :not([hidden])', unit: 'px' },
+      { id: 'pill-width', styleProp: 'width', selector: '.pill', unit: 'px' },
+      { id: 'pill-half-width', styleProp: 'width', selector: '.pill.half', unit: 'px' },
+      { id: 'hold-width', styleProp: 'width', selector: '.hold-badge', unit: 'px' }
+    ];
+
+    const dynamicStylesEl = document.getElementById('dynamic-styles');
+    const cssCodeEl = document.getElementById('css-code');
+
+    function updateStyles() {
+      let cssRules = '';
+      
+      // A5 Height
+      const height = document.getElementById('sheet-height').value;
+      document.getElementById('sheet-height-val').innerText = height + 'mm';
+      cssRules += `  .sheet.layout-half-a4 {\n    height: ${height}mm !important;\n    max-height: ${height}mm !important;\n  }\n`;
+
+      // Page Padding
+      const padding = document.getElementById('page-padding').value;
+      document.getElementById('page-padding-val').innerText = padding + 'mm';
+      cssRules += `  .sheet.layout-half-a4 {\n    padding: ${padding}mm !important;\n  }\n`;
+
+      // Column Gap
+      const colGap = document.getElementById('cols-gap').value;
+      document.getElementById('cols-gap-val').innerText = colGap + 'px';
+      cssRules += `  .sheet.layout-half-a4 .landscape-grid-cols-2 {\n    gap: ${colGap}px !important;\n  }\n`;
+
+      // QR Size
+      const qrSize = document.getElementById('qr-size').value;
+      document.getElementById('qr-size-val').innerText = qrSize + 'px';
+      cssRules += `  .sheet.layout-half-a4 .sheet-head img {\n    width: ${qrSize}px !important;\n    height: ${qrSize}px !important;\n  }\n`;
+
+      // QR Font
+      const qrFont = document.getElementById('qr-font').value;
+      document.getElementById('qr-font-val').innerText = qrFont + 'px';
+      cssRules += `  .sheet.layout-half-a4 .sheet-head span {\n    font-size: ${qrFont}px !important;\n  }\n`;
+
+      // Header Gap
+      const headGap = document.getElementById('head-gap').value;
+      document.getElementById('head-gap-val').innerText = headGap + 'px';
+      cssRules += `  .sheet.layout-half-a4 .header-meta-group {\n    gap: ${headGap}px !important;\n  }\n`;
+
+      // Row Font
+      const rowFont = document.getElementById('row-font').value;
+      document.getElementById('row-font-val').innerText = rowFont + 'px';
+      cssRules += `  .sheet.layout-half-a4 .day-row strong {\n    font-size: ${rowFont}px !important;\n  }\n`;
+      cssRules += `  .sheet.layout-half-a4 .day-row span {\n    font-size: ${rowFont}px !important;\n  }\n`;
+
+      // Row Padding
+      const rowPad = document.getElementById('row-pad').value;
+      document.getElementById('row-pad-val').innerText = rowPad + 'px';
+      cssRules += `  .sheet.layout-half-a4 .day-row {\n    padding: ${rowPad}px 10px !important;\n  }\n`;
+
+      // Days Gap
+      const daysGap = document.getElementById('days-gap').value;
+      document.getElementById('days-gap-val').innerText = daysGap + 'px';
+      cssRules += `  .sheet.layout-half-a4 .space-y-2 > :not([hidden]) ~ :not([hidden]) {\n    margin-top: ${daysGap}px !important;\n  }\n`;
+
+      // Pill Width
+      const pillWidth = document.getElementById('pill-width').value;
+      const pillHeight = Math.round(parseInt(pillWidth) * 22 / 32);
+      const pillFont = Math.round(parseInt(pillWidth) * 10 / 32);
+      document.getElementById('pill-width-val').innerText = pillWidth + 'px';
+      cssRules += `  .sheet.layout-half-a4 .pill {\n    min-width: ${pillWidth}px !important;\n    height: ${pillHeight}px !important;\n    font-size: ${pillFont}px !important;\n  }\n`;
+
+      // Pill Half Width
+      const pillHalfWidth = document.getElementById('pill-half-width').value;
+      document.getElementById('pill-half-width-val').innerText = pillHalfWidth + 'px';
+      cssRules += `  .sheet.layout-half-a4 .pill.half {\n    min-width: ${pillHalfWidth}px !important;\n  }\n`;
+
+      // Hold Width
+      const holdWidth = document.getElementById('hold-width').value;
+      const holdHeight = Math.round(parseInt(holdWidth) * 24 / 65);
+      const holdFont = Math.round(parseInt(holdWidth) * 10 / 65);
+      document.getElementById('hold-width-val').innerText = holdWidth + 'px';
+      cssRules += `  .sheet.layout-half-a4 .hold-pill {\n    min-width: ${holdWidth}px !important;\n    height: ${holdHeight}px !important;\n    font-size: ${holdFont}px !important;\n  }\n`;
+
+      // Update style elements
+      dynamicStylesEl.innerHTML = cssRules.replace(/\.sheet\.layout-half-a4/g, '#print-sheet');
+      cssCodeEl.innerText = `@media print {\n${cssRules}}`;
+    }
+
+    // Connect sliders listeners
+    sliders.forEach(s => {
+      document.getElementById(s.id).addEventListener('input', updateStyles);
+    });
+
+    // B&W filter toggle
+    document.getElementById('bw-toggle').addEventListener('change', (e) => {
+      const wrapper = document.getElementById('paper-wrapper');
+      if (e.target.checked) {
+        wrapper.classList.add('bw-filter');
+      } else {
+        wrapper.classList.remove('bw-filter');
+      }
+    });
+
+    // Drag-to-resize toggle
+    document.getElementById('drag-toggle').addEventListener('change', (e) => {
+      const targets = document.querySelectorAll('.resize-target');
+      targets.forEach(t => {
+        if (e.target.checked) {
+          t.classList.add('resizable-active');
+        } else {
+          t.classList.remove('resizable-active');
+          t.style.height = ''; // Reset custom heights
+        }
+      });
+    });
+
+    // Copy CSS Function
+    function copyCss() {
+      navigator.clipboard.writeText(cssCodeEl.innerText).then(() => {
+        alert('คัดลอกรหัส CSS เข้าคลิปบอร์ดแล้ว!');
+      });
+    }
+
+    // Reset Controls
+    function resetControls() {
+      document.getElementById('sheet-height').value = 198;
+      document.getElementById('page-padding').value = 6;
+      document.getElementById('cols-gap').value = 12;
+      document.getElementById('qr-size').value = 120;
+      document.getElementById('qr-font').value = 11;
+      document.getElementById('head-gap').value = 6;
+      document.getElementById('row-font').value = 11;
+      document.getElementById('row-pad').value = 8;
+      document.getElementById('days-gap').value = 8;
+      document.getElementById('pill-width').value = 32;
+      document.getElementById('pill-half-width').value = 38;
+      document.getElementById('hold-width').value = 65;
+      
+      document.getElementById('bw-toggle').checked = false;
+      document.getElementById('drag-toggle').checked = false;
+      document.getElementById('paper-wrapper').classList.remove('bw-filter');
+      
+      const targets = document.querySelectorAll('.resize-target');
+      targets.forEach(t => {
+        t.classList.remove('resizable-active');
+        t.style.height = '';
+      });
+
+      updateStyles();
+    }
+
+    // Initial Styles Trigger
+    updateStyles();
+  </script>
+</body>
+</html>
