@@ -417,11 +417,8 @@ select {
 }
 
 .pill.half {
-  min-width: 24px;
-  border-radius: 999px 0 0 999px;
-  border-right: none;
-  clip-path: none;
-  padding-right: 4px;
+  min-width: 46px;
+  clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%);
 }
 
 .hold-pill {
@@ -1304,11 +1301,9 @@ select {
   }
 
   .sheet.layout-half-a4 .pill.half {
-    min-width: 20px !important;
-    border-radius: 9px 0 0 9px !important;
-    border-right: none !important;
-    clip-path: none !important;
-    padding-right: 3px !important;
+    min-width: 38px !important;
+    clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%) !important;
+    border-radius: 999px !important;
   }
 
   .sheet.layout-half-a4 .pill.orange {
