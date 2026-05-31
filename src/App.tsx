@@ -15,10 +15,13 @@ export default function App() {
   const [savedPlans, setSavedPlans] = useState<MedicationPlan[]>([]);
   const [lang, setLang] = useState<"th" | "en">("th");
   const [printLayout, setPrintLayout] = useState<"half-a4" | "label">("half-a4");
-  const [doctorUnlocked, setDoctorUnlocked] = useState(false);
+  const [doctorUnlocked, setDoctorUnlocked] = useState(() => {
+    return localStorage.getItem("warfarinpro.doctor_unlocked") === "true";
+  });
   const [showPassPrompt, setShowPassPrompt] = useState(false);
   const [passInput, setPassInput] = useState("");
   const [passError, setPassError] = useState(false);
+  const [rememberPasscode, setRememberPasscode] = useState(true);
 
   useEffect(() => {
     setSavedPlans(loadSavedPlans());
@@ -49,6 +52,11 @@ export default function App() {
     e.preventDefault();
     if (passInput === doctorPasscode) {
       setDoctorUnlocked(true);
+      if (rememberPasscode) {
+        localStorage.setItem("warfarinpro.doctor_unlocked", "true");
+      } else {
+        localStorage.removeItem("warfarinpro.doctor_unlocked");
+      }
       setShowPassPrompt(false);
       setPassInput("");
       setPassError(false);
@@ -57,6 +65,12 @@ export default function App() {
       setPassError(true);
       setPassInput("");
     }
+  };
+
+  const handleLockDoctor = () => {
+    setDoctorUnlocked(false);
+    localStorage.removeItem("warfarinpro.doctor_unlocked");
+    setActive("patient");
   };
 
   return (
@@ -115,6 +129,17 @@ export default function App() {
                 <UserRound size={16} /> {lang === "th" ? "ผู้ป่วย" : "Patient"}
               </button>
             </div>
+
+            {doctorUnlocked && (
+              <button
+                onClick={handleLockDoctor}
+                className="text-xs text-clinic-red hover:text-clinic-red/80 font-bold border border-clinic-red/35 hover:border-clinic-red rounded-lg px-2.5 py-1.5 bg-red-50 hover:bg-red-100 transition-all flex items-center gap-1.5 shadow-sm focus-visible:outline-2 focus-visible:outline-clinic-red"
+                title={lang === "th" ? "ล็อกระบบแพทย์ / ล้างรหัสผ่าน" : "Lock clinician mode / Forget passcode"}
+              >
+                <Lock size={13} />
+                <span>{lang === "th" ? "ล็อกระบบ" : "Lock"}</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -166,6 +191,17 @@ export default function App() {
                   {lang === "th" ? "รหัสผ่านไม่ถูกต้อง" : "Incorrect passcode"}
                 </p>
               )}
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 select-none cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberPasscode}
+                  onChange={(e) => setRememberPasscode(e.target.checked)}
+                  className="rounded border-slate-300 text-clinic-blue focus:ring-clinic-blue cursor-pointer"
+                />
+                <span>
+                  {lang === "th" ? "จำรหัสผ่านในเครื่องนี้" : "Remember passcode on this device"}
+                </span>
+              </label>
               <button
                 type="submit"
                 className="w-full py-2.5 bg-clinic-blue text-white font-bold text-sm rounded-lg hover:bg-clinic-blue/90 transition-colors focus:outline-none"
