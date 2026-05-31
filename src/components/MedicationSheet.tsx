@@ -77,11 +77,14 @@ export default function MedicationSheet({
                   {days.map((day) => {
                     const firstWeekDay = plan.firstWeek.find((d) => d.day === day);
                     const maintDay = plan.maintenanceWeek.find((d) => d.day === day);
-                    const firstWeekDesc = firstWeekDay
-                      ? (firstWeekDay.hold
-                         ? (lang === "th" ? "งดยา" : "HOLD")
-                         : `${firstWeekDay.dose}mg (${getPillComboShortDesc(firstWeekDay.combo, false, lang)})`)
-                      : "-";
+                    const isBeforeClinic = days.indexOf(day) < days.indexOf(plan.clinicDay);
+                    const firstWeekDesc = isBeforeClinic
+                      ? "-"
+                      : (firstWeekDay
+                         ? (firstWeekDay.hold
+                            ? (lang === "th" ? "งดยา" : "HOLD")
+                            : `${firstWeekDay.dose}mg (${getPillComboShortDesc(firstWeekDay.combo, false, lang)})`)
+                         : "-");
                     const maintDesc = maintDay
                       ? (maintDay.dose === 0
                          ? (lang === "th" ? "งดยา" : "HOLD")
@@ -201,6 +204,8 @@ export default function MedicationSheet({
               subtitle={lang === "th" ? `เริ่มวัน${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
               schedule={plan.firstWeek}
               lang={lang}
+              isFirstWeek={true}
+              clinicDay={plan.clinicDay}
             />
             <ScheduleView
               title={t[lang].maintenanceWeekTitle}

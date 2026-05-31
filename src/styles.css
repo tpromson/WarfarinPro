@@ -363,6 +363,17 @@ select {
   border-color: #fdba74;
 }
 
+.day-row.past {
+  border-style: dashed;
+  background: #f8fafc;
+  opacity: 0.6;
+}
+
+.day-row.past strong,
+.day-row.past span {
+  color: #94a3b8 !important;
+}
+
 .pills {
   display: flex;
   min-height: 34px;
@@ -1224,6 +1235,12 @@ select {
   .sheet.layout-half-a4 .day-row {
     padding: 3px 6px !important;
     border-radius: 4px !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .sheet.layout-half-a4 .day-row.past {
+    border-style: dashed !important;
+    background: #f8fafc !important;
     border-color: #cbd5e1 !important;
   }
 
