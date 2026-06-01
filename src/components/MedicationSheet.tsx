@@ -2,12 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { AlertTriangle } from "lucide-react";
 import { buildPatientUrl, days, isFirstWeekOver } from "../clinical";
-import { getDayLabel, getPillComboDesc, t } from "../i18n";
+import { getDayLabel, t } from "../i18n";
 import Metric from "./Metric";
 import ScheduleView from "./ScheduleView";
-import type { DayDose, MedicationPlan } from "../types";
+import type { MedicationPlan } from "../types";
 
-function getPillComboShortDesc(combo: { orangeWhole: number; orangeHalf: number; blueWhole: number; blueHalf: number; dose: number }, hold?: boolean, lang: "th" | "en" = "th"): string {
+function getPillComboShortDesc(
+  combo: {
+    orangeWhole: number;
+    orangeHalf: number;
+    blueWhole: number;
+    blueHalf: number;
+    dose: number;
+  },
+  hold?: boolean,
+  lang: "th" | "en" = "th",
+): string {
   if (hold || combo.dose === 0) return lang === "th" ? "งดยา" : "HOLD";
   const parts: string[] = [];
   if (lang === "th") {
@@ -42,9 +52,10 @@ export default function MedicationSheet({
       .catch((err) => console.error("QR Code Error in MedicationSheet:", err));
   }, [url]);
 
-  const pageStyle = printLayout === "half-a4"
-    ? `@media print { @page { size: A5 portrait; margin: 5mm; } }`
-    : `@media print { @page { size: 90mm 80mm; margin: 0; } }`;
+  const pageStyle =
+    printLayout === "half-a4"
+      ? `@media print { @page { size: A5 portrait; margin: 5mm; } }`
+      : `@media print { @page { size: 90mm 80mm; margin: 0; } }`;
 
   if (printLayout === "label") {
     return (
@@ -53,11 +64,15 @@ export default function MedicationSheet({
         <section className="sheet layout-label">
           <div className="label-header">
             <div className="label-title-group">
-              <h2 className="label-title">{lang === "th" ? "ฉลากยาแนะนำการทานยา (Warfarin)" : "Warfarin Dosing Label"}</h2>
+              <h2 className="label-title">
+                {lang === "th" ? "ฉลากยาแนะนำการทานยา (Warfarin)" : "Warfarin Dosing Label"}
+              </h2>
               <span className="label-drug">Warfarin (Orfarin®) Tablet</span>
             </div>
             <div className="label-fields">
-              <span>{lang === "th" ? "ชื่อ: ____________________" : "Name: ____________________"}</span>
+              <span>
+                {lang === "th" ? "ชื่อ: ____________________" : "Name: ____________________"}
+              </span>
               <span>HN: ____________</span>
             </div>
           </div>
@@ -80,20 +95,26 @@ export default function MedicationSheet({
                     const isBeforeClinic = days.indexOf(day) < days.indexOf(plan.clinicDay);
                     const firstWeekDesc = isBeforeClinic
                       ? "-"
-                      : (firstWeekDay
-                         ? (firstWeekDay.hold
-                            ? (lang === "th" ? "งดยา" : "HOLD")
-                            : `${firstWeekDay.dose}mg (${getPillComboShortDesc(firstWeekDay.combo, false, lang)})`)
-                         : "-");
+                      : firstWeekDay
+                        ? firstWeekDay.hold
+                          ? lang === "th"
+                            ? "งดยา"
+                            : "HOLD"
+                          : `${firstWeekDay.dose}mg (${getPillComboShortDesc(firstWeekDay.combo, false, lang)})`
+                        : "-";
                     const maintDesc = maintDay
-                      ? (maintDay.dose === 0
-                         ? (lang === "th" ? "งดยา" : "HOLD")
-                         : `${maintDay.dose}mg (${getPillComboShortDesc(maintDay.combo, false, lang)})`)
+                      ? maintDay.dose === 0
+                        ? lang === "th"
+                          ? "งดยา"
+                          : "HOLD"
+                        : `${maintDay.dose}mg (${getPillComboShortDesc(maintDay.combo, false, lang)})`
                       : "-";
 
                     return (
                       <tr key={day}>
-                        <td><strong>{getDayLabel(day, lang).substring(0, 3)}</strong></td>
+                        <td>
+                          <strong>{getDayLabel(day, lang).substring(0, 3)}</strong>
+                        </td>
                         <td>{firstWeekDesc}</td>
                         <td>{maintDesc}</td>
                       </tr>
@@ -107,8 +128,18 @@ export default function MedicationSheet({
             <div className="label-qr-container">
               {qr && (
                 <div className="label-qr-wrapper">
-                  <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="label-qr-img" />
-                  <span className="label-qr-caption">{lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for details/audio"}</span>
+                  <img
+                    src={qr}
+                    alt={
+                      lang === "th"
+                        ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ"
+                        : "QR code linking to full medication schedule"
+                    }
+                    className="label-qr-img"
+                  />
+                  <span className="label-qr-caption">
+                    {lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for details/audio"}
+                  </span>
                 </div>
               )}
               <div className="label-wcode-box">
@@ -119,7 +150,9 @@ export default function MedicationSheet({
           </div>
 
           <div className="label-footer">
-            <span>{lang === "th" ? "ผู้สั่งยา/เภสัชกร: ____________" : "Signature: ____________"}</span>
+            <span>
+              {lang === "th" ? "ผู้สั่งยา/เภสัชกร: ____________" : "Signature: ____________"}
+            </span>
             <span className="label-warning-text">
               {lang === "th"
                 ? "⚠️ พบแพทย์ทันทีหากมีเลือดออกผิดปกติ อุจจาระดำ"
@@ -141,14 +174,26 @@ export default function MedicationSheet({
         <div className="sheet-head">
           <div>
             <h2>{lang === "th" ? "ตารางแนะนำการรับประทานยา" : "Warfarin Medication Sheet"}</h2>
-            <p>{lang === "th" ? "Warfarin Medication Sheet" : "Medication dosing plan for patients"}</p>
+            <p>
+              {lang === "th" ? "Warfarin Medication Sheet" : "Medication dosing plan for patients"}
+            </p>
           </div>
           <div className="header-meta-group flex items-center gap-2">
             {qr && (
               <div className="flex items-center gap-1">
                 <div className="flex flex-col items-center gap-0.5">
-                  <img src={qr} alt={lang === "th" ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ" : "QR code linking to full medication schedule"} className="h-24 w-24 border border-clinic-line rounded p-0.5 bg-white" />
-                  <span className="text-[10px] text-slate-500 font-extrabold">{lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}</span>
+                  <img
+                    src={qr}
+                    alt={
+                      lang === "th"
+                        ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ"
+                        : "QR code linking to full medication schedule"
+                    }
+                    className="h-24 w-24 border border-clinic-line rounded p-0.5 bg-white"
+                  />
+                  <span className="text-[10px] text-slate-500 font-extrabold">
+                    {lang === "th" ? "สแกนดูตารางยา" : "Scan Schedule"}
+                  </span>
                 </div>
                 <div className="wcode">{plan.wCode}</div>
               </div>
@@ -165,7 +210,10 @@ export default function MedicationSheet({
           </div>
           <div className="sheet-metrics">
             <Metric label={t[lang].weeklyDose} value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} />
-            <Metric label={t[lang].targetInr} value={`${plan.target.lower.toFixed(1)}-${plan.target.upper.toFixed(1)}`} />
+            <Metric
+              label={t[lang].targetInr}
+              value={`${plan.target.lower.toFixed(1)}-${plan.target.upper.toFixed(1)}`}
+            />
             <Metric label={t[lang].issued} value={plan.issuedDate} />
           </div>
         </div>
@@ -203,7 +251,11 @@ export default function MedicationSheet({
           <div className="grid gap-3 landscape-grid-cols-2">
             <ScheduleView
               title={t[lang].firstWeekTitle}
-              subtitle={lang === "th" ? `เริ่ม${getDayLabel(plan.clinicDay, "th")}` : `Starts on ${getDayLabel(plan.clinicDay, "en")}`}
+              subtitle={
+                lang === "th"
+                  ? `เริ่ม${getDayLabel(plan.clinicDay, "th")}`
+                  : `Starts on ${getDayLabel(plan.clinicDay, "en")}`
+              }
               schedule={plan.firstWeek}
               lang={lang}
               isFirstWeek={true}

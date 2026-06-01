@@ -1,18 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HeartPulse, Info, Lock, ShieldAlert, UserRound, X } from "lucide-react";
 import { parsePatientHash } from "./clinical";
 import { deleteSavedPlan, loadSavedPlans, savePlan } from "./storage";
-import { t } from "./i18n";
 import type { MedicationPlan } from "./types";
 import DoctorMode from "./components/DoctorMode";
 import PatientMode from "./components/PatientMode";
-
-const doctorPasscode = "10949";
+import { config } from "./config";
 
 export default function App() {
-  const [active, setActive] = useState<"doctor" | "patient">("patient");
-  const [openedPlan, setOpenedPlan] = useState<MedicationPlan | null>(null);
-  const [savedPlans, setSavedPlans] = useState<MedicationPlan[]>([]);
+  const [active, setActive] = useState<"doctor" | "patient">(() => {
+    return parsePatientHash() ? "patient" : "patient";
+  });
+  const [openedPlan, setOpenedPlan] = useState<MedicationPlan | null>(() => {
+    return parsePatientHash() ?? null;
+  });
+  const [savedPlans, setSavedPlans] = useState<MedicationPlan[]>(() => loadSavedPlans());
   const [lang, setLang] = useState<"th" | "en">("th");
   const [printLayout, setPrintLayout] = useState<"half-a4" | "label">("half-a4");
   const [doctorUnlocked, setDoctorUnlocked] = useState(() => {
@@ -22,15 +24,6 @@ export default function App() {
   const [passInput, setPassInput] = useState("");
   const [passError, setPassError] = useState(false);
   const [rememberPasscode, setRememberPasscode] = useState(true);
-
-  useEffect(() => {
-    setSavedPlans(loadSavedPlans());
-    const fromHash = parsePatientHash();
-    if (fromHash) {
-      setOpenedPlan(fromHash);
-      setActive("patient");
-    }
-  }, []);
 
   const handleHomeClick = () => {
     window.location.hash = "";
@@ -50,7 +43,7 @@ export default function App() {
 
   const handlePassSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passInput === doctorPasscode) {
+    if (passInput === config.doctorPasscode) {
       setDoctorUnlocked(true);
       if (rememberPasscode) {
         localStorage.setItem("warfarinpro.doctor_unlocked", "true");
@@ -89,12 +82,18 @@ export default function App() {
             <div>
               <h1 className="text-lg font-bold leading-tight text-clinic-ink">WarfarinPro</h1>
               <p className="text-xs text-slate-600">
-                {lang === "th" ? "ระบบแนะนำการรับประทานยาวาร์ฟาริน" : "Physician-directed warfarin support"}
+                {lang === "th"
+                  ? "ระบบแนะนำการรับประทานยาวาร์ฟาริน"
+                  : "Physician-directed warfarin support"}
               </p>
             </div>
           </button>
           <div className="flex items-center gap-3 print:hidden">
-            <div className="flex items-center gap-0.5 border border-clinic-line/60 rounded-lg p-0.5 bg-slate-50 shadow-sm text-[10px]" role="radiogroup" aria-label={lang === "th" ? "เลือกภาษา" : "Select language"}>
+            <div
+              className="flex items-center gap-0.5 border border-clinic-line/60 rounded-lg p-0.5 bg-slate-50 shadow-sm text-[10px]"
+              role="radiogroup"
+              aria-label={lang === "th" ? "เลือกภาษา" : "Select language"}
+            >
               <button
                 role="radio"
                 aria-checked={lang === "th"}
@@ -121,11 +120,25 @@ export default function App() {
               </button>
             </div>
 
-            <div className="segmented" role="tablist" aria-label={lang === "th" ? "เลือกโหมด" : "Select mode"}>
-              <button role="tab" aria-selected={active === "doctor"} className={active === "doctor" ? "active" : ""} onClick={handleDoctorClick}>
+            <div
+              className="segmented"
+              role="tablist"
+              aria-label={lang === "th" ? "เลือกโหมด" : "Select mode"}
+            >
+              <button
+                role="tab"
+                aria-selected={active === "doctor"}
+                className={active === "doctor" ? "active" : ""}
+                onClick={handleDoctorClick}
+              >
                 <ShieldAlert size={16} /> {lang === "th" ? "แพทย์" : "Doctor"}
               </button>
-              <button role="tab" aria-selected={active === "patient"} className={active === "patient" ? "active" : ""} onClick={() => setActive("patient")}>
+              <button
+                role="tab"
+                aria-selected={active === "patient"}
+                className={active === "patient" ? "active" : ""}
+                onClick={() => setActive("patient")}
+              >
                 <UserRound size={16} /> {lang === "th" ? "ผู้ป่วย" : "Patient"}
               </button>
             </div>
@@ -134,7 +147,11 @@ export default function App() {
               <button
                 onClick={handleLockDoctor}
                 className="text-xs text-clinic-red hover:text-clinic-red/80 font-bold border border-clinic-red/35 hover:border-clinic-red rounded-lg px-2.5 py-1.5 bg-red-50 hover:bg-red-100 transition-all flex items-center gap-1.5 shadow-sm focus-visible:outline-2 focus-visible:outline-clinic-red"
-                title={lang === "th" ? "ล็อกระบบแพทย์ / ล้างรหัสผ่าน" : "Lock clinician mode / Forget passcode"}
+                title={
+                  lang === "th"
+                    ? "ล็อกระบบแพทย์ / ล้างรหัสผ่าน"
+                    : "Lock clinician mode / Forget passcode"
+                }
               >
                 <Lock size={13} />
                 <span>{lang === "th" ? "ล็อกระบบ" : "Lock"}</span>
@@ -161,7 +178,10 @@ export default function App() {
                 </h2>
               </div>
               <button
-                onClick={() => { setShowPassPrompt(false); setPassError(false); }}
+                onClick={() => {
+                  setShowPassPrompt(false);
+                  setPassError(false);
+                }}
                 className="text-white/80 hover:text-white text-xl font-bold font-mono focus:outline-none p-1"
               >
                 <X size={18} />
@@ -178,7 +198,10 @@ export default function App() {
                 inputMode="numeric"
                 autoFocus
                 value={passInput}
-                onChange={(e) => { setPassInput(e.target.value); if (passError) setPassError(false); }}
+                onChange={(e) => {
+                  setPassInput(e.target.value);
+                  if (passError) setPassError(false);
+                }}
                 placeholder="•••••"
                 className={`w-full min-h-[44px] appearance-none border rounded-lg bg-white text-clinic-ink p-3 font-bold text-lg text-center tracking-widest transition-colors focus:outline-none ${
                   passError
@@ -241,7 +264,9 @@ export default function App() {
       <footer className="mt-auto border-t border-clinic-line/30 bg-white/70 py-4 text-xs text-slate-500 print:hidden">
         <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-2 px-4">
           <div>
-            &copy; {new Date().getFullYear()} <span className="font-semibold text-slate-700">tpromson@gmail.com</span>. {lang === "th" ? "สงวนลิขสิทธิ์ทั้งหมด" : "All rights reserved."}
+            &copy; {new Date().getFullYear()}{" "}
+            <span className="font-semibold text-slate-700">tpromson@gmail.com</span>.{" "}
+            {lang === "th" ? "สงวนลิขสิทธิ์ทั้งหมด" : "All rights reserved."}
           </div>
           <a
             href="mailto:tpromson@gmail.com?subject=WarfarinPro%20-%20Report%20an%20Issue"

@@ -22,21 +22,30 @@ export default function ScheduleView({
   const clinicIndex = clinicDay ? dayKeys.indexOf(clinicDay) : 0;
 
   // We display in Monday-to-Sunday order!
-  const sortedSchedule = isFirstWeek && clinicDay
-    ? dayKeys.map((dayKey) => {
-        const dayDose = schedule.find((d) => d.day === dayKey);
-        const isBeforeClinic = dayKeys.indexOf(dayKey) < clinicIndex;
-        return {
-          day: dayKey,
-          dose: dayDose?.dose ?? 0,
-          hold: dayDose?.hold ?? false,
-          combo: dayDose?.combo ?? { dose: 0, orangeWhole: 0, orangeHalf: 0, blueWhole: 0, blueHalf: 0, score: 0 },
-          isBeforeClinic,
-        };
-      })
-    : schedule;
+  const sortedSchedule =
+    isFirstWeek && clinicDay
+      ? dayKeys.map((dayKey) => {
+          const dayDose = schedule.find((d) => d.day === dayKey);
+          const isBeforeClinic = dayKeys.indexOf(dayKey) < clinicIndex;
+          return {
+            day: dayKey,
+            dose: dayDose?.dose ?? 0,
+            hold: dayDose?.hold ?? false,
+            combo: dayDose?.combo ?? {
+              dose: 0,
+              orangeWhole: 0,
+              orangeHalf: 0,
+              blueWhole: 0,
+              blueHalf: 0,
+              score: 0,
+            },
+            isBeforeClinic,
+          };
+        })
+      : schedule;
 
-  const hasSpilloverHold = isFirstWeek && clinicDay === "sun" && schedule.some(d => d.day === "mon" && d.hold);
+  const hasSpilloverHold =
+    isFirstWeek && clinicDay === "sun" && schedule.some((d) => d.day === "mon" && d.hold);
 
   return (
     <div className="schedule-block">
@@ -56,27 +65,29 @@ export default function ScheduleView({
                   : ""
               }`}
             >
-               <div>
-                 <strong>{getDayLabel(day.day, lang)}</strong>
-                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                   {isBefore ? (
-                     <span className="text-[12px] font-bold text-slate-400 italic">
-                       {lang === "th" ? "ก่อนวันปรับยา" : "Before visit"}
-                     </span>
-                   ) : (
-                     <>
-                       <span className={`text-[14px] ${day.hold ? "text-clinic-red font-extrabold" : ""}`}>
-                         {day.hold ? (lang === "th" ? "งดทานยา" : "HOLD") : `${day.dose} mg`}
-                       </span>
-                       {!day.hold && (
-                         <span className="text-[11px] text-slate-500 font-semibold ml-1 line-clamp-1">
-                           ({getPillComboDesc(day.combo, day.hold, lang)})
-                         </span>
-                       )}
-                     </>
-                   )}
-                 </div>
-               </div>
+              <div>
+                <strong>{getDayLabel(day.day, lang)}</strong>
+                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  {isBefore ? (
+                    <span className="text-[12px] font-bold text-slate-400 italic">
+                      {lang === "th" ? "ก่อนวันปรับยา" : "Before visit"}
+                    </span>
+                  ) : (
+                    <>
+                      <span
+                        className={`text-[14px] ${day.hold ? "text-clinic-red font-extrabold" : ""}`}
+                      >
+                        {day.hold ? (lang === "th" ? "งดทานยา" : "HOLD") : `${day.dose} mg`}
+                      </span>
+                      {!day.hold && (
+                        <span className="text-[11px] text-slate-500 font-semibold ml-1 line-clamp-1">
+                          ({getPillComboDesc(day.combo, day.hold, lang)})
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
               {!isBefore ? (
                 <span style={{ display: "inline-flex", justifyContent: "flex-end" }}>
                   <PillVisual combo={day.combo} hold={day.hold} lang={lang} />

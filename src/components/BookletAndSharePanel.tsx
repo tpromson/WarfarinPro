@@ -26,7 +26,11 @@ export default function BookletAndSharePanel({
     return (
       <Panel
         id="booklet-summary-panel"
-        title={lang === "th" ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" : "Booklet Transcription & Patient Guide"}
+        title={
+          lang === "th"
+            ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย"
+            : "Booklet Transcription & Patient Guide"
+        }
         icon={<BookOpen size={18} />}
         className={highlighted ? "ring-4 ring-clinic-blue/40" : ""}
       >
@@ -34,7 +38,9 @@ export default function BookletAndSharePanel({
           <AlertTriangle className="text-orange-500 shrink-0 mt-0.5" size={20} />
           <div>
             <h4 className="font-bold text-sm">
-              {lang === "th" ? "ไม่สามารถแสดง W-code และข้อมูลสรุปได้" : "Cannot generate W-Code & Booklet Summary"}
+              {lang === "th"
+                ? "ไม่สามารถแสดง W-code และข้อมูลสรุปได้"
+                : "Cannot generate W-Code & Booklet Summary"}
             </h4>
             <p className="text-xs mt-1">
               {lang === "th"
@@ -50,7 +56,11 @@ export default function BookletAndSharePanel({
   return (
     <Panel
       id="booklet-summary-panel"
-      title={lang === "th" ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" : "Booklet Transcription & Patient Guide"}
+      title={
+        lang === "th"
+          ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย"
+          : "Booklet Transcription & Patient Guide"
+      }
       icon={<BookOpen size={18} />}
       className={highlighted ? "ring-4 ring-clinic-blue/40" : ""}
     >

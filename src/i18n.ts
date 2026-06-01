@@ -31,14 +31,16 @@ export const t = {
     maintenanceWeekTitle: "สัปดาห์ถัดไป (ทานต่อเนื่อง)",
     maintenanceWeekSubtitle: "ทานซ้ำแบบเดิมในทุกสัปดาห์ (จันทร์-อาทิตย์)",
     warningTitle: "ข้อควรระวังสำคัญ! (โปรดอ่านและจำไว้เสมอ)",
-    warningText: "หากท่านมีอาการเลือดออกผิดปกติ อุจจาระดำหรือแดง ปัสสาวะเป็นเลือด เวียนศีรษะอย่างรุนแรง หรือหกล้มศีรษะกระแทก ให้รีบเดินทางไปพบแพทย์ที่โรงพยาบาลทันที!",
+    warningText:
+      "หากท่านมีอาการเลือดออกผิดปกติ อุจจาระดำหรือแดง ปัสสาวะเป็นเลือด เวียนศีรษะอย่างรุนแรง หรือหกล้มศีรษะกระแทก ให้รีบเดินทางไปพบแพทย์ที่โรงพยาบาลทันที!",
     zoomText: "ซูมตัวอักษรใหญ่พิเศษ",
     zoomNormal: "ย่อขนาดตัวอักษรปกติ",
     printLayout: "รูปแบบการพิมพ์",
     printHalfA4: "ครึ่ง A4 (A5)",
     printLabel: "ฉลากยา (Sticker)",
     downloadPdf: "ดาวน์โหลด PDF",
-    wcodeWarning: "ตารางยานี้คำนวณจาก W-code อาจแตกต่างจากแผนยาที่แพทย์สั่ง กรุณาใช้ลิงก์หรือ QR code จากแพทย์เพื่อข้อมูลที่ถูกต้องที่สุด",
+    wcodeWarning:
+      "ตารางยานี้คำนวณจาก W-code อาจแตกต่างจากแผนยาที่แพทย์สั่ง กรุณาใช้ลิงก์หรือ QR code จากแพทย์เพื่อข้อมูลที่ถูกต้องที่สุด",
   },
   en: {
     doctor: "Doctor",
@@ -70,15 +72,17 @@ export const t = {
     maintenanceWeekTitle: "Maintenance Week",
     maintenanceWeekSubtitle: "Repeatable weekly schedule (Mon-Sun)",
     warningTitle: "Critical Safety Warnings!",
-    warningText: "If you experience any abnormal bleeding, black or red stools, blood in urine, severe dizziness, or hit your head in a fall, seek immediate medical attention at the hospital!",
+    warningText:
+      "If you experience any abnormal bleeding, black or red stools, blood in urine, severe dizziness, or hit your head in a fall, seek immediate medical attention at the hospital!",
     zoomText: "Zoom Large Text",
     zoomNormal: "Use Normal Text Size",
     printLayout: "Print Layout",
     printHalfA4: "Half A4 (A5)",
     printLabel: "Medicine Label Sticker",
     downloadPdf: "Download PDF",
-    wcodeWarning: "This schedule is generated from a W-code and may differ from your doctor's exact prescription. Use the link or QR code from your doctor for the most accurate information.",
-  }
+    wcodeWarning:
+      "This schedule is generated from a W-code and may differ from your doctor's exact prescription. Use the link or QR code from your doctor for the most accurate information.",
+  },
 };
 
 export function getDayLabel(day: DayKey, lang: "th" | "en"): string {
@@ -106,7 +110,17 @@ export function getDayLabel(day: DayKey, lang: "th" | "en"): string {
   return th[day];
 }
 
-export function getPillComboDesc(combo: { dose: number; orangeWhole: number; orangeHalf: number; blueWhole: number; blueHalf: number }, hold?: boolean, lang: "th" | "en" = "th"): string {
+export function getPillComboDesc(
+  combo: {
+    dose: number;
+    orangeWhole: number;
+    orangeHalf: number;
+    blueWhole: number;
+    blueHalf: number;
+  },
+  hold?: boolean,
+  lang: "th" | "en" = "th",
+): string {
   if (hold || combo.dose === 0) return lang === "th" ? "งดทานยา" : "HOLD";
   const parts: string[] = [];
   if (lang === "th") {
@@ -116,9 +130,11 @@ export function getPillComboDesc(combo: { dose: number; orangeWhole: number; ora
     if (combo.blueHalf > 0) parts.push(`สีฟ้า 1/2 เม็ด`);
     return parts.length > 0 ? parts.join(" + ") : "งดยา";
   }
-  if (combo.orangeWhole > 0) parts.push(`Orange ${combo.orangeWhole} tab${combo.orangeWhole > 1 ? "s" : ""}`);
+  if (combo.orangeWhole > 0)
+    parts.push(`Orange ${combo.orangeWhole} tab${combo.orangeWhole > 1 ? "s" : ""}`);
   if (combo.orangeHalf > 0) parts.push(`Orange 1/2 tab`);
-  if (combo.blueWhole > 0) parts.push(`Blue ${combo.blueWhole} tab${combo.blueWhole > 1 ? "s" : ""}`);
+  if (combo.blueWhole > 0)
+    parts.push(`Blue ${combo.blueWhole} tab${combo.blueWhole > 1 ? "s" : ""}`);
   if (combo.blueHalf > 0) parts.push(`Blue 1/2 tab`);
   return parts.length > 0 ? parts.join(" + ") : "HOLD";
 }

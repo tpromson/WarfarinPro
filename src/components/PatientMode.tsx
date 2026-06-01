@@ -7,7 +7,6 @@ import {
   Home,
   Printer,
   Save,
-  Speaker,
   UserRound,
   ZoomIn,
   Play,
@@ -16,7 +15,12 @@ import {
   WifiOff,
 } from "lucide-react";
 import QRCode from "qrcode";
-import { buildPatientUrl, generateGoogleCalendarUrl, generateIcsFile, parseWCodeToPlan } from "../clinical";
+import {
+  buildPatientUrl,
+  generateGoogleCalendarUrl,
+  generateIcsFile,
+  parseWCodeToPlan,
+} from "../clinical";
 import { t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
 import { speechController, SpeechStatus } from "../tts";
@@ -40,7 +44,7 @@ export default function PatientMode({
   savedPlans: MedicationPlan[];
   onSave: (plan: MedicationPlan) => void;
   onDelete: (id: string) => void;
-  onSelect: (plan: MedicationPlan) => void;
+  onSelect: (plan: MedicationPlan | null) => void;
   lang?: "th" | "en";
   printLayout: "half-a4" | "label";
   setPrintLayout: (layout: "half-a4" | "label") => void;
@@ -53,10 +57,9 @@ export default function PatientMode({
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
   const [audioStatus, setAudioStatus] = useState<SpeechStatus>("idle");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [pdfLoading, setPdfLoading] = useState(false);
   const [qr, setQr] = useState("");
 
-  const url = useMemo(() => plan ? buildPatientUrl(plan) : "", [plan]);
+  const url = useMemo(() => (plan ? buildPatientUrl(plan) : ""), [plan]);
 
   useEffect(() => {
     if (!url) return;
@@ -92,18 +95,18 @@ export default function PatientMode({
     return `${cy}-${cm}-${cd}`;
   });
 
-  useEffect(() => {
-    if (plan) {
-      setCalStartDate(plan.issuedDate);
-      const [y, m, d] = plan.issuedDate.split("-").map(Number);
-      const date = new Date(y, m - 1, d);
-      date.setDate(date.getDate() + 28); // default 4 weeks
-      const cy = date.getFullYear();
-      const cm = String(date.getMonth() + 1).padStart(2, "0");
-      const cd = String(date.getDate()).padStart(2, "0");
-      setCalEndDate(`${cy}-${cm}-${cd}`);
-    }
-  }, [plan?.id, plan?.issuedDate]);
+  const [prevPlanId, setPrevPlanId] = useState(plan?.id);
+  if (plan && plan.id !== prevPlanId) {
+    setPrevPlanId(plan.id);
+    setCalStartDate(plan.issuedDate);
+    const [y, m, d] = plan.issuedDate.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + 28);
+    const cy = date.getFullYear();
+    const cm = String(date.getMonth() + 1).padStart(2, "0");
+    const cd = String(date.getDate()).padStart(2, "0");
+    setCalEndDate(`${cy}-${cm}-${cd}`);
+  }
 
   useEffect(() => {
     if (!showCalMenu) return;
@@ -174,7 +177,11 @@ export default function PatientMode({
               />
             </label>
             {wCodeError && <p className="text-xs text-clinic-red font-bold">{wCodeError}</p>}
-            <button type="submit" className="icon-button w-full" style={{ justifyContent: "center" }}>
+            <button
+              type="submit"
+              className="icon-button w-full"
+              style={{ justifyContent: "center" }}
+            >
               {t[lang].showSchedule}
             </button>
           </form>
@@ -203,7 +210,9 @@ export default function PatientMode({
                 : "You are offline (medication schedule is active offline from cache)"}
             </span>
           </div>
-          <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase shrink-0">PWA Cache</span>
+          <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full uppercase shrink-0">
+            PWA Cache
+          </span>
         </div>
       )}
 
@@ -241,7 +250,7 @@ export default function PatientMode({
           <div className="flex items-center gap-3">
             <h2 className="text-xl sm:text-2xl font-bold">{t[lang].patientViewer}</h2>
             <button
-              onClick={() => onSelect(null as any)}
+              onClick={() => onSelect(null)}
               className="text-xs text-slate-500 hover:text-clinic-blue font-semibold border border-clinic-line rounded-lg px-2.5 py-1 hover:border-clinic-blue transition-all bg-white hover:bg-clinic-cyan/10"
             >
               {t[lang].changeWCode}
@@ -271,12 +280,28 @@ export default function PatientMode({
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
           {/* Group 1: Audio Dosing Guidance */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
-            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">Audio</span>
-            <div className="segmented !shadow-none !border-0 !p-0 !bg-transparent" role="radiogroup" aria-label={lang === "th" ? "เลือกเสียงนำทาง" : "Voice guidance gender"}>
-              <button role="radio" aria-checked={speakGender === "female"} className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "female" ? "active" : ""}`} onClick={() => setSpeakGender("female")}>
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
+              Audio
+            </span>
+            <div
+              className="segmented !shadow-none !border-0 !p-0 !bg-transparent"
+              role="radiogroup"
+              aria-label={lang === "th" ? "เลือกเสียงนำทาง" : "Voice guidance gender"}
+            >
+              <button
+                role="radio"
+                aria-checked={speakGender === "female"}
+                className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "female" ? "active" : ""}`}
+                onClick={() => setSpeakGender("female")}
+              >
                 👩‍⚕️ {lang === "th" ? "หญิง" : "Female"}
               </button>
-              <button role="radio" aria-checked={speakGender === "male"} className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "male" ? "active" : ""}`} onClick={() => setSpeakGender("male")}>
+              <button
+                role="radio"
+                aria-checked={speakGender === "male"}
+                className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "male" ? "active" : ""}`}
+                onClick={() => setSpeakGender("male")}
+              >
                 👨‍⚕️ {lang === "th" ? "ชาย" : "Male"}
               </button>
             </div>
@@ -324,7 +349,9 @@ export default function PatientMode({
 
           {/* Group 2: Dosing Tools & Reminders */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
-            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">Tools</span>
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
+              Tools
+            </span>
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<ZoomIn size={14} />}
@@ -346,9 +373,11 @@ export default function PatientMode({
                   <h4 className="text-xs font-black text-clinic-ink uppercase tracking-wider border-b pb-1.5 border-slate-100">
                     {lang === "th" ? "ตั้งค่าปฏิทินกินยา" : "Calendar Reminders"}
                   </h4>
-                  
+
                   <label className="flex flex-col gap-1 text-left">
-                    <span className="text-[11px] font-bold text-slate-500">{lang === "th" ? "วันเริ่มต้นทานยา" : "Start Date"}</span>
+                    <span className="text-[11px] font-bold text-slate-500">
+                      {lang === "th" ? "วันเริ่มต้นทานยา" : "Start Date"}
+                    </span>
                     <input
                       type="date"
                       value={calStartDate}
@@ -356,9 +385,11 @@ export default function PatientMode({
                       className="text-xs font-bold border border-slate-200 rounded px-2 py-1 bg-slate-50"
                     />
                   </label>
-                  
+
                   <label className="flex flex-col gap-1 text-left">
-                    <span className="text-[11px] font-bold text-slate-500">{lang === "th" ? "วันนัดตรวจครั้งถัดไป" : "Next Appointment"}</span>
+                    <span className="text-[11px] font-bold text-slate-500">
+                      {lang === "th" ? "วันนัดตรวจครั้งถัดไป" : "Next Appointment"}
+                    </span>
                     <input
                       type="date"
                       value={calEndDate}
@@ -382,7 +413,10 @@ export default function PatientMode({
                       className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left font-bold rounded-lg border border-slate-100"
                       onClick={() => {
                         setShowCalMenu(false);
-                        window.open(generateGoogleCalendarUrl(plan, calStartDate, calEndDate, lang), "_blank");
+                        window.open(
+                          generateGoogleCalendarUrl(plan, calStartDate, calEndDate, lang),
+                          "_blank",
+                        );
                       }}
                     >
                       <CalendarDays size={14} className="text-orange-500" />
@@ -396,7 +430,9 @@ export default function PatientMode({
 
           {/* Group 3: File Management */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
-            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">File</span>
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
+              File
+            </span>
             <span className="select-wrap !h-[32px] !min-h-[32px] flex items-center">
               <select
                 value={printLayout}
@@ -437,9 +473,7 @@ export default function PatientMode({
             <h3 className="text-sm font-bold text-orange-800">
               {lang === "th" ? "ข้อมูลจาก W-code" : "W-code Schedule"}
             </h3>
-            <p className="text-xs text-orange-700 mt-0.5">
-              {t[lang].wcodeWarning}
-            </p>
+            <p className="text-xs text-orange-700 mt-0.5">{t[lang].wcodeWarning}</p>
           </div>
         </div>
       )}

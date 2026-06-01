@@ -15,7 +15,7 @@ import {
   generateGoogleCalendarUrl,
   planSpeech,
 } from "./clinical";
-import type { SafetyInputs, TargetRange, DayKey, DayDose, MedicationPlan } from "./types";
+import type { SafetyInputs, TargetRange, DayKey, DayDose } from "./types";
 
 // ─── roundToHalf ──────────────────────────────────────────
 
@@ -39,26 +39,32 @@ describe("roundToHalf", () => {
 
 describe("makeWCode", () => {
   it("encodes weekly dose, hold count, and clinicDay (default 0=sun)", () => {
-    expect(makeWCode(21, 1)).toBe("W21010"); // clinicDay defaults to 0 (sun)
-    expect(makeWCode(35, 2)).toBe("W35020");
-    expect(makeWCode(0, 0)).toBe("W00000");
+    expect(makeWCode(21, 1).code).toBe("W21010"); // clinicDay defaults to 0 (sun)
+    expect(makeWCode(35, 2).code).toBe("W35020");
+    expect(makeWCode(0, 0).code).toBe("W00000");
   });
-it("encodes clinicDay when provided", () => {
-    expect(makeWCode(21, 1, "mon")).toBe("W21011"); // mon → 1
-    expect(makeWCode(21, 1, "thu")).toBe("W21014"); // thu → 4
-    expect(makeWCode(35, 2, "sat")).toBe("W35026"); // sat → 6
+  it("encodes clinicDay when provided", () => {
+    expect(makeWCode(21, 1, "mon").code).toBe("W21011"); // mon → 1
+    expect(makeWCode(21, 1, "thu").code).toBe("W21014"); // thu → 4
+    expect(makeWCode(35, 2, "sat").code).toBe("W35026"); // sat → 6
   });
   it("pads with zeros", () => {
-    expect(makeWCode(5, 0)).toBe("W05000");
-    expect(makeWCode(7.5, 0)).toBe("W07500");
+    expect(makeWCode(5, 0).code).toBe("W05000");
+    expect(makeWCode(7.5, 0).code).toBe("W07500");
   });
-  it("returns W---- for out-of-range", () => {
-    expect(makeWCode(-1, 0)).toBe("W----");
-    expect(makeWCode(1000, 0)).toBe("W----");
+  it("returns W---- for out-of-range with warning", () => {
+    expect(makeWCode(-1, 0).code).toBe("W----");
+    expect(makeWCode(-1, 0).warning).toContain("outside W-code range");
+    expect(makeWCode(1000, 0).code).toBe("W----");
+    expect(makeWCode(1000, 0).warning).toContain("outside W-code range");
   });
   it("clamps holdDoses to 0-9, dayIndex defaults to 0", () => {
-    expect(makeWCode(21, -1)).toBe("W21000"); // hold clamped to 0, day=0
-    expect(makeWCode(21, 15)).toBe("W21090"); // hold clamped to 9, day=0
+    expect(makeWCode(21, -1).code).toBe("W21000"); // hold clamped to 0, day=0
+    expect(makeWCode(21, 15).code).toBe("W21090"); // hold clamped to 9, day=0
+  });
+  it("returns no warning for valid dose", () => {
+    expect(makeWCode(21, 1).warning).toBeNull();
+    expect(makeWCode(0, 0).warning).toBeNull();
   });
 });
 
@@ -196,7 +202,9 @@ describe("comboForDose", () => {
   it("returns combo for exact dose", () => {
     const combo = comboForDose(4);
     expect(combo.dose).toBe(4);
-    expect(combo.orangeWhole + combo.blueWhole + (combo.orangeHalf + combo.blueHalf) * 0.5).toBeGreaterThan(0);
+    expect(
+      combo.orangeWhole + combo.blueWhole + (combo.orangeHalf + combo.blueHalf) * 0.5,
+    ).toBeGreaterThan(0);
   });
   it("returns fallback for unknown dose", () => {
     const combo = comboForDose(999);
@@ -325,7 +333,11 @@ describe("encodePlan / decodePlan", () => {
       inr: 2.5,
       previousWeeklyDose: 21,
       target: standardTarget,
-      safety: { majorBleeding: false, interactions: ["antibiotic", "amiodarone"], contexts: ["mechanicalValve"] },
+      safety: {
+        majorBleeding: false,
+        interactions: ["antibiotic", "amiodarone"],
+        contexts: ["mechanicalValve"],
+      },
       clinicDay: "mon",
       selectedAdjustment: 0,
       holdDoses: 0,
@@ -418,7 +430,7 @@ describe("generateIcsFile", () => {
     expect(events.length).toBeGreaterThan(2);
     expect(events[1]).toContain("ลิงก์ดูแผนยา/URL:");
     expect(events[2]).not.toContain("ลิงก์ดูแผนยา/URL:");
-    
+
     // Count total occurrences of the URL prefix in the entire string to be absolutely sure
     const occurrences = (ics.match(/ลิงก์ดูแผนยา\/URL:/g) || []).length;
     expect(occurrences).toBe(1);
@@ -502,21 +514,21 @@ describe("planSpeech", () => {
       holdDoses: 0,
     });
     const speech = planSpeech(plan, "female", "th");
-    
+
     // Extract first week speech block
     const firstWeekStart = speech.indexOf("สัปดาห์แรก:");
     const firstWeekEnd = speech.indexOf("สัปดาห์ถัดไป:");
     expect(firstWeekStart).toBeGreaterThan(-1);
     expect(firstWeekEnd).toBeGreaterThan(-1);
-    
+
     const firstWeekSpeechText = speech.substring(firstWeekStart, firstWeekEnd);
-    
+
     // Thu, Fri, Sat, Sun should be present
     expect(firstWeekSpeechText).toContain("วันพฤหัสบดี");
     expect(firstWeekSpeechText).toContain("วันศุกร์");
     expect(firstWeekSpeechText).toContain("วันเสาร์");
     expect(firstWeekSpeechText).toContain("วันอาทิตย์");
-    
+
     // Mon, Tue, Wed should be omitted in the first week part
     expect(firstWeekSpeechText).not.toContain("วันจันทร์");
     expect(firstWeekSpeechText).not.toContain("วันอังคาร");
@@ -544,15 +556,15 @@ describe("planSpeech", () => {
     const firstWeekEnd = speech.indexOf("Maintenance schedule:");
     expect(firstWeekStart).toBeGreaterThan(-1);
     expect(firstWeekEnd).toBeGreaterThan(-1);
-    
+
     const firstWeekSpeechText = speech.substring(firstWeekStart, firstWeekEnd);
-    
+
     // English day names for Thu-Sun should be present
     expect(firstWeekSpeechText).toContain("Thursday");
     expect(firstWeekSpeechText).toContain("Friday");
     expect(firstWeekSpeechText).toContain("Saturday");
     expect(firstWeekSpeechText).toContain("Sunday");
-    
+
     // Mon-Wed should be omitted in the first week part
     expect(firstWeekSpeechText).not.toContain("Monday");
     expect(firstWeekSpeechText).not.toContain("Tuesday");

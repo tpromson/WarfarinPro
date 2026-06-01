@@ -1,11 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  BookOpen,
-  CalendarDays,
-  ChevronDown,
-  HeartPulse,
-  ShieldAlert,
-} from "lucide-react";
+import { BookOpen, CalendarDays, ChevronDown, HeartPulse, ShieldAlert } from "lucide-react";
 import {
   buildMaintenanceSchedule,
   buildPatientUrl,
@@ -17,7 +11,14 @@ import {
   makePlan,
   roundToHalf,
 } from "../clinical";
-import type { ContextFlag, DayDose, DayKey, InteractionFlag, MedicationPlan, TargetRange } from "../types";
+import type {
+  ContextFlag,
+  DayDose,
+  DayKey,
+  InteractionFlag,
+  MedicationPlan,
+  TargetRange,
+} from "../types";
 import BookletAndSharePanelContent from "./BookletAndSharePanelContent";
 import Panel from "./Panel";
 import Metric from "./Metric";
@@ -51,7 +52,6 @@ export default function DoctorMode({
   const [majorBleeding, setMajorBleeding] = useState(false);
   const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
   const [contexts, setContexts] = useState<ContextFlag[]>([]);
-  const [isSummaryHighlighted, setIsSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   const target: TargetRange = useMemo(() => {
@@ -60,22 +60,34 @@ export default function DoctorMode({
     return { preset, lower: 2, upper: 3 };
   }, [customLower, customUpper, preset]);
 
-  const safety = useMemo(() => ({ majorBleeding, interactions, contexts }), [majorBleeding, interactions, contexts]);
+  const safety = useMemo(
+    () => ({ majorBleeding, interactions, contexts }),
+    [majorBleeding, interactions, contexts],
+  );
   const suggestion = useMemo(() => getSuggestion(inr, target, safety), [inr, safety, target]);
   const [selectedAdjustment, setSelectedAdjustment] = useState(suggestion.defaultAdjustment);
   const [holdDoses, setHoldDoses] = useState(suggestion.defaultHoldDoses);
 
-  useEffect(() => {
+  const [prevSuggestionKey, setPrevSuggestionKey] = useState(
+    `${suggestion.defaultAdjustment}-${suggestion.defaultHoldDoses}`,
+  );
+  const currentSuggestionKey = `${suggestion.defaultAdjustment}-${suggestion.defaultHoldDoses}`;
+  if (currentSuggestionKey !== prevSuggestionKey) {
+    setPrevSuggestionKey(currentSuggestionKey);
     setSelectedAdjustment(suggestion.defaultAdjustment);
     setHoldDoses(suggestion.defaultHoldDoses);
-  }, [suggestion.defaultAdjustment, suggestion.defaultHoldDoses]);
+  }
 
   const calculatedDose = roundToHalf(previousDose * (1 + selectedAdjustment / 100));
-  const [maintenance, setMaintenance] = useState<DayDose[]>(() => buildMaintenanceSchedule(calculatedDose));
+  const [maintenance, setMaintenance] = useState<DayDose[]>(() =>
+    buildMaintenanceSchedule(calculatedDose),
+  );
 
-  useEffect(() => {
+  const [prevCalculatedDose, setPrevCalculatedDose] = useState(calculatedDose);
+  if (prevCalculatedDose !== calculatedDose) {
+    setPrevCalculatedDose(calculatedDose);
     setMaintenance(buildMaintenanceSchedule(calculatedDose));
-  }, [calculatedDose]);
+  }
 
   const plan = useMemo(
     () =>
@@ -91,7 +103,17 @@ export default function DoctorMode({
             holdDoses,
             maintenanceWeek: maintenance,
           }),
-    [clinicDay, holdDoses, inr, maintenance, previousDose, safety, selectedAdjustment, suggestion.severity, target],
+    [
+      clinicDay,
+      holdDoses,
+      inr,
+      maintenance,
+      previousDose,
+      safety,
+      selectedAdjustment,
+      suggestion.severity,
+      target,
+    ],
   );
 
   const scheduleDelta = plan ? Math.abs(plan.scheduleWeeklyDose - plan.calculatedWeeklyDose) : 0;
@@ -138,7 +160,9 @@ export default function DoctorMode({
         e.preventDefault();
         if (canShare && plan) {
           navigator.clipboard.writeText(buildPatientUrl(plan));
-          alert(lang === "th" ? "คัดลอกลิงก์คนไข้เรียบร้อยแล้ว!" : "Patient link copied to clipboard!");
+          alert(
+            lang === "th" ? "คัดลอกลิงก์คนไข้เรียบร้อยแล้ว!" : "Patient link copied to clipboard!",
+          );
         }
       } else if (key === "h") {
         e.preventDefault();
@@ -148,7 +172,7 @@ export default function DoctorMode({
 
     window.addEventListener("keydown", handleGlobalShortcuts);
     return () => window.removeEventListener("keydown", handleGlobalShortcuts);
-  }, [canShare, showSummaryModal]);
+  }, [canShare, showSummaryModal, lang, onOpenPatient, plan]);
 
   const handleKeyDown = (e: React.KeyboardEvent, currentId: string) => {
     if (e.key === "Enter") {
@@ -185,11 +209,15 @@ export default function DoctorMode({
   };
 
   function toggleInteraction(flag: InteractionFlag) {
-    setInteractions((current) => (current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag]));
+    setInteractions((current) =>
+      current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag],
+    );
   }
 
   function toggleContext(flag: ContextFlag) {
-    setContexts((current) => (current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag]));
+    setContexts((current) =>
+      current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag],
+    );
   }
 
   return (
@@ -241,8 +269,22 @@ export default function DoctorMode({
           </label>
           {preset === "custom" ? (
             <div className="grid grid-cols-2 gap-3">
-              <NumberField label="Lower" value={customLower} step={0.1} min={1} max={5} onChange={setCustomLower} />
-              <NumberField label="Upper" value={customUpper} step={0.1} min={1} max={6} onChange={setCustomUpper} />
+              <NumberField
+                label="Lower"
+                value={customLower}
+                step={0.1}
+                min={1}
+                max={5}
+                onChange={setCustomLower}
+              />
+              <NumberField
+                label="Upper"
+                value={customUpper}
+                step={0.1}
+                min={1}
+                max={6}
+                onChange={setCustomUpper}
+              />
             </div>
           ) : null}
           <label className="field">
@@ -273,7 +315,11 @@ export default function DoctorMode({
         <Panel title="Safety Flags" icon={<ShieldAlert size={18} />}>
           <label className="check danger justify-between">
             <span className="flex items-center gap-2">
-              <input type="checkbox" checked={majorBleeding} onChange={(event) => setMajorBleeding(event.target.checked)} />
+              <input
+                type="checkbox"
+                checked={majorBleeding}
+                onChange={(event) => setMajorBleeding(event.target.checked)}
+              />
               Major bleeding
             </span>
             <kbd className="text-[9px] font-mono bg-red-100 text-red-700 rounded px-1.5 py-0.5 font-semibold select-none border border-red-200">
@@ -283,16 +329,26 @@ export default function DoctorMode({
           <div className="check-grid md:grid-cols-2">
             {contextKeys.map((flag) => (
               <label key={flag} className="check">
-                <input type="checkbox" checked={contexts.includes(flag)} onChange={() => toggleContext(flag)} />
+                <input
+                  type="checkbox"
+                  checked={contexts.includes(flag)}
+                  onChange={() => toggleContext(flag)}
+                />
                 {contextLabels[flag]}
               </label>
             ))}
           </div>
-          <div className="mt-3 text-xs font-semibold uppercase text-slate-500">Interaction flags</div>
+          <div className="mt-3 text-xs font-semibold uppercase text-slate-500">
+            Interaction flags
+          </div>
           <div className="check-grid md:grid-cols-2">
             {interactionKeys.map((flag) => (
               <label key={flag} className="check">
-                <input type="checkbox" checked={interactions.includes(flag)} onChange={() => toggleInteraction(flag)} />
+                <input
+                  type="checkbox"
+                  checked={interactions.includes(flag)}
+                  onChange={() => toggleInteraction(flag)}
+                />
                 {interactionLabels[flag]}
               </label>
             ))}
@@ -310,7 +366,10 @@ export default function DoctorMode({
               <div className="grid gap-3 md:grid-cols-3">
                 <Metric label="Suggested" value={suggestion.label} />
                 <Metric label="Calculated weekly dose" value={`${calculatedDose.toFixed(1)} mg`} />
-                <Metric label="Target INR" value={`${target.lower.toFixed(1)}-${target.upper.toFixed(1)}`} />
+                <Metric
+                  label="Target INR"
+                  value={`${target.lower.toFixed(1)}-${target.upper.toFixed(1)}`}
+                />
               </div>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <label className="field">
@@ -364,16 +423,36 @@ export default function DoctorMode({
             </Panel>
 
             <Panel title="Editable Maintenance Week" icon={<CalendarDays size={18} />}>
-              <ScheduleEditor schedule={maintenance} onChange={setMaintenance} onKeyDown={handleKeyDown} />
+              <ScheduleEditor
+                schedule={maintenance}
+                onChange={setMaintenance}
+                onKeyDown={handleKeyDown}
+              />
               {plan ? (
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
-                  <Metric label="Schedule total" value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`} tone={scheduleDelta > 0.5 ? "danger" : "normal"} />
+                  <Metric
+                    label="Schedule total"
+                    value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`}
+                    tone={scheduleDelta > 0.5 ? "danger" : "normal"}
+                  />
                   <Metric label="W-code" value={plan.wCode} />
-                  <Metric label="First week hold" value={`${plan.firstWeekHoldDoses} dose${plan.firstWeekHoldDoses === 1 ? "" : "s"}`} />
-                  <Metric label="Schedule quality" value={plan.safety.complexSchedule ? "Complex" : "Simple"} tone={plan.safety.complexSchedule ? "caution" : "normal"} />
+                  <Metric
+                    label="First week hold"
+                    value={`${plan.firstWeekHoldDoses} dose${plan.firstWeekHoldDoses === 1 ? "" : "s"}`}
+                  />
+                  <Metric
+                    label="Schedule quality"
+                    value={plan.safety.complexSchedule ? "Complex" : "Simple"}
+                    tone={plan.safety.complexSchedule ? "caution" : "normal"}
+                  />
                 </div>
               ) : null}
-              {scheduleDelta > 0.5 ? <p className="warning">Schedule total differs from calculated dose by more than 0.5 mg/week. Adjust the schedule or selected dose before sharing.</p> : null}
+              {scheduleDelta > 0.5 ? (
+                <p className="warning">
+                  Schedule total differs from calculated dose by more than 0.5 mg/week. Adjust the
+                  schedule or selected dose before sharing.
+                </p>
+              ) : null}
             </Panel>
 
             {plan ? (
@@ -414,7 +493,9 @@ export default function DoctorMode({
               <div className="flex items-center gap-2">
                 <BookOpen size={19} />
                 <h2 id="summary-modal-title" className="text-base font-bold">
-                  {lang === "th" ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" : "Booklet Transcription & Patient Guide"}
+                  {lang === "th"
+                    ? "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย"
+                    : "Booklet Transcription & Patient Guide"}
                 </h2>
               </div>
               <button

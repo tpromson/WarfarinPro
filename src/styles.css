@@ -8,7 +8,15 @@
 
 body {
   margin: 0;
-  font-family: Inter, "Noto Sans Thai", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    "Noto Sans Thai",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 button,
@@ -97,7 +105,9 @@ select {
   padding: 20px;
   box-shadow: 0 10px 25px rgba(23, 50, 77, 0.05);
   animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .panel:hover {
@@ -141,7 +151,10 @@ select {
   color: #17324d;
   padding: 0 12px;
   font-weight: 700;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
 }
 
 .field input:focus,
@@ -401,7 +414,9 @@ select {
   color: white;
   font-size: 12px;
   font-weight: 900;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: default;
 }
@@ -426,7 +441,7 @@ select {
   position: relative;
 }
 .pill.half::after {
-  content: '';
+  content: "";
   position: absolute;
   right: 0;
   top: 0;
@@ -445,8 +460,12 @@ select {
   color: white;
   font-size: 12px;
   font-weight: 900;
-  box-shadow: 0 2px 4px rgba(194, 65, 50, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  box-shadow:
+    0 2px 4px rgba(194, 65, 50, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
   cursor: default;
 }
 
@@ -528,7 +547,6 @@ select {
   max-width: min(100%, 210mm);
   margin: 0 auto;
 }
-
 
 .sheet {
   border: 1px solid #d8e4e8;
@@ -735,64 +753,6 @@ select {
   }
 }
 
-@media print {
-
-
-  /* Complete layout reset for printing */
-  html, body, #root, main {
-    background: white !important;
-    color: black !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    display: block !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Hide screen-only components and standard inputs/panels */
-  header,
-  .print\:hidden,
-  .voice-prompt-banner,
-  .status,
-  .panel,
-  .instructions:not(.sheet .instructions) {
-    display: none !important;
-  }
-
-  /* Reset outer grid/flex containers to block layout to avoid pagination overflow */
-  .mx-auto.grid,
-  .mx-auto.max-w-7xl,
-  .mx-auto.max-w-6xl,
-  main > div,
-  main > div > section {
-    display: block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    border: none !important;
-    box-shadow: none !important;
-    gap: 0 !important;
-  }
-
-  /* Position print sheet wrapper cleanly */
-  .print-sheet-wrapper {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .sheet {
-    border: 0;
-    box-shadow: none;
-    padding: 0;
-  }
-}
-
 /* Calendar Dropdown Menu Styles */
 .dropdown-menu {
   border: 1px solid #d8e4e8;
@@ -815,7 +775,9 @@ select {
   font-weight: 700;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .dropdown-menu button:hover {
@@ -907,15 +869,6 @@ select {
   width: 1px;
   height: 1px;
   overflow: hidden;
-}
-
-@media print {
-  .print-sheet-wrapper {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-  }
 }
 
 /* Glowing Pulsing Voice Banner Animation */
@@ -1098,320 +1051,6 @@ select {
   color: #b91c1c;
 }
 
-/* Specific media print styling for layouts */
-@media print {
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  body:has(.sheet.layout-label) {
-    background: white;
-  }
-
-  .print-sheet-wrapper:has(.layout-label) {
-    display: block !important;
-    position: static !important;
-    width: 90mm !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  .sheet.layout-label {
-    width: 90mm !important;
-    max-width: 90mm !important;
-    min-height: 80mm !important;
-    border: 1px solid black !important;
-    border-radius: 0 !important;
-    padding: 2mm !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    page-break-inside: avoid !important;
-  }
-
-  .layout-label .label-title {
-    font-size: 13px !important;
-  }
-
-  .layout-label .label-drug {
-    font-size: 11px !important;
-  }
-
-  .layout-label .label-fields {
-    font-size: 10px !important;
-  }
-
-  .layout-label .label-schedule-table {
-    font-size: 10px !important;
-  }
-
-  .layout-label .label-schedule-table th,
-  .layout-label .label-schedule-table td {
-    border-bottom: 1px solid black !important;
-  }
-
-  .layout-label .label-schedule-table th {
-    border-bottom: 1.5px solid black !important;
-  }
-
-  .layout-label .label-qr-img {
-    border: 1px solid black !important;
-  }
-
-  .layout-label .label-wcode-box {
-    border: 1.5px solid black !important;
-  }
-
-  .layout-label .label-footer {
-    border-top: 1px dashed black !important;
-    font-size: 10px !important;
-  }
-
-  /* A5 Portrait print overrides */
-  .print-sheet-wrapper:has(.layout-half-a4) {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 auto !important;
-    overflow: visible !important;
-  }
-
-  .sheet.layout-half-a4 {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 198mm !important;
-    max-height: 198mm !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    padding: 6mm !important;
-    box-sizing: border-box !important;
-    margin: 0 auto !important;
-    page-break-inside: avoid !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-head {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding-bottom: 6mm !important;
-    border-bottom: 2px solid #176087 !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-head > div:first-child {
-    flex: 0 0 62% !important;
-    min-width: 0 !important;
-    max-width: 62% !important;
-  }
-
-  .sheet.layout-half-a4 .header-meta-group {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-end !important;
-    gap: 6px !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-head h2 {
-    font-size: 20px !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-head p {
-    font-size: 11px !important;
-  }
-
-  .sheet.layout-half-a4 .wcode {
-    font-size: 22px !important;
-    padding: 8px 16px !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-head img {
-    height: 42mm !important;
-    width: 42mm !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-head span {
-    font-size: 11px !important;
-    font-weight: 800 !important;
-  }
-
-  .sheet.layout-half-a4 .blank-grid {
-    font-size: 11px !important;
-    gap: 6px 12px !important;
-    padding: 2mm 0 !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-metrics {
-    gap: 6px !important;
-    padding: 2mm 0 !important;
-  }
-
-  .sheet.layout-half-a4 .metric {
-    padding: 8px !important;
-    border-left: 3.5px solid #176087 !important;
-  }
-
-  .sheet.layout-half-a4 .metric span {
-    font-size: 10px !important;
-  }
-
-  .sheet.layout-half-a4 .metric strong {
-    font-size: 14px !important;
-    margin-top: 2px !important;
-  }
-
-  .sheet.layout-half-a4 .schedule-block {
-    padding: 10px !important;
-    border-color: #cbd5e1 !important;
-  }
-
-  .sheet.layout-half-a4 .schedule-block h3 {
-    font-size: 13px !important;
-  }
-
-  .sheet.layout-half-a4 .schedule-block p {
-    font-size: 9px !important;
-  }
-
-  .sheet.layout-half-a4 .space-y-2 > :not([hidden]) ~ :not([hidden]) {
-    margin-top: 8px !important;
-  }
-
-  .sheet.layout-half-a4 .day-row {
-    padding: 8px 10px !important;
-    border-radius: 6px !important;
-    border-color: #cbd5e1 !important;
-  }
-
-  .sheet.layout-half-a4 .day-row.hold {
-    border: 1.5px solid #b91c1c !important;
-    background: #fff5f5 !important;
-  }
-
-  .sheet.layout-half-a4 .day-row.hold span {
-    color: #991b1b !important;
-    font-weight: 800 !important;
-  }
-
-  .sheet.layout-half-a4 .day-row.past {
-    border-style: dashed !important;
-    background: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-  }
-
-  .sheet.layout-half-a4 .day-row strong {
-    font-size: 11px !important;
-  }
-
-  .sheet.layout-half-a4 .day-row span {
-    font-size: 11px !important;
-  }
-
-  .sheet.layout-half-a4 .pill {
-    min-width: 32px !important;
-    height: 22px !important;
-    font-size: 10px !important;
-    box-shadow: none !important;
-  }
-
-  .sheet.layout-half-a4 .pill.half {
-    min-width: 38px !important;
-    clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%) !important;
-    border-radius: 999px !important;
-  }
-
-  .sheet.layout-half-a4 .pill.orange {
-    background: #ffedd5 !important;
-    border: 1.5px solid #d97706 !important;
-    color: #78350f !important;
-  }
-
-  .sheet.layout-half-a4 .pill.blue {
-    background: #dbeafe !important;
-    border: 1.5px solid #2563eb !important;
-    color: #1e3a8a !important;
-  }
-
-  .sheet.layout-half-a4 .hold-pill {
-    min-width: 65px !important;
-    height: 24px !important;
-    font-size: 10px !important;
-    background: #b91c1c !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 999px !important;
-    box-shadow: none !important;
-  }
-
-  .sheet.layout-half-a4 .instructions {
-    margin-top: 8px !important;
-    padding: 4mm !important;
-    border: 1px solid #fed7aa !important;
-    border-left: 3.5px solid #f97316 !important;
-  }
-
-  .sheet.layout-half-a4 .instructions strong {
-    font-size: 11px !important;
-  }
-
-  .sheet.layout-half-a4 .instructions p {
-    font-size: 9px !important;
-    margin-top: 2px !important;
-    line-height: 1.3 !important;
-  }
-
-  /* sheet-info-row: ชื่อ+HN (62%, แนวนอนใต้ title) | dose+INR ล่างเต็มแถว */
-  .sheet.layout-half-a4 .sheet-info-row {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    gap: 0 !important;
-    margin: 6px 0 !important;
-    align-items: flex-start !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-info-row .blank-grid {
-    flex: 0 0 62% !important;
-    max-width: 62% !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-  }
-
-  .sheet.layout-half-a4 .sheet-info-row .sheet-metrics {
-    flex: 0 0 100% !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* Schedules: flex row with 50/50 split */
-  .sheet.layout-half-a4 .landscape-grid-cols-2 {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 10px !important;
-  }
-
-  .sheet.layout-half-a4 .landscape-grid-cols-2 > *:first-child {
-    flex: 0 0 50% !important;
-    min-width: 0 !important;
-  }
-
-  .sheet.layout-half-a4 .landscape-grid-cols-2 > *:last-child {
-    flex: 1 !important;
-    min-width: 0 !important;
-  }
-
-  .sheet.layout-half-a4 .safety {
-    padding: 8px 12px !important;
-    margin-bottom: 10px !important;
-    font-size: 11px !important;
-  }
-}
-
 /* Sharp crisp QR code rendering for printing */
 .label-qr-img,
 .sheet-head img,
@@ -1422,4 +1061,3 @@ select {
   image-rendering: crisp-edges;
   image-rendering: pixelated;
 }
-

@@ -10,3 +10,4 @@ vite.config.js
 .env.production
 .env.development.local
 .env.production.local
+.vscode/

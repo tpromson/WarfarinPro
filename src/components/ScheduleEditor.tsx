@@ -23,7 +23,7 @@ export default function ScheduleEditor({
 
   function copyToAllDays(dose: number) {
     onChange(
-      schedule.map((item) => ({ ...item, dose, combo: comboForDose(dose), hold: dose === 0 }))
+      schedule.map((item) => ({ ...item, dose, combo: comboForDose(dose), hold: dose === 0 })),
     );
   }
 
@@ -33,7 +33,7 @@ export default function ScheduleEditor({
         const dayIndex = days.indexOf(item.day);
         const dose = dayIndex % 2 === 0 ? oddDose : evenDose; // 0-indexed: mon(0), tue(1), ...
         return { ...item, dose, combo: comboForDose(dose), hold: dose === 0 };
-      })
+      }),
     );
     setShowAlternate(false);
   }
@@ -63,8 +63,10 @@ export default function ScheduleEditor({
                   const dose = Number(event.target.value);
                   onChange(
                     schedule.map((item) =>
-                      item.day === day.day ? { ...item, dose, combo: comboForDose(dose), hold: dose === 0 } : item
-                    )
+                      item.day === day.day
+                        ? { ...item, dose, combo: comboForDose(dose), hold: dose === 0 }
+                        : item,
+                    ),
                   );
                 }}
                 onKeyDown={(e) => onKeyDown?.(e, `dose-${day.day}`)}
@@ -103,7 +105,9 @@ export default function ScheduleEditor({
                 className="w-full"
               >
                 {doseOptions.map((dose) => (
-                  <option key={dose} value={dose}>{dose} mg</option>
+                  <option key={dose} value={dose}>
+                    {dose} mg
+                  </option>
                 ))}
               </select>
             </label>
@@ -115,7 +119,9 @@ export default function ScheduleEditor({
                 className="w-full"
               >
                 {doseOptions.map((dose) => (
-                  <option key={dose} value={dose}>{dose} mg</option>
+                  <option key={dose} value={dose}>
+                    {dose} mg
+                  </option>
                 ))}
               </select>
             </label>

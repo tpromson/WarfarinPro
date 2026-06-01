@@ -7,32 +7,39 @@ async function synthesizeGoogleTts(
   text: string,
   apiKey: string,
   gender: "female" | "male",
-  lang: "th" | "en"
+  lang: "th" | "en",
 ): Promise<string> {
-  const voiceName = lang === "th"
-    ? (gender === "female" ? "th-TH-Chirp3-HD-Kore" : "th-TH-Chirp3-HD-Achird")
-    : (gender === "female" ? "en-US-Neural2-F" : "en-US-Neural2-M");
+  const voiceName =
+    lang === "th"
+      ? gender === "female"
+        ? "th-TH-Chirp3-HD-Kore"
+        : "th-TH-Chirp3-HD-Achird"
+      : gender === "female"
+        ? "en-US-Neural2-F"
+        : "en-US-Neural2-M";
   const languageCode = lang === "th" ? "th-TH" : "en-US";
 
-  const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: { ssml: text },
+        voice: {
+          languageCode,
+          name: voiceName,
+        },
+        audioConfig: {
+          audioEncoding: "MP3",
+          speakingRate:
+            lang === "th" ? (gender === "female" ? 0.98 : 0.93) : gender === "female" ? 0.95 : 0.9,
+        },
+      }),
     },
-    body: JSON.stringify({
-      input: { ssml: text },
-      voice: {
-        languageCode,
-        name: voiceName,
-      },
-      audioConfig: {
-        audioEncoding: "MP3",
-        speakingRate: lang === "th" 
-          ? (gender === "female" ? 0.98 : 0.93)
-          : (gender === "female" ? 0.95 : 0.90),
-      },
-    }),
-  });
+  );
 
   if (!response.ok) {
     const errText = await response.text();
@@ -70,7 +77,7 @@ class SpeechController {
     this.setStatus("playing");
 
     const speechText = planSpeech(plan, gender, lang);
-    const apiKey = (import.meta as any).env?.VITE_GOOGLE_TTS_API_KEY;
+    const apiKey = import.meta.env.VITE_GOOGLE_TTS_API_KEY;
 
     if (apiKey) {
       try {
@@ -117,12 +124,14 @@ class SpeechController {
     }
 
     window.speechSynthesis.cancel();
-    const plainText = speechText.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+    const plainText = speechText
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
     const utterance = new SpeechSynthesisUtterance(plainText);
     utterance.lang = lang === "th" ? "th-TH" : "en-US";
-    utterance.rate = lang === "th"
-      ? (gender === "female" ? 0.85 : 0.78)
-      : (gender === "female" ? 0.95 : 0.90);
+    utterance.rate =
+      lang === "th" ? (gender === "female" ? 0.85 : 0.78) : gender === "female" ? 0.95 : 0.9;
     utterance.pitch = gender === "female" ? 1.15 : 1.0;
 
     utterance.onend = () => {
@@ -177,6 +186,10 @@ class SpeechController {
 export const speechController = new SpeechController();
 
 // Deprecated fallback helper for backward compatibility
-export async function speakPlan(plan: MedicationPlan, gender: "female" | "male" = "female", lang: "th" | "en" = "th") {
+export async function speakPlan(
+  plan: MedicationPlan,
+  gender: "female" | "male" = "female",
+  lang: "th" | "en" = "th",
+) {
   return speechController.play(plan, gender, lang);
 }

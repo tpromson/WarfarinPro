@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function NumberField({
   label,
@@ -23,11 +23,13 @@ export default function NumberField({
 }) {
   const [inputValue, setInputValue] = useState(value.toString());
 
-  useEffect(() => {
+  const [prevValue, setPrevValue] = useState(value);
+  if (prevValue !== value) {
+    setPrevValue(value);
     if (Number(inputValue) !== value) {
       setInputValue(value.toString());
     }
-  }, [value, inputValue]);
+  }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const valStr = event.target.value;

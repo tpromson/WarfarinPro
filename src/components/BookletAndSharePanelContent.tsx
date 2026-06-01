@@ -1,29 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { BookOpen, Check, Copy, FileDown, MessageCircle, Printer, QrCode, UserRound } from "lucide-react";
+import {
+  BookOpen,
+  Check,
+  Copy,
+  FileDown,
+  MessageCircle,
+  Printer,
+  QrCode,
+  UserRound,
+} from "lucide-react";
 import { buildPatientUrl, days } from "../clinical";
-import { getDayLabel, getPillComboDesc, t } from "../i18n";
+import { getDayLabel, t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
 import IconButton from "./IconButton";
 import PillVisual from "./PillVisual";
 import type { MedicationPlan } from "../types";
-
-function getPillComboShortDesc(combo: { orangeWhole: number; orangeHalf: number; blueWhole: number; blueHalf: number; dose: number }, hold?: boolean, lang: "th" | "en" = "th"): string {
-  if (hold || combo.dose === 0) return lang === "th" ? "งดยา" : "HOLD";
-  const parts: string[] = [];
-  if (lang === "th") {
-    if (combo.orangeWhole > 0) parts.push(`ส้ม ${combo.orangeWhole}`);
-    if (combo.orangeHalf > 0) parts.push(`ส้ม 1/2`);
-    if (combo.blueWhole > 0) parts.push(`ฟ้า ${combo.blueWhole}`);
-    if (combo.blueHalf > 0) parts.push(`ฟ้า 1/2`);
-    return parts.length > 0 ? parts.join("+") : "งดยา";
-  }
-  if (combo.orangeWhole > 0) parts.push(`Or ${combo.orangeWhole}`);
-  if (combo.orangeHalf > 0) parts.push(`Or 1/2`);
-  if (combo.blueWhole > 0) parts.push(`Bl ${combo.blueWhole}`);
-  if (combo.blueHalf > 0) parts.push(`Bl 1/2`);
-  return parts.length > 0 ? parts.join("+") : "HOLD";
-}
 
 export default function BookletAndSharePanelContent({
   plan,
@@ -75,10 +67,10 @@ export default function BookletAndSharePanelContent({
 
     const multiplier = Math.max(0, dispenseWeeks - 1);
 
-    const totalOrangeWhole = w1OrangeWhole + (maintOrangeWhole * multiplier);
-    const totalOrangeHalf = w1OrangeHalf + (maintOrangeHalf * multiplier);
-    const totalBlueWhole = w1BlueWhole + (maintBlueWhole * multiplier);
-    const totalBlueHalf = w1BlueHalf + (maintBlueHalf * multiplier);
+    const totalOrangeWhole = w1OrangeWhole + maintOrangeWhole * multiplier;
+    const totalOrangeHalf = w1OrangeHalf + maintOrangeHalf * multiplier;
+    const totalBlueWhole = w1BlueWhole + maintBlueWhole * multiplier;
+    const totalBlueHalf = w1BlueHalf + maintBlueHalf * multiplier;
 
     const dispenseOrange = totalOrangeWhole + Math.ceil(totalOrangeHalf / 2);
     const dispenseBlue = totalBlueWhole + Math.ceil(totalBlueHalf / 2);
@@ -158,8 +150,8 @@ export default function BookletAndSharePanelContent({
                     ? "คัดลอกสำเร็จ!"
                     : "Copied!"
                   : lang === "th"
-                  ? "คัดลอกรหัส W-code"
-                  : "Copy W-Code"}
+                    ? "คัดลอกรหัส W-code"
+                    : "Copy W-Code"}
               </span>
             </button>
           </div>
@@ -186,7 +178,13 @@ export default function BookletAndSharePanelContent({
               {lang === "th" ? "ลิงก์หน้าผู้ป่วย" : "Patient Link"}
             </div>
             <div className="mt-0.5 text-xs text-clinic-blue font-bold truncate">
-              <a href={url} target="_blank" rel="noreferrer" title={url} className="hover:underline">
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                title={url}
+                className="hover:underline"
+              >
                 {shortUrl}
               </a>
             </div>
@@ -203,8 +201,8 @@ export default function BookletAndSharePanelContent({
                     ? "คัดลอกแล้ว!"
                     : "Copied!"
                   : lang === "th"
-                  ? "คัดลอกลิงก์"
-                  : "Copy Link"
+                    ? "คัดลอกลิงก์"
+                    : "Copy Link"
               }
               shortcut="Alt+C"
             />
@@ -218,9 +216,7 @@ export default function BookletAndSharePanelContent({
           </div>
 
           <div className="flex flex-col gap-1 text-left print:hidden mb-2.5">
-            <span className="text-xs font-extrabold text-slate-500">
-              {t[lang].printLayout}
-            </span>
+            <span className="text-xs font-extrabold text-slate-500">{t[lang].printLayout}</span>
             <div className="segmented !h-[36px] !min-h-[36px] !grid-cols-2">
               <button
                 type="button"
@@ -251,8 +247,10 @@ export default function BookletAndSharePanelContent({
             </button>
             <IconButton
               icon={<FileDown size={14} />}
-onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)}
-               label={t[lang].downloadPdf}
+              onClick={() =>
+                generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
+              }
+              label={t[lang].downloadPdf}
             />
             <IconButton
               icon={<Printer size={14} />}
@@ -271,7 +269,9 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
             <h3 className="font-extrabold text-sm text-clinic-ink flex items-center gap-2">
               <BookOpen size={16} className="text-clinic-blue" />
               <span>
-                {lang === "th" ? "ข้อมูลวิธีกรอกลงสมุดประวัติยาของผู้ป่วย" : "Warfarin Booklet Writing Guide"}
+                {lang === "th"
+                  ? "ข้อมูลวิธีกรอกลงสมุดประวัติยาของผู้ป่วย"
+                  : "Warfarin Booklet Writing Guide"}
               </span>
             </h3>
             <div className="flex gap-4 text-xs font-bold">
@@ -332,8 +332,12 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
                   <tr className="bg-slate-100 text-slate-600 border-b border-clinic-line font-bold">
                     <th className="p-2.5 w-28">{lang === "th" ? "วัน" : "Day"}</th>
                     <th className="p-2.5 text-center w-24">{lang === "th" ? "ขนาดโดส" : "Dose"}</th>
-                    <th className="p-2.5 text-center">{lang === "th" ? "ตัวช่วยจำสีเม็ดยา" : "Pill Visual"}</th>
-                    <th className="p-2.5 text-right w-44">{lang === "th" ? "วิธีเขียนลงสมุดยา" : "Transcription Text"}</th>
+                    <th className="p-2.5 text-center">
+                      {lang === "th" ? "ตัวช่วยจำสีเม็ดยา" : "Pill Visual"}
+                    </th>
+                    <th className="p-2.5 text-right w-44">
+                      {lang === "th" ? "วิธีเขียนลงสมุดยา" : "Transcription Text"}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -341,11 +345,18 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
                     const dayDose = plan.maintenanceWeek.find((d) => d.day === dayKey);
                     if (!dayDose) return null;
                     return (
-                      <tr key={dayKey} className="border-b border-clinic-line/30 hover:bg-slate-50/50">
-                        <td className="p-2.5 font-bold text-clinic-ink">{getDayLabel(dayKey, lang)}</td>
+                      <tr
+                        key={dayKey}
+                        className="border-b border-clinic-line/30 hover:bg-slate-50/50"
+                      >
+                        <td className="p-2.5 font-bold text-clinic-ink">
+                          {getDayLabel(dayKey, lang)}
+                        </td>
                         <td className="p-2.5 text-center font-bold text-slate-800">
                           {dayDose.hold ? (
-                            <span className="text-clinic-red">{lang === "th" ? "งดทานยา" : "HOLD"}</span>
+                            <span className="text-clinic-red">
+                              {lang === "th" ? "งดทานยา" : "HOLD"}
+                            </span>
                           ) : (
                             <span>{dayDose.dose} mg</span>
                           )}
@@ -441,7 +452,9 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
               {/* Orange 2mg Card */}
               <div className="bg-orange-50/50 border border-orange-100/70 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 h-10 w-10 bg-orange-500/5 rounded-bl-full flex items-center justify-end pr-2 pb-2">
-                  <span className="pill orange !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">2</span>
+                  <span className="pill orange !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">
+                    2
+                  </span>
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-[9px] font-black uppercase tracking-wider text-orange-700">
@@ -466,7 +479,9 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
               {/* Blue 3mg Card */}
               <div className="bg-blue-50/50 border border-blue-100/70 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 h-10 w-10 bg-blue-500/5 rounded-bl-full flex items-center justify-end pr-2 pb-2">
-                  <span className="pill blue !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">3</span>
+                  <span className="pill blue !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">
+                    3
+                  </span>
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-[9px] font-black uppercase tracking-wider text-blue-700">
@@ -493,7 +508,9 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
           {/* Print advice helper */}
           <div className="pt-2 flex items-center justify-end gap-2">
             <button
-              onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)}
+              onClick={() =>
+                generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
+              }
               className="px-4 py-2 border border-clinic-blue text-clinic-blue hover:bg-clinic-cyan/10 font-extrabold text-xs rounded-xl shadow-sm transition-all focus:outline-none flex items-center justify-center gap-2"
             >
               <FileDown size={15} />
@@ -505,7 +522,9 @@ onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode
             >
               <Printer size={15} />
               <span>
-                {lang === "th" ? "พิมพ์ใบตารางแนะนำยาสำหรับคนไข้" : "Print Patient Guidance Leaflet"}
+                {lang === "th"
+                  ? "พิมพ์ใบตารางแนะนำยาสำหรับคนไข้"
+                  : "Print Patient Guidance Leaflet"}
               </span>
             </button>
           </div>
