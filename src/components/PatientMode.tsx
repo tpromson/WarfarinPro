@@ -57,6 +57,7 @@ export default function PatientMode({
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
   const [audioStatus, setAudioStatus] = useState<SpeechStatus>("idle");
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [_pdfLoading, setPdfLoading] = useState(false);
   const [qr, setQr] = useState("");
 
   const url = useMemo(() => (plan ? buildPatientUrl(plan) : ""), [plan]);

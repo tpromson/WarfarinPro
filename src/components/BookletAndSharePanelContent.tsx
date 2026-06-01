@@ -11,7 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { buildPatientUrl, days } from "../clinical";
-import { getDayLabel, t } from "../i18n";
+import { getDayLabel, getPillComboDesc, t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
 import IconButton from "./IconButton";
 import PillVisual from "./PillVisual";

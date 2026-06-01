@@ -30,3 +30,5 @@ export const contextLabels: Record<"mechanicalValve" | "pregnancy" | "liverDisea
 export function roundToHalf(value: number): number {
   return Math.round(value * 2) / 2;
 }
+
+export type { DayKey };

@@ -52,6 +52,7 @@ export default function DoctorMode({
   const [majorBleeding, setMajorBleeding] = useState(false);
   const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
   const [contexts, setContexts] = useState<ContextFlag[]>([]);
+  const [isSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   const target: TargetRange = useMemo(() => {
