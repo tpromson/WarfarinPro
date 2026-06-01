@@ -330,7 +330,9 @@ select {
 }
 
 .day-row {
-  grid-template-columns: minmax(90px, 130px) 1fr;
+  grid-template-columns: minmax(90px, 130px) minmax(120px, 1fr) min-content;
+  gap: 8px 16px;
+  align-items: center;
 }
 
 .day-row:hover {
@@ -379,12 +381,15 @@ select {
   min-height: 34px;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
+  padding-left: 16px;
 }
 
 .day-row .pills,
 .day-row .hold-pill {
-  margin-left: auto;
+  margin-left: 16px;
+  justify-content: flex-end;
 }
 
 .pill {

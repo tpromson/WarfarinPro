@@ -259,7 +259,7 @@ export default function PatientMode({
             <h3 className="text-sm font-extrabold text-clinic-ink">
               {lang === "th" ? "🛠️ เครื่องมือช่วยผู้ป่วย" : "🛠️ Patient Toolkit"}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed hidden sm:block">
+            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed hidden">
               {lang === "th"
                 ? "ใช้ระบบเสียงแนะนำการทานยา, ซูมขนาดตัวอักษร, บันทึกลงปฏิทินมือถือ หรือสั่งพิมพ์ตารางยา"
                 : "Use audio guidance, zoom text size, add calendar reminders, or print schedule"}

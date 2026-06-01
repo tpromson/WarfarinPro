@@ -56,31 +56,33 @@ export default function ScheduleView({
                   : ""
               }`}
             >
-              <div>
-                <strong>{getDayLabel(day.day, lang)}</strong>
-                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                  {isBefore ? (
-                    <span className="text-[12px] font-bold text-slate-400 italic">
-                      {lang === "th" ? "ก่อนวันปรับยา" : "Before visit"}
-                    </span>
-                  ) : (
-                    <>
-                      <span className={`text-[14px] ${day.hold ? "text-clinic-red font-extrabold" : ""}`}>
-                        {day.hold ? (lang === "th" ? "งดทานยา" : "HOLD") : `${day.dose} mg`}
-                      </span>
-                      {!day.hold && (
-                        <span className="text-[11px] text-slate-500 font-semibold ml-1">
-                          ({getPillComboDesc(day.combo, day.hold, lang)})
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-              {isBefore ? (
-                <span className="text-slate-400 font-bold text-lg select-none px-4">-</span>
+               <div>
+                 <strong>{getDayLabel(day.day, lang)}</strong>
+                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                   {isBefore ? (
+                     <span className="text-[12px] font-bold text-slate-400 italic">
+                       {lang === "th" ? "ก่อนวันปรับยา" : "Before visit"}
+                     </span>
+                   ) : (
+                     <>
+                       <span className={`text-[14px] ${day.hold ? "text-clinic-red font-extrabold" : ""}`}>
+                         {day.hold ? (lang === "th" ? "งดทานยา" : "HOLD") : `${day.dose} mg`}
+                       </span>
+                       {!day.hold && (
+                         <span className="text-[11px] text-slate-500 font-semibold ml-1 line-clamp-1">
+                           ({getPillComboDesc(day.combo, day.hold, lang)})
+                         </span>
+                       )}
+                     </>
+                   )}
+                 </div>
+               </div>
+              {!isBefore ? (
+                <span style={{ display: "inline-flex", justifyContent: "flex-end" }}>
+                  <PillVisual combo={day.combo} hold={day.hold} lang={lang} />
+                </span>
               ) : (
-                <PillVisual combo={day.combo} hold={day.hold} lang={lang} />
+                <span className="text-slate-400 font-bold text-lg select-none pr-2">-</span>
               )}
             </div>
           );
