@@ -54,6 +54,65 @@ export default function DoctorMode({
   const [contexts, setContexts] = useState<ContextFlag[]>([]);
   const [isSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  useEffect(() => {
+    if (!showSummaryModal) return;
+
+    let handleTabKey: (e: KeyboardEvent) => void;
+
+    const timer = setTimeout(() => {
+      const modalElement = document.querySelector('[role="dialog"]');
+      if (!modalElement) return;
+
+      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const focusables = modalElement.querySelectorAll(focusableSelectors);
+      const firstFocusable = focusables[0] as HTMLElement;
+
+      if (firstFocusable) {
+        firstFocusable.focus();
+      }
+
+      handleTabKey = (e: KeyboardEvent) => {
+        if (e.key !== "Tab") return;
+
+        const currentFocusables = modalElement.querySelectorAll(focusableSelectors);
+        if (currentFocusables.length === 0) return;
+
+        const first = currentFocusables[0] as HTMLElement;
+        const last = currentFocusables[currentFocusables.length - 1] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            last.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === last) {
+            first.focus();
+            e.preventDefault();
+          }
+        }
+      };
+
+      window.addEventListener("keydown", handleTabKey);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (handleTabKey) {
+        window.removeEventListener("keydown", handleTabKey);
+      }
+    };
+  }, [showSummaryModal]);
+
 
   const target: TargetRange = useMemo(() => {
     if (preset === "mechanical") return { preset, lower: 2.5, upper: 3.5 };
@@ -89,6 +148,16 @@ export default function DoctorMode({
     setPrevCalculatedDose(calculatedDose);
     setMaintenance(buildMaintenanceSchedule(calculatedDose));
   }
+
+  const suggestedSchedule = useMemo(() => buildMaintenanceSchedule(calculatedDose), [calculatedDose]);
+  const isScheduleModified = useMemo(() => {
+    if (maintenance.length !== suggestedSchedule.length) return true;
+    return maintenance.some((m, idx) => m.dose !== suggestedSchedule[idx].dose);
+  }, [maintenance, suggestedSchedule]);
+
+  const handleResetSchedule = () => {
+    setMaintenance(suggestedSchedule);
+  };
 
   const plan = useMemo(
     () =>
@@ -161,7 +230,7 @@ export default function DoctorMode({
         e.preventDefault();
         if (canShare && plan) {
           navigator.clipboard.writeText(buildPatientUrl(plan));
-          alert(
+          setToastMessage(
             lang === "th" ? "คัดลอกลิงก์คนไข้เรียบร้อยแล้ว!" : "Patient link copied to clipboard!",
           );
         }
@@ -314,45 +383,66 @@ export default function DoctorMode({
         </Panel>
 
         <Panel title="Safety Flags" icon={<ShieldAlert size={18} />}>
-          <label className="check danger justify-between">
-            <span className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={majorBleeding}
-                onChange={(event) => setMajorBleeding(event.target.checked)}
-              />
-              Major bleeding
-            </span>
-            <kbd className="text-[9px] font-mono bg-red-100 text-red-700 rounded px-1.5 py-0.5 font-semibold select-none border border-red-200">
-              Alt+B
-            </kbd>
-          </label>
-          <div className="check-grid md:grid-cols-2">
-            {contextKeys.map((flag) => (
-              <label key={flag} className="check">
-                <input
-                  type="checkbox"
-                  checked={contexts.includes(flag)}
-                  onChange={() => toggleContext(flag)}
-                />
-                {contextLabels[flag]}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                {lang === "th" ? "ภาวะเสี่ยงสูงและข้อห้ามชี้บ่ง" : "Critical Safety & Context"}
+              </div>
+              <label className="check danger justify-between">
+                <span className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={majorBleeding}
+                    onChange={(event) => setMajorBleeding(event.target.checked)}
+                  />
+                  {lang === "th" ? "มีภาวะเลือดออกรุนแรง" : "Major bleeding"}
+                </span>
+                <kbd className="text-[9px] font-mono bg-red-100 text-red-700 rounded px-1.5 py-0.5 font-semibold select-none border border-red-200">
+                  Alt+B
+                </kbd>
               </label>
-            ))}
-          </div>
-          <div className="mt-3 text-xs font-semibold uppercase text-slate-500">
-            Interaction flags
-          </div>
-          <div className="check-grid md:grid-cols-2">
-            {interactionKeys.map((flag) => (
-              <label key={flag} className="check">
-                <input
-                  type="checkbox"
-                  checked={interactions.includes(flag)}
-                  onChange={() => toggleInteraction(flag)}
-                />
-                {interactionLabels[flag]}
-              </label>
-            ))}
+              <div className="check-grid md:grid-cols-1 gap-2">
+                {contextKeys.map((flag) => (
+                  <label key={flag} className="check">
+                    <input
+                      type="checkbox"
+                      checked={contexts.includes(flag)}
+                      onChange={() => toggleContext(flag)}
+                    />
+                    {lang === "th" ? (
+                      flag === "mechanicalValve" ? "ใส่ลิ้นหัวใจเทียม" :
+                      flag === "pregnancy" ? "ตั้งครรภ์" : "โรคตับ"
+                    ) : contextLabels[flag]}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-clinic-line/40" />
+
+            <div className="space-y-2">
+              <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                {lang === "th" ? "ปฏิกิริยาระหว่างยา" : "Drug Interaction Flags"}
+              </div>
+              <div className="check-grid md:grid-cols-2 gap-2">
+                {interactionKeys.map((flag) => (
+                  <label key={flag} className="check">
+                    <input
+                      type="checkbox"
+                      checked={interactions.includes(flag)}
+                      onChange={() => toggleInteraction(flag)}
+                    />
+                    {interactions.includes(flag) && lang === "th" ? (
+                      flag === "nsaid" ? "ยาแก้ปวด NSAIDs" :
+                      flag === "antibiotic" ? "ยาฆ่าเชื้อ/ยาปฏิชีวนะ" :
+                      flag === "amiodarone" ? "ยาคุมจังหวะหัวใจ" :
+                      flag === "antiepileptic" ? "ยากันชัก" :
+                      flag === "herbal" ? "สมุนไพร/อาหารเสริม" : "เครื่องดื่มแอลกอฮอล์"
+                    ) : interactionLabels[flag]}
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         </Panel>
       </section>
@@ -428,6 +518,8 @@ export default function DoctorMode({
                 schedule={maintenance}
                 onChange={setMaintenance}
                 onKeyDown={handleKeyDown}
+                onReset={handleResetSchedule}
+                isModified={isScheduleModified}
               />
               {plan ? (
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
@@ -436,7 +528,15 @@ export default function DoctorMode({
                     value={`${plan.scheduleWeeklyDose.toFixed(1)} mg`}
                     tone={scheduleDelta > 0.5 ? "danger" : "normal"}
                   />
-                  <Metric label="W-code" value={plan.wCode} />
+                  <Metric
+                    label="W-code"
+                    value={plan.wCode}
+                    description={
+                      lang === "th"
+                        ? `รหัสตารางยา: โดสต่อสัปดาห์ ${plan.scheduleWeeklyDose.toFixed(1)} มก., งดยา ${plan.firstWeekHoldDoses} วัน`
+                        : `Dosing code: ${plan.scheduleWeeklyDose.toFixed(1)} mg weekly, hold for ${plan.firstWeekHoldDoses} day(s)`
+                    }
+                  />
                   <Metric
                     label="First week hold"
                     value={`${plan.firstWeekHoldDoses} dose${plan.firstWeekHoldDoses === 1 ? "" : "s"}`}
@@ -532,6 +632,12 @@ export default function DoctorMode({
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {toastMessage && (
+        <div className="toast-msg print:hidden" role="status">
+          <div className="dot" />
+          <span>{toastMessage}</span>
         </div>
       )}
     </div>

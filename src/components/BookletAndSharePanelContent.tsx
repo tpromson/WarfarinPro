@@ -129,6 +129,11 @@ export default function BookletAndSharePanelContent({
             <div className="text-3xl font-black text-clinic-ink tracking-widest font-mono select-all bg-white py-2 px-4 rounded-lg shadow-sm border border-clinic-line inline-block">
               {plan.wCode}
             </div>
+            <div className="text-[11px] font-bold text-clinic-blue leading-normal bg-clinic-cyan/35 py-1.5 px-2 rounded-md border border-clinic-cyan/70 select-none">
+              {lang === "th"
+                ? `ปริมาณรวมต่อสัปดาห์: ${plan.scheduleWeeklyDose.toFixed(1)} มก. | งดยาในสัปดาห์แรก: ${plan.firstWeekHoldDoses} วัน`
+                : `Weekly Dose: ${plan.scheduleWeeklyDose.toFixed(1)} mg | Hold: ${plan.firstWeekHoldDoses} day(s)`}
+            </div>
             <p className="text-[10px] text-slate-500 leading-normal">
               {lang === "th"
                 ? "คัดลอกรหัสนี้เขียนลงสมุดคุมยาวาร์ฟาริน หรือให้คนไข้นำไปพิมพ์เปิดตารางยาได้"

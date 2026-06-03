@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Copy, Repeat } from "lucide-react";
+import { ChevronDown, Copy, Repeat, Undo } from "lucide-react";
 import { comboForDose, dayLabels, pillCombos } from "../clinical";
 import PillVisual from "./PillVisual";
 import type { DayDose, DayKey } from "../types";
@@ -12,10 +12,14 @@ export default function ScheduleEditor({
   schedule,
   onChange,
   onKeyDown,
+  onReset,
+  isModified,
 }: {
   schedule: DayDose[];
   onChange: (schedule: DayDose[]) => void;
   onKeyDown?: (e: React.KeyboardEvent, currentId: string) => void;
+  onReset?: () => void;
+  isModified?: boolean;
 }) {
   const [showAlternate, setShowAlternate] = useState(false);
   const [oddDose, setOddDose] = useState(3);
@@ -84,14 +88,28 @@ export default function ScheduleEditor({
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setShowAlternate(!showAlternate)}
-        className="flex items-center gap-2 text-xs font-bold text-clinic-blue hover:text-clinic-blue/80 transition-colors focus-visible:outline-2 focus-visible:outline-clinic-blue"
-      >
-        <Repeat size={14} />
-        {showAlternate ? "Cancel" : "Alternate Odd/Even Days"}
-      </button>
+      <div className="flex flex-wrap items-center gap-4">
+        <button
+          type="button"
+          onClick={() => setShowAlternate(!showAlternate)}
+          className="flex items-center gap-2 text-xs font-bold text-clinic-blue hover:text-clinic-blue/80 transition-colors focus-visible:outline-2 focus-visible:outline-clinic-blue"
+        >
+          <Repeat size={14} />
+          {showAlternate ? "Cancel" : "Alternate Odd/Even Days"}
+        </button>
+
+        {isModified && onReset && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="flex items-center gap-1.5 text-xs font-bold text-clinic-red hover:text-clinic-red/80 transition-colors focus-visible:outline-2 focus-visible:outline-clinic-red"
+            title="Reset schedule back to the calculated recommendation"
+          >
+            <Undo size={14} />
+            Reset to Suggestion
+          </button>
+        )}
+      </div>
 
       {showAlternate && (
         <div className="border border-clinic-line/60 rounded-xl bg-slate-50 p-3 space-y-3">

@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-03T12:25:00Z",
+  "title": "Design System: WarfarinPro",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Clinic Blue",
+        "canonical": "#176087",
+        "tonalRamp": ["#0b3044", "#114c6c", "#176087", "#2b7eab", "#539ec6", "#87c1de", "#c1e2f2", "#ecf5f9"]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Clinic Paper",
+        "canonical": "#f8fbfc",
+        "tonalRamp": ["#0f171d", "#1e2c39", "#3a4c5e", "#64778d", "#9cb1c9", "#cbd9e8", "#eaf0f6", "#f8fbfc"]
+      },
+      "neutral-text": {
+        "role": "neutral",
+        "displayName": "Clinic Ink",
+        "canonical": "#17324d",
+        "tonalRamp": ["#050c12", "#0c1825", "#17324d", "#2c4e6e", "#496f92", "#7194b8", "#a8c0d9", "#e2ecf5"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Clinic Line",
+        "canonical": "#d8e4e8",
+        "tonalRamp": ["#4a5c63", "#6c8088", "#92a6ad", "#b8c9cf", "#d8e4e8", "#eaf0f2", "#f4f7f8", "#fafbfc"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display Text",
+        "purpose": "Used for patient-facing headers and sheets."
+      },
+      "body": {
+        "displayName": "Body Text",
+        "purpose": "Used for standard labels, tables, and instructions."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-low",
+        "value": "0 2px 4px rgba(23, 96, 135, 0.15)",
+        "purpose": "Subtle indicator for active state triggers."
+      },
+      {
+        "name": "interaction-hover",
+        "value": "0 4px 8px rgba(23, 96, 135, 0.25)",
+        "purpose": "Feedback for hovered elements."
+      },
+      {
+        "name": "soft-panel",
+        "value": "0 10px 25px rgba(23, 50, 77, 0.05)",
+        "purpose": "Soft depth layer for cards."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Standard transitions for interactive components."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The clinic button style used for calculations and forms.",
+      "html": "<button class=\"ds-btn-primary\">บันทึกข้อมูล</button>",
+      "css": ".ds-btn-primary { min-height: 40px; border-radius: 8px; border: 0; background: #176087; color: white; padding: 0 16px; font-weight: 700; font-family: sans-serif; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 4px rgba(23, 96, 135, 0.15); } .ds-btn-primary:hover { background: #114c6c; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(23, 96, 135, 0.25); } .ds-btn-primary:active { transform: translateY(0) scale(0.97); }"
+    },
+    {
+      "name": "Pill Visual (2 mg)",
+      "kind": "chip",
+      "refersTo": "pill-visual",
+      "description": "Represents a 2 mg orange Warfarin tablet.",
+      "html": "<div class=\"ds-pill ds-pill-orange\">2</div>",
+      "css": ".ds-pill { display: inline-grid; min-width: 38px; height: 26px; place-items: center; border-radius: 999px; color: white; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.25); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: default; font-family: sans-serif; } .ds-pill-orange { background: linear-gradient(135deg, #f8a87c 0%, #f59a68 100%); border: 1px solid rgba(245, 154, 104, 0.5); } .ds-pill:hover { transform: scale(1.15) rotate(2deg); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12); }"
+    },
+    {
+      "name": "Pill Visual (3 mg)",
+      "kind": "chip",
+      "refersTo": "pill-visual",
+      "description": "Represents a 3 mg blue Warfarin tablet.",
+      "html": "<div class=\"ds-pill ds-pill-blue\">3</div>",
+      "css": ".ds-pill { display: inline-grid; min-width: 38px; height: 26px; place-items: center; border-radius: 999px; color: white; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.25); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: default; font-family: sans-serif; } .ds-pill-blue { background: linear-gradient(135deg, #78bef7 0%, #5fa9e7 100%); border: 1px solid rgba(95, 169, 231, 0.5); } .ds-pill:hover { transform: scale(1.15) rotate(2deg); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12); }"
+    },
+    {
+      "name": "Hold Pill",
+      "kind": "chip",
+      "refersTo": "pill-visual",
+      "description": "Represents a Warfarin hold day (0 mg).",
+      "html": "<div class=\"ds-hold-pill\">หยุดยา</div>",
+      "css": ".ds-hold-pill { display: inline-grid; min-width: 74px; height: 30px; place-items: center; border-radius: 999px; background: linear-gradient(135deg, #e54b3b 0%, #c24132 100%); color: white; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(194, 65, 50, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease; cursor: default; font-family: sans-serif; } .ds-hold-pill:hover { transform: scale(1.1) rotate(-1deg); box-shadow: 0 4px 8px rgba(194, 65, 50, 0.35); }"
+    },
+    {
+      "name": "Day Row",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Representing a single day row in the patient medication schedule.",
+      "html": "<div class=\"ds-day-row\"><div><strong>วันจันทร์</strong><span>3 มิ.ย.</span></div><div class=\"ds-pills\"><div class=\"ds-pill ds-pill-blue\">3</div></div></div>",
+      "css": ".ds-day-row { display: grid; grid-template-columns: minmax(90px, 130px) minmax(120px, 1fr); gap: 8px 16px; align-items: center; border: 1px solid #d8e4e8; border-radius: 10px; padding: 8px 12px; background: #ffffff; font-family: sans-serif; transition: all 0.2s ease; } .ds-day-row:hover { border-color: #cbd5e1; box-shadow: 0 4px 8px rgba(23, 50, 77, 0.03); transform: translateX(2px); } .ds-day-row strong { font-size: 15px; color: #17324d; } .ds-day-row span { color: #64748b; font-weight: 700; font-size: 13px; } .ds-pills { display: flex; min-height: 34px; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; } .ds-pill { display: inline-grid; min-width: 38px; height: 26px; place-items: center; border-radius: 999px; color: white; font-size: 12px; font-weight: 900; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.25); } .ds-pill-blue { background: linear-gradient(135deg, #78bef7 0%, #5fa9e7 100%); border: 1px solid rgba(95, 169, 231, 0.5); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Patient's Safety Compass",
+    "overview": "The Patient's Safety Compass is a design system structured to guide both clinicians and patients through high-stakes dosing workflows with absolute clarity and calm. For clinicians, it operates as a high-throughput, low-friction digital clipboard. For patients and caregivers, it acts as an immediate visual index of their daily medication schedule, eliminating any need for reading comprehension or dosing interpretation.",
+    "keyCharacteristics": [
+      "Zero-Friction Utility",
+      "Extreme Patient Legibility",
+      "Calm, Clinical Safety"
+    ],
+    "rules": [
+      {
+        "name": "The Rarity of Accent Rule",
+        "body": "The primary Clinic Blue is used on less than 10% of any given screen. Its rarity is what signals interactive focus and clinical hierarchy.",
+        "section": "colors"
+      },
+      {
+        "name": "The Double-Encoding Dosing Rule",
+        "body": "A pill's strength must never be communicated by color alone. Every pill visual must display both its numerical dose (e.g., '2', '3') and physical split shape (e.g. half-tablet cut) to support colorblind and visually impaired users.",
+        "section": "colors"
+      },
+      {
+        "name": "The Thai Legibility Rule",
+        "body": "Because Noto Sans Thai requires taller vertical space for vowels and tone marks, line-heights must never fall below 1.4 for body copy and 1.2 for display text.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-at-Rest Rule",
+        "body": "All surfaces remain flat and border-only in their idle state. Shadows appear only as feedback to active hover or click actions.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do ensure all safety alerts (Danger, Hard Stop) use the predefined high-contrast red (#9f2b21 on #fff1f2 background).",
+      "Do apply text-wrap: balance on headers and labels.",
+      "Do tint neutrals toward blue/gray (Clinic Line) to avoid the generic beige/parchment AI default."
+    ],
+    "donts": [
+      "Don't use purple, violet, or blue-to-pink gradients under any circumstances.",
+      "Don't use side-stripe borders greater than 1px as decorative highlights on cards or day items.",
+      "Don't animate or transform main images or icons on hover.",
+      "Don't allow display headers to exceed 34px outside of dedicated print/elderly layouts."
+    ]
+  }
+}
