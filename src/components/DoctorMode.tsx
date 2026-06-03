@@ -43,6 +43,9 @@ export default function DoctorMode({
   printLayout: "half-a4" | "label";
   setPrintLayout: (layout: "half-a4" | "label") => void;
 }) {
+  const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
+  const modLabel = isMac ? "Ctrl/⌥+" : "Alt+";
+
   const [inr, setInr] = useState(2.4);
   const [previousDose, setPreviousDose] = useState(35);
   const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">("standard");
@@ -194,7 +197,8 @@ export default function DoctorMode({
       if (e.key === "Escape") {
         setShowSummaryModal(false);
       }
-      if (!e.altKey) return;
+      const isModifier = e.altKey || e.ctrlKey;
+      if (!isModifier) return;
 
       let key = e.key.toLowerCase();
       if (e.code && e.code.startsWith("Key")) {
@@ -296,7 +300,7 @@ export default function DoctorMode({
         <Panel title="Clinical Inputs" icon={<HeartPulse size={18} />}>
           <NumberField
             id="inr-input"
-            shortcut="Alt+I"
+            shortcut={modLabel + "I"}
             label="Current INR"
             value={inr}
             step={0.1}
@@ -307,7 +311,7 @@ export default function DoctorMode({
           />
           <NumberField
             id="prev-dose-input"
-            shortcut="Alt+P"
+            shortcut={modLabel + "P"}
             label="Previous weekly dose (mg)"
             value={previousDose}
             step={0.5}
@@ -320,7 +324,7 @@ export default function DoctorMode({
             <span className="flex items-center justify-between">
               <span>Target range</span>
               <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
-                Alt+T
+                {modLabel}T
               </kbd>
             </span>
             <span className="select-wrap">
@@ -361,7 +365,7 @@ export default function DoctorMode({
             <span className="flex items-center justify-between">
               <span>Clinic visit day</span>
               <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
-                Alt+V
+                {modLabel}V
               </kbd>
             </span>
             <span className="select-wrap">
@@ -398,7 +402,7 @@ export default function DoctorMode({
                   {lang === "th" ? "มีภาวะเลือดออกรุนแรง" : "Major bleeding"}
                 </span>
                 <kbd className="text-[9px] font-mono bg-red-100 text-red-700 rounded px-1.5 py-0.5 font-semibold select-none border border-red-200">
-                  Alt+B
+                  {modLabel}B
                 </kbd>
               </label>
               <div className="check-grid md:grid-cols-1 gap-2">
@@ -467,7 +471,7 @@ export default function DoctorMode({
                   <span className="flex items-center justify-between">
                     <span>Selected adjustment</span>
                     <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
-                      Alt+D
+                      {modLabel}D
                     </kbd>
                   </span>
                   <span className="select-wrap">
@@ -491,7 +495,7 @@ export default function DoctorMode({
                   <span className="flex items-center justify-between">
                     <span>First week hold doses</span>
                     <kbd className="text-[9px] font-mono bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 font-semibold select-none border border-slate-200">
-                      Alt+F
+                      {modLabel}F
                     </kbd>
                   </span>
                   <span className="select-wrap">

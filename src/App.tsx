@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { HeartPulse, Info, Lock, ShieldAlert, UserRound, X } from "lucide-react";
+import { HeartPulse, HelpCircle, Info, Lock, ShieldAlert, UserRound, X } from "lucide-react";
 import { parsePatientHash } from "./clinical";
 import { deleteSavedPlan, loadSavedPlans, savePlan } from "./storage";
 import type { MedicationPlan } from "./types";
 import DoctorMode from "./components/DoctorMode";
 import PatientMode from "./components/PatientMode";
+import UserGuideContent from "./components/UserGuideContent";
 import { config } from "./config";
 
 export default function App() {
-  const [active, setActive] = useState<"doctor" | "patient">(() => {
+  const [active, setActive] = useState<"doctor" | "patient" | "help">(() => {
     return parsePatientHash() ? "patient" : "patient";
   });
   const [openedPlan, setOpenedPlan] = useState<MedicationPlan | null>(() => {
@@ -141,6 +142,14 @@ export default function App() {
               >
                 <UserRound size={16} /> {lang === "th" ? "ผู้ป่วย" : "Patient"}
               </button>
+              <button
+                role="tab"
+                aria-selected={active === "help"}
+                className={active === "help" ? "active" : ""}
+                onClick={() => setActive("help")}
+              >
+                <HelpCircle size={16} /> {lang === "th" ? "คู่มือ" : "Guide"}
+              </button>
             </div>
 
             {doctorUnlocked && (
@@ -247,6 +256,10 @@ export default function App() {
             printLayout={printLayout}
             setPrintLayout={setPrintLayout}
           />
+        ) : active === "help" ? (
+          <div className="mx-auto max-w-4xl w-full p-6 animate-fadeIn">
+            <UserGuideContent lang={lang} />
+          </div>
         ) : (
           <PatientMode
             plan={openedPlan}
