@@ -51,8 +51,8 @@ function speakDoseValue(dose: number, lang: "th" | "en" = "th"): string {
   }
 }
 
-function speakPillDetails(combo: PillCombo, lang: "th" | "en" = "th"): string {
-  if (combo.dose === 0) return lang === "th" ? "งดยานะคะ" : "hold your dose";
+function speakPillDetails(combo: PillCombo, lang: "th" | "en" = "th", gender: "female" | "male" = "female"): string {
+  if (combo.dose === 0) return lang === "th" ? `งดยา${gender === "female" ? "นะคะ" : "นะครับ"}` : "hold your dose";
   const parts: string[] = [];
 
   if (lang === "th") {
@@ -180,7 +180,7 @@ function speakWeekSchedule(
     }
 
     const doseValText = speakDoseValue(group.dose, lang);
-    const pillText = speakPillDetails(group.combo, lang);
+    const pillText = speakPillDetails(group.combo, lang, gender);
     if (lang === "th") {
       return `${daysText} <break time="150ms"/> ทาน ${doseValText} <break time="100ms"/> ${pillText} ${gender === "female" ? "ค่ะ" : "ครับ"}`;
     } else {
@@ -253,7 +253,7 @@ export function planSpeech(
     const politeWarn = gender === "female" ? "นะคะ" : "นะครับ";
 
     if (firstWeekOver) {
-      const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> ผ่านช่วงสัปดาห์แรกแล้วนะคะ <break time="200ms"/> ตารางยาปกติของคุณคือ: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis>`;
+      const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> ผ่านช่วงสัปดาห์แรกแล้ว${politeWarn} <break time="200ms"/> ตารางยาปกติของคุณคือ: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis>`;
       if (gender === "female") {
         return `<speak><prosody rate="105%" pitch="+4%">${speech}</prosody></speak>`;
       }
