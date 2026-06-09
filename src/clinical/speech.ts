@@ -173,22 +173,22 @@ function speakWeekSchedule(
 
     if (group.hold || group.dose === 0) {
       if (lang === "th") {
-        return `${daysText} <break time="150ms"/> ให้งดยา${gender === "female" ? "นะคะ" : "นะครับ"}`;
+        return `${daysText}... ให้งดยา${gender === "female" ? "นะคะ" : "นะครับ"}`;
       } else {
-        return `On ${daysText} <break time="150ms"/> hold your warfarin dose`;
+        return `On ${daysText}... hold your warfarin dose`;
       }
     }
 
     const doseValText = speakDoseValue(group.dose, lang);
     const pillText = speakPillDetails(group.combo, lang, gender);
     if (lang === "th") {
-      return `${daysText} <break time="150ms"/> ทาน ${doseValText} <break time="100ms"/> ${pillText} ${gender === "female" ? "ค่ะ" : "ครับ"}`;
+      return `${daysText}... ทาน ${doseValText}... ${pillText} ${gender === "female" ? "ค่ะ" : "ครับ"}`;
     } else {
-      return `On ${daysText} <break time="150ms"/> take ${doseValText} <break time="100ms"/> that is ${pillText}`;
+      return `On ${daysText}... take ${doseValText}... that is ${pillText}`;
     }
   });
 
-  return groupTexts.join(lang === "th" ? ' <break time="400ms"/> ' : ' <break time="500ms"/> ');
+  return groupTexts.join(lang === "th" ? "... " : "... ");
 }
 
 function speakWCode(wCode: string, lang: "th" | "en" = "th"): string {
@@ -253,11 +253,8 @@ export function planSpeech(
     const politeWarn = gender === "female" ? "นะคะ" : "นะครับ";
 
     if (firstWeekOver) {
-      const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> ผ่านช่วงสัปดาห์แรกแล้ว${politeWarn} <break time="200ms"/> ตารางยาปกติของคุณคือ: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis>`;
-      if (gender === "female") {
-        return `<speak><prosody rate="105%" pitch="+4%">${speech}</prosody></speak>`;
-      }
-      return `<speak>${speech}</speak>`;
+      const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro}... ผ่านช่วงสัปดาห์แรกแล้ว${politeWarn}... ตารางยาปกติของคุณคือ: ${maintenanceSpeech}... หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}`;
+      return speech;
     }
 
     const firstWeekToSpeak = plan.firstWeek.filter(
@@ -265,16 +262,12 @@ export function planSpeech(
     );
     const firstWeekSpeech = speakWeekSchedule(firstWeekToSpeak, gender, lang);
 
-    const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro} <break time="400ms"/> สัปดาห์แรก: ${firstWeekSpeech} <break time="500ms"/> สัปดาห์ถัดไป: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}</emphasis>`;
-
-    if (gender === "female") {
-      return `<speak><prosody rate="105%" pitch="+4%">${speech}</prosody></speak>`;
-    }
-    return `<speak>${speech}</speak>`;
+    const speech = `ยา วาร์ฟาริน รหัส ${wCodeSpeech} ${politeIntro}... สัปดาห์แรก: ${firstWeekSpeech}... สัปดาห์ถัดไป: ${maintenanceSpeech}... หากมีเลือดออกผิดปกติ อุจจาระดำ หรือเวียนศีรษะ ให้รีบไปโรงพยาบาลทันที${politeWarn}`;
+    return speech;
   } else {
     if (firstWeekOver) {
-      const speech = `Warfarin medication plan, code ${wCodeSpeech}. <break time="400ms"/> The first week is completed. Your regular maintenance schedule is: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">If you experience abnormal bleeding, black stool, or severe dizziness, please go to the hospital immediately.</emphasis>`;
-      return `<speak>${speech}</speak>`;
+      const speech = `Warfarin medication plan, code ${wCodeSpeech}... The first week is completed. Your regular maintenance schedule is: ${maintenanceSpeech}... If you experience abnormal bleeding, black stool, or severe dizziness, please go to the hospital immediately.`;
+      return speech;
     }
 
     const firstWeekToSpeak = plan.firstWeek.filter(
@@ -282,8 +275,8 @@ export function planSpeech(
     );
     const firstWeekSpeech = speakWeekSchedule(firstWeekToSpeak, gender, lang);
 
-    const speech = `Warfarin medication plan, code ${wCodeSpeech}. <break time="400ms"/> First week schedule: ${firstWeekSpeech} <break time="500ms"/> Maintenance schedule: ${maintenanceSpeech} <break time="500ms"/> <emphasis level="moderate">If you experience abnormal bleeding, black stool, or severe dizziness, please go to the hospital immediately.</emphasis>`;
-    return `<speak>${speech}</speak>`;
+    const speech = `Warfarin medication plan, code ${wCodeSpeech}... First week schedule: ${firstWeekSpeech}... Maintenance schedule: ${maintenanceSpeech}... If you experience abnormal bleeding, black stool, or severe dizziness, please go to the hospital immediately.`;
+    return speech;
   }
 }
 

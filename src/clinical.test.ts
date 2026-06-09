@@ -474,7 +474,7 @@ describe("generateGoogleCalendarUrl", () => {
 // ─── planSpeech ─────────────────────────────────────────────
 
 describe("planSpeech", () => {
-  it("generates SSML with speak tags", () => {
+  it("generates plain text speech without SSML", () => {
     const plan = makePlan({
       inr: 2.5,
       previousWeeklyDose: 21,
@@ -485,8 +485,9 @@ describe("planSpeech", () => {
       holdDoses: 0,
     });
     const speech = planSpeech(plan, "female");
-    expect(speech).toContain("<speak>");
-    expect(speech).toContain("</speak>");
+    expect(speech).not.toContain("<speak>");
+    expect(speech).not.toContain("<break");
+    expect(speech).not.toContain("<emphasis");
     expect(speech).toContain("วาร์ฟาริน");
     expect(speech).toContain("ดับเบิ้ลยู");
   });
@@ -545,8 +546,9 @@ describe("planSpeech", () => {
       holdDoses: 0,
     });
     const speech = planSpeech(plan, "female", "en");
-    expect(speech).toContain("<speak>");
-    expect(speech).toContain("</speak>");
+    expect(speech).not.toContain("<speak>");
+    expect(speech).not.toContain("<break");
+    expect(speech).not.toContain("<emphasis");
     expect(speech).toContain("Warfarin");
     expect(speech).toContain("double-u");
     expect(speech).toContain("First week schedule:");

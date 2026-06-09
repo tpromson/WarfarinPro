@@ -27,7 +27,7 @@ async function synthesizeGoogleTts(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        input: { ssml: text },
+        input: { text },
         voice: {
           languageCode,
           name: voiceName,
