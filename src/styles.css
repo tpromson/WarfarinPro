@@ -899,7 +899,8 @@ select {
   border-color: rgba(23, 96, 135, 0.4);
 }
 
-/* Medicine Label (Sticker) Print Layout Styles */
+/* Medicine Label (Sticker) Print Layout Styles
+   — layout for Zebra ZD220 with pre-printed header/footer on label stock */
 .sheet.layout-label {
   max-width: 480px;
   margin: 0 auto;
@@ -907,43 +908,18 @@ select {
   border-radius: 8px;
   background: white;
   color: black;
-  padding: 16px;
+  padding: 10px 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   font-family: inherit;
-}
-
-.layout-label .label-header {
-  border-bottom: 2px solid black;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
-}
-
-.layout-label .label-title-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.layout-label .label-title {
-  font-size: 14px;
-  font-weight: 800;
-  margin: 0;
-  color: black !important;
-}
-
-.layout-label .label-drug {
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
 }
 
 .layout-label .label-fields {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1.5px solid black;
   font-size: 11px;
   font-weight: 700;
   color: #1e293b;
@@ -951,10 +927,10 @@ select {
 
 .layout-label .label-body {
   display: grid;
-  grid-template-columns: 1.8fr 1fr;
-  gap: 12px;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 8px;
   margin-bottom: 8px;
-  margin-top: 10px;
+  align-items: start;
 }
 
 .layout-label .label-schedule-table {
@@ -984,7 +960,8 @@ select {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 6px;
   padding: 4px 0;
 }
 
@@ -996,19 +973,19 @@ select {
 }
 
 .layout-label .label-qr-img {
-  width: 65px;
-  height: 65px;
-  border: 1px solid #cbd5e1;
+  width: 88px;
+  height: 88px;
+  border: 2px solid #1e293b;
   padding: 2px;
   background: white;
 }
 
 .layout-label .label-qr-caption {
-  font-size: 8px;
-  font-weight: 700;
-  color: #64748b;
+  font-size: 9px;
+  font-weight: 800;
+  color: #334155;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1.2;
 }
 
 .layout-label .label-wcode-box {

@@ -13,6 +13,7 @@ import {
 import { buildPatientUrl, days } from "../clinical";
 import { getDayLabel, getPillComboDesc, t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
+import { generateZpl } from "../zpl";
 import IconButton from "./IconButton";
 import PillVisual from "./PillVisual";
 import type { MedicationPlan } from "../types";
@@ -39,6 +40,28 @@ export default function BookletAndSharePanelContent({
   const [isCustomWeeks, setIsCustomWeeks] = useState(false);
   const [customWeeksInput, setCustomWeeksInput] = useState("4");
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
+
+  async function printZpl() {
+    const zpl = generateZpl(plan, url);
+    // Zebra Browser Print SDK must be installed on the user's machine.
+    // It exposes window.BrowserPrint. If not available, fall back to download.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const BP = (window as any).BrowserPrint;
+    if (BP) {
+      BP.getDefaultDevice("printer", (device: any) => {
+        device.send(zpl, undefined, (err: string) => {
+          if (err) alert(`Zebra print error: ${err}`);
+        });
+      });
+    } else {
+      // Fallback: download .zpl file so user can send manually
+      const blob = new Blob([zpl], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `warfarin-${plan.wCode}.zpl`;
+      a.click();
+    }
+  }
 
   const pillSums = useMemo(() => {
     let w1OrangeWhole = 0;
@@ -257,12 +280,20 @@ export default function BookletAndSharePanelContent({
               }
               label={t[lang].downloadPdf}
             />
-            <IconButton
-              icon={<Printer size={14} />}
-              onClick={() => window.print()}
-              label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
-              shortcut="Alt+H"
-            />
+            {printLayout === "label" ? (
+              <IconButton
+                icon={<Printer size={14} />}
+                onClick={printZpl}
+                label={lang === "th" ? "พิมพ์ Zebra" : "Print Zebra"}
+              />
+            ) : (
+              <IconButton
+                icon={<Printer size={14} />}
+                onClick={() => window.print()}
+                label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
+                shortcut="Alt+H"
+              />
+            )}
           </div>
         </div>
       </div>

@@ -47,7 +47,7 @@ export default function MedicationSheet({
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
 
   useEffect(() => {
-    QRCode.toDataURL(url, { errorCorrectionLevel: "Q", margin: 3, width: 300 })
+    QRCode.toDataURL(url, { errorCorrectionLevel: "Q", margin: 2, width: 400 })
       .then(setQr)
       .catch((err) => console.error("QR Code Error in MedicationSheet:", err));
   }, [url]);
@@ -55,30 +55,39 @@ export default function MedicationSheet({
   const pageStyle =
     printLayout === "half-a4"
       ? `@media print { @page { size: A5 portrait; margin: 5mm; } }`
-      : `@media print { @page { size: 90mm 80mm; margin: 0; } }`;
+      : `@media print { @page { size: 90mm auto; margin: 0; } }`;
 
   if (printLayout === "label") {
     return (
       <>
         {pageStyle && <style dangerouslySetInnerHTML={{ __html: pageStyle }} />}
         <section className="sheet layout-label">
-          <div className="label-header">
-            <div className="label-title-group">
-              <h2 className="label-title">
-                {lang === "th" ? "ฉลากยาแนะนำการทานยา (Warfarin)" : "Warfarin Dosing Label"}
-              </h2>
-              <span className="label-drug">Warfarin (Orfarin®) Tablet</span>
-            </div>
-            <div className="label-fields">
-              <span>
-                {lang === "th" ? "ชื่อ: ____________________" : "Name: ____________________"}
-              </span>
-              <span>HN: ____________</span>
-            </div>
-          </div>
-
           <div className="label-body">
-            {/* Left Column: Dosing Schedule Table */}
+            {/* Left Column: QR Code (main) */}
+            <div className="label-qr-container">
+              {qr && (
+                <div className="label-qr-wrapper">
+                  <img
+                    src={qr}
+                    alt={
+                      lang === "th"
+                        ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ"
+                        : "QR code linking to full medication schedule"
+                    }
+                    className="label-qr-img"
+                  />
+                  <span className="label-qr-caption">
+                    {lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for details/audio"}
+                  </span>
+                </div>
+              )}
+              <div className="label-wcode-box">
+                <span className="label-wcode-title">W-Code</span>
+                <span className="label-wcode">{plan.wCode}</span>
+              </div>
+            </div>
+
+            {/* Right Column: Dosing Schedule Table */}
             <div className="label-schedule-container">
               <table className="label-schedule-table">
                 <thead>
@@ -124,35 +133,9 @@ export default function MedicationSheet({
               </table>
             </div>
 
-            {/* Right Column: QR and W-Code */}
-            <div className="label-qr-container">
-              {qr && (
-                <div className="label-qr-wrapper">
-                  <img
-                    src={qr}
-                    alt={
-                      lang === "th"
-                        ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ"
-                        : "QR code linking to full medication schedule"
-                    }
-                    className="label-qr-img"
-                  />
-                  <span className="label-qr-caption">
-                    {lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for details/audio"}
-                  </span>
-                </div>
-              )}
-              <div className="label-wcode-box">
-                <span className="label-wcode-title">W-Code</span>
-                <span className="label-wcode">{plan.wCode}</span>
-              </div>
-            </div>
           </div>
 
           <div className="label-footer">
-            <span>
-              {lang === "th" ? "ผู้สั่งยา/เภสัชกร: ____________" : "Signature: ____________"}
-            </span>
             <span className="label-warning-text">
               {lang === "th"
                 ? "⚠️ พบแพทย์ทันทีหากมีเลือดออกผิดปกติ อุจจาระดำ"

@@ -74,33 +74,29 @@
     position: static !important;
     width: 90mm !important;
     height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
   }
 
+  /* ZD220: label stock has pre-printed header+footer — only print body content */
   .sheet.layout-label {
     width: 90mm !important;
     max-width: 90mm !important;
-    min-height: 80mm !important;
-    border: 1px solid black !important;
+    height: auto !important;
+    border: none !important;
     border-radius: 0 !important;
-    padding: 2mm !important;
+    padding: 2mm 3mm !important;
     box-shadow: none !important;
     margin: 0 !important;
     page-break-inside: avoid !important;
   }
 
-  .layout-label .label-title {
-    font-size: 13px !important;
-  }
-
-  .layout-label .label-drug {
-    font-size: 11px !important;
-  }
-
   .layout-label .label-fields {
     font-size: 10px !important;
+    margin-bottom: 2mm !important;
+    padding-bottom: 2mm !important;
   }
 
   .layout-label .label-schedule-table {
@@ -117,7 +113,9 @@
   }
 
   .layout-label .label-qr-img {
-    border: 1px solid black !important;
+    width: 88px !important;
+    height: 88px !important;
+    border: 2px solid black !important;
   }
 
   .layout-label .label-wcode-box {
