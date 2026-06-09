@@ -13,7 +13,7 @@ async function synthesizeGoogleTts(
     lang === "th"
       ? gender === "female"
         ? "th-TH-Chirp3-HD-Kore"
-        : "th-TH-Chirp3-HD-Achird"
+        : "th-TH-Chirp3-HD-Charon"
       : gender === "female"
         ? "en-US-Neural2-F"
         : "en-US-Neural2-M";
@@ -129,10 +129,19 @@ class SpeechController {
       .replace(/\s+/g, " ")
       .trim();
     const utterance = new SpeechSynthesisUtterance(plainText);
-    utterance.lang = lang === "th" ? "th-TH" : "en-US";
+    const targetLang = lang === "th" ? "th-TH" : "en-US";
+    utterance.lang = targetLang;
     utterance.rate =
       lang === "th" ? (gender === "female" ? 0.85 : 0.78) : gender === "female" ? 0.95 : 0.9;
     utterance.pitch = gender === "female" ? 1.15 : 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const langVoices = voices.filter((v) => v.lang === targetLang || v.lang.startsWith(lang));
+    if (langVoices.length > 0) {
+      const maleVoice = langVoices.find((v) => /male/i.test(v.name));
+      const femaleVoice = langVoices.find((v) => !/male/i.test(v.name));
+      utterance.voice = (gender === "male" ? maleVoice : femaleVoice) ?? langVoices[0];
+    }
 
     utterance.onend = () => {
       this.setStatus("idle");
