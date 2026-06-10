@@ -206,52 +206,47 @@ export default function BookletAndSharePanelContent({
           </div>
         </div>
 
-        {/* Action Buttons for Sharing */}
-        <div className="space-y-2">
-          <div className="rounded-lg border border-clinic-line bg-slate-50 p-2.5">
-            <div className="text-[10px] font-bold uppercase text-slate-500">
-              {lang === "th" ? "ลิงก์หน้าผู้ป่วย" : "Patient Link"}
-            </div>
-            <div className="mt-0.5 text-xs text-clinic-blue font-bold truncate">
-              <a
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                title={url}
-                className="hover:underline"
-              >
-                {shortUrl}
-              </a>
-            </div>
-          </div>
+        {/* Action Buttons */}
+        <div className="space-y-3">
 
-          <div className="grid grid-cols-2 gap-1.5">
-            <IconButton
-              id={`${idPrefix}btn-copy-link`}
-              icon={<Copy size={14} />}
-              onClick={handleCopyLink}
-              label={
-                copiedLink
-                  ? lang === "th"
-                    ? "คัดลอกแล้ว!"
-                    : "Copied!"
-                  : lang === "th"
-                    ? "คัดลอกลิงก์"
-                    : "Copy Link"
-              }
-              shortcut="Alt+C"
-            />
-            <IconButton
+          {/* Group 1: ส่งให้ผู้ป่วย */}
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+              {lang === "th" ? "ส่งให้ผู้ป่วย" : "Share with Patient"}
+            </span>
+            <button
               id={`${idPrefix}btn-open-patient`}
-              icon={<UserRound size={14} />}
               onClick={() => onOpenPatient(plan)}
-              label={lang === "th" ? "เปิดหน้าผู้ป่วย" : "Patient View"}
-              shortcut="Alt+O"
-            />
+              className="w-full py-2.5 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-sm rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2"
+            >
+              <UserRound size={16} />
+              {lang === "th" ? "เปิดหน้าผู้ป่วย" : "Patient View"}
+            </button>
+            <div className="grid grid-cols-2 gap-1.5">
+              <IconButton
+                id={`${idPrefix}btn-copy-link`}
+                icon={<Copy size={14} />}
+                onClick={handleCopyLink}
+                label={copiedLink ? (lang === "th" ? "คัดลอกแล้ว!" : "Copied!") : (lang === "th" ? "คัดลอกลิงก์" : "Copy Link")}
+                shortcut="Alt+C"
+              />
+              <button
+                onClick={() =>
+                  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
+                }
+                className="w-full py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <MessageCircle size={14} className="text-[#06C755]" />
+                <span>LINE Share</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-1 text-left print:hidden mb-2.5">
-            <span className="text-xs font-extrabold text-slate-500">{t[lang].printLayout}</span>
+          {/* Group 2: พิมพ์ */}
+          <div className="space-y-1.5 print:hidden">
+            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+              {lang === "th" ? "พิมพ์เอกสาร" : "Print / Export"}
+            </span>
             <div className="segmented !h-[36px] !min-h-[36px] !grid-cols-2">
               <button
                 type="button"
@@ -268,41 +263,30 @@ export default function BookletAndSharePanelContent({
                 {t[lang].printLabel}
               </button>
             </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <IconButton
+                icon={<FileDown size={14} />}
+                onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)}
+                label={t[lang].downloadPdf}
+                disabled={!qr || qrError}
+              />
+              {printLayout === "label" ? (
+                <IconButton
+                  icon={<Printer size={14} />}
+                  onClick={printZpl}
+                  label={lang === "th" ? "พิมพ์ Zebra" : "Print Zebra"}
+                />
+              ) : (
+                <IconButton
+                  icon={<Printer size={14} />}
+                  onClick={() => window.print()}
+                  label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
+                  shortcut="Alt+H"
+                />
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5">
-            <button
-              onClick={() =>
-                window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
-              }
-              className="w-full min-height-[40px] px-3.5 py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <MessageCircle size={14} className="text-[#06C755]" />
-              <span>LINE Share</span>
-            </button>
-            <IconButton
-              icon={<FileDown size={14} />}
-              onClick={() =>
-                generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
-              }
-              label={t[lang].downloadPdf}
-              disabled={!qr || qrError}
-            />
-            {printLayout === "label" ? (
-              <IconButton
-                icon={<Printer size={14} />}
-                onClick={printZpl}
-                label={lang === "th" ? "พิมพ์ Zebra" : "Print Zebra"}
-              />
-            ) : (
-              <IconButton
-                icon={<Printer size={14} />}
-                onClick={() => window.print()}
-                label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
-                shortcut="Alt+H"
-              />
-            )}
-          </div>
         </div>
       </div>
 
