@@ -586,6 +586,9 @@ export default function DoctorMode({
                   printLayout={printLayout}
                   setPrintLayout={setPrintLayout}
                 />
+                <div className="print-sheet-wrapper">
+                  <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
+                </div>
               </>
             ) : null}
           </>
@@ -656,11 +659,6 @@ export default function DoctorMode({
         </div>
       )}
     </div>
-    {plan && (
-      <div className="print-only">
-        <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
-      </div>
-    )}
     </>
   );
 }

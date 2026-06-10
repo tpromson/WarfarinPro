@@ -2,10 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-@media screen {
-  .print-only {
-    display: none;
-  }
+.print-sheet-wrapper {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 * {
