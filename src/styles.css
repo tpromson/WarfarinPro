@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@media screen {
+  .print-only {
+    display: none;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
