@@ -445,7 +445,12 @@ describe("generateIcsFile", () => {
       selectedAdjustment: -15,
       holdDoses: 2,
     });
-    const ics = generateIcsFile(plan, "2026-05-30", "2026-06-13", "th");
+    // Use issuedDate as start so the first-week holds always fall within range,
+    // regardless of which day of the week the test runs.
+    const endDate = new Date(plan.issuedDate + "T12:00:00");
+    endDate.setDate(endDate.getDate() + 14);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const ics = generateIcsFile(plan, plan.issuedDate, endStr, "th");
     expect(ics).toContain("⚠️ งดยาวาร์ฟาริน");
   });
 });

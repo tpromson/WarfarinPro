@@ -51,8 +51,13 @@ function speakDoseValue(dose: number, lang: "th" | "en" = "th"): string {
   }
 }
 
-function speakPillDetails(combo: PillCombo, lang: "th" | "en" = "th", gender: "female" | "male" = "female"): string {
-  if (combo.dose === 0) return lang === "th" ? `งดยา${gender === "female" ? "นะคะ" : "นะครับ"}` : "hold your dose";
+function speakPillDetails(
+  combo: PillCombo,
+  lang: "th" | "en" = "th",
+  gender: "female" | "male" = "female",
+): string {
+  if (combo.dose === 0)
+    return lang === "th" ? `งดยา${gender === "female" ? "นะคะ" : "นะครับ"}` : "hold your dose";
   const parts: string[] = [];
 
   if (lang === "th") {

@@ -62,9 +62,7 @@ describe("PillVisual", () => {
 describe("HardStop", () => {
   it("renders hard stop heading", () => {
     render(<HardStop reasons={["INR >= 9.0", "Major bleeding"]} />);
-    expect(
-      screen.getByText("Do not generate routine dosing instructions."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Do not generate routine dosing instructions.")).toBeInTheDocument();
   });
 
   it("renders provided reasons", () => {
@@ -75,9 +73,7 @@ describe("HardStop", () => {
 
   it("renders empty reasons list", () => {
     render(<HardStop reasons={[]} />);
-    expect(
-      screen.getByText("Do not generate routine dosing instructions."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Do not generate routine dosing instructions.")).toBeInTheDocument();
   });
 });
 
@@ -181,26 +177,20 @@ describe("ScheduleView", () => {
 
   it("renders all 7 days", () => {
     const schedule = makeSchedule([5, 5, 5, 5, 5, 5, 5]);
-    const { container } = render(
-      <ScheduleView title="Test" subtitle="Test" schedule={schedule} />,
-    );
+    const { container } = render(<ScheduleView title="Test" subtitle="Test" schedule={schedule} />);
     const dayRows = container.querySelectorAll(".day-row");
     expect(dayRows.length).toBe(7);
   });
 
   it("shows hold label for zero-dose days", () => {
     const schedule = makeSchedule([0, 5, 5, 5, 5, 5, 5]);
-    const { container } = render(
-      <ScheduleView title="Test" subtitle="Test" schedule={schedule} />,
-    );
+    const { container } = render(<ScheduleView title="Test" subtitle="Test" schedule={schedule} />);
     expect(container.textContent).toContain("งดทานยา");
   });
 
   it("shows dose text in mg", () => {
     const schedule = makeSchedule([5, 0, 3, 0, 5, 3, 5]);
-    const { container } = render(
-      <ScheduleView title="Test" subtitle="Test" schedule={schedule} />,
-    );
+    const { container } = render(<ScheduleView title="Test" subtitle="Test" schedule={schedule} />);
     expect(container.textContent).toContain("5 mg");
     expect(container.textContent).toContain("3 mg");
   });
