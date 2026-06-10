@@ -585,7 +585,9 @@ export default function DoctorMode({
                   printLayout={printLayout}
                   setPrintLayout={setPrintLayout}
                 />
-                <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
+                <div className="hidden print:block">
+                  <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
+                </div>
               </>
             ) : null}
           </>
