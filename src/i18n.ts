@@ -38,6 +38,7 @@ export const t = {
     printLayout: "รูปแบบการพิมพ์",
     printHalfA4: "ครึ่ง A4 (A5)",
     printLabel: "ฉลากยา (Sticker)",
+    printQrSheet: "QR แผ่น 2",
     downloadPdf: "ดาวน์โหลด PDF",
     wcodeWarning:
       "ตารางยานี้คำนวณจาก W-code อาจแตกต่างจากแผนยาที่แพทย์สั่ง กรุณาใช้ลิงก์หรือ QR code จากแพทย์เพื่อข้อมูลที่ถูกต้องที่สุด",
@@ -79,6 +80,7 @@ export const t = {
     printLayout: "Print Layout",
     printHalfA4: "Half A4 (A5)",
     printLabel: "Medicine Label Sticker",
+    printQrSheet: "QR Sheet ×2",
     downloadPdf: "Download PDF",
     wcodeWarning:
       "This schedule is generated from a W-code and may differ from your doctor's exact prescription. Use the link or QR code from your doctor for the most accurate information.",
@@ -108,6 +110,22 @@ export function getDayLabel(day: DayKey, lang: "th" | "en"): string {
     sun: "วันอาทิตย์",
   };
   return th[day];
+}
+
+export function getDayShort(day: DayKey, lang: "th" | "en"): string {
+  if (lang === "en") {
+    return getDayLabel(day, "en").slice(0, 3);
+  }
+  const short: Record<DayKey, string> = {
+    mon: "จัน",
+    tue: "อัง",
+    wed: "พุธ",
+    thu: "พฤหัส",
+    fri: "ศุกร์",
+    sat: "เสาร์",
+    sun: "อาทิตย์",
+  };
+  return short[day];
 }
 
 export function getPillComboDesc(

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { buildPatientUrl, days, isFirstWeekOver } from "../clinical";
-import { getDayLabel, t } from "../i18n";
+import { getDayLabel, getDayShort, t } from "../i18n";
 import Metric from "./Metric";
 import ScheduleView from "./ScheduleView";
 import type { MedicationPlan } from "../types";
@@ -126,7 +126,7 @@ export default function MedicationSheet({
                   : "-";
                 return (
                   <tr key={day}>
-                    <td className="qr-sched-day"><strong>{lang === "th" ? getDayLabel(day, lang).slice(3, 6) : getDayLabel(day, lang).slice(0, 3)}</strong></td>
+                    <td className="qr-sched-day"><strong>{getDayShort(day, lang)}</strong></td>
                     <td>{firstWeekDesc}</td>
                     <td>{maintDesc}</td>
                   </tr>
@@ -196,7 +196,7 @@ export default function MedicationSheet({
                   : "-";
                 return (
                   <tr key={day}>
-                    <td><strong>{lang === "th" ? getDayLabel(day, lang).slice(3, 6) : getDayLabel(day, lang).slice(0, 3)}</strong></td>
+                    <td><strong>{getDayShort(day, lang)}</strong></td>
                     <td>{firstWeekDesc}</td>
                     <td>{maintDesc}</td>
                   </tr>
