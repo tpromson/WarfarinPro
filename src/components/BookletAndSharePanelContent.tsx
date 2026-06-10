@@ -30,10 +30,11 @@ export default function BookletAndSharePanelContent({
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
   idPrefix?: string;
-  printLayout: "half-a4" | "label";
-  setPrintLayout: (layout: "half-a4" | "label") => void;
+  printLayout: "half-a4" | "label" | "qr-sheet";
+  setPrintLayout: (layout: "half-a4" | "label" | "qr-sheet") => void;
 }) {
   const [qr, setQr] = useState("");
+  const [qrError, setQrError] = useState(false);
   const [copiedWCode, setCopiedWCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [dispenseWeeks, setDispenseWeeks] = useState(4);
@@ -48,6 +49,7 @@ export default function BookletAndSharePanelContent({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const BP = (window as any).BrowserPrint;
     if (BP) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       BP.getDefaultDevice("printer", (device: any) => {
         device.send(zpl, undefined, (err: string) => {
           if (err) alert(`Zebra print error: ${err}`);
@@ -120,9 +122,14 @@ export default function BookletAndSharePanelContent({
   }, [url]);
 
   useEffect(() => {
+    setQr("");
+    setQrError(false);
     QRCode.toDataURL(url, { errorCorrectionLevel: "Q", margin: 3, width: 300 })
       .then(setQr)
-      .catch((err) => console.error("QR Code Error in BookletAndSharePanelContent:", err));
+      .catch((err) => {
+        console.error("QR Code Error in BookletAndSharePanelContent:", err);
+        setQrError(true);
+      });
   }, [url]);
 
   const lineText = `WarfarinPro ${plan.wCode}\nWeekly dose ${plan.scheduleWeeklyDose.toFixed(1)} mg\nOpen plan: ${url}`;
@@ -245,7 +252,7 @@ export default function BookletAndSharePanelContent({
 
           <div className="flex flex-col gap-1 text-left print:hidden mb-2.5">
             <span className="text-xs font-extrabold text-slate-500">{t[lang].printLayout}</span>
-            <div className="segmented !h-[36px] !min-h-[36px] !grid-cols-2">
+            <div className="segmented !h-[36px] !min-h-[36px] !grid-cols-3">
               <button
                 type="button"
                 className={`!min-h-[28px] !text-[11px] !py-0 !px-2 ${printLayout === "half-a4" ? "active" : ""}`}
@@ -259,6 +266,13 @@ export default function BookletAndSharePanelContent({
                 onClick={() => setPrintLayout("label")}
               >
                 {t[lang].printLabel}
+              </button>
+              <button
+                type="button"
+                className={`!min-h-[28px] !text-[11px] !py-0 !px-2 ${printLayout === "qr-sheet" ? "active" : ""}`}
+                onClick={() => setPrintLayout("qr-sheet")}
+              >
+                {t[lang].printQrSheet}
               </button>
             </div>
           </div>
@@ -279,12 +293,19 @@ export default function BookletAndSharePanelContent({
                 generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
               }
               label={t[lang].downloadPdf}
+              disabled={!qr || qrError}
             />
             {printLayout === "label" ? (
               <IconButton
                 icon={<Printer size={14} />}
                 onClick={printZpl}
                 label={lang === "th" ? "พิมพ์ Zebra" : "Print Zebra"}
+              />
+            ) : printLayout === "qr-sheet" ? (
+              <IconButton
+                icon={<QrCode size={14} />}
+                onClick={() => window.print()}
+                label={lang === "th" ? "พิมพ์ QR" : "Print QR"}
               />
             ) : (
               <IconButton
@@ -541,29 +562,6 @@ export default function BookletAndSharePanelContent({
             </div>
           </div>
 
-          {/* Print advice helper */}
-          <div className="pt-2 flex items-center justify-end gap-2">
-            <button
-              onClick={() =>
-                generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
-              }
-              className="px-4 py-2 border border-clinic-blue text-clinic-blue hover:bg-clinic-cyan/10 font-extrabold text-xs rounded-xl shadow-sm transition-all focus:outline-none flex items-center justify-center gap-2"
-            >
-              <FileDown size={15} />
-              <span>{t[lang].downloadPdf}</span>
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="px-4 py-2 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-xs rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2"
-            >
-              <Printer size={15} />
-              <span>
-                {lang === "th"
-                  ? "พิมพ์ใบตารางแนะนำยาสำหรับคนไข้"
-                  : "Print Patient Guidance Leaflet"}
-              </span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
