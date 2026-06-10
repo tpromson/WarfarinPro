@@ -64,8 +64,101 @@
     print-color-adjust: exact !important;
   }
 
-  body:has(.sheet.layout-label) {
+  body:has(.sheet.layout-label),
+  body:has(.sheet.layout-qr-sheet) {
     background: white;
+  }
+
+  /* ─── QR Sheet 2-up Print Layout ─── */
+  .print-sheet-wrapper:has(.layout-qr-sheet) {
+    display: block !important;
+    position: static !important;
+    width: 90mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .sheet.layout-qr-sheet {
+    width: 90mm !important;
+    max-width: 90mm !important;
+    height: auto !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  .layout-qr-sheet .qr-sticker-cut {
+    border-top: 1px dashed #94a3b8 !important;
+    width: 100% !important;
+    height: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* ─── Label 2-Page Print ─── */
+  .sheet.layout-label-schedule {
+    break-after: page !important;
+  }
+
+  .layout-label.layout-label-schedule .label-schedule-table {
+    font-size: 12px !important;
+  }
+
+  .layout-label.layout-label-schedule .label-schedule-table th,
+  .layout-label.layout-label-schedule .label-schedule-table td {
+    padding: 5px 3px !important;
+  }
+
+  .layout-label.layout-label-qrcode {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8mm !important;
+    padding: 4mm !important;
+    margin-top: 0 !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-img {
+    width: 68mm !important;
+    height: 68mm !important;
+    border: 2px solid black !important;
+    padding: 2px !important;
+    background: white !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-caption {
+    font-size: 11px !important;
+    font-weight: 800 !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-wcode {
+    border: 2px solid black !important;
+    border-radius: 4px !important;
+    padding: 4mm 6mm !important;
+    width: 84mm !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-wlabel {
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    color: #64748b !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-wvalue {
+    font-size: 28pt !important;
+    font-weight: 900 !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-meta {
+    font-size: 11px !important;
+    font-weight: 700 !important;
   }
 
   /* ─── Label (Sticker) Print Layout ─── */
@@ -93,13 +186,7 @@
     page-break-inside: avoid !important;
   }
 
-  .layout-label .label-fields {
-    font-size: 10px !important;
-    margin-bottom: 2mm !important;
-    padding-bottom: 2mm !important;
-  }
-
-  .layout-label .label-schedule-table {
+.layout-label .label-schedule-table {
     font-size: 10px !important;
   }
 

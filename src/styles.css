@@ -612,6 +612,19 @@ select {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Suppress interactive hover lift on metric tiles inside static sheet preview */
+.sheet .metric:hover {
+  transform: none;
+  border-color: #d8e4e8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01);
+}
+
+/* Today highlight on day rows */
+.day-row.today:not(.hold):not(.past) {
+  background: rgba(23, 96, 135, 0.05);
+  border-color: #176087;
+}
+
 .schedule-block {
   border: 1px solid #d8e4e8;
   border-radius: 10px;
@@ -913,17 +926,6 @@ select {
   font-family: inherit;
 }
 
-.layout-label .label-fields {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 6px;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1.5px solid black;
-  font-size: 11px;
-  font-weight: 700;
-  color: #1e293b;
-}
 
 .layout-label .label-body {
   display: grid;
@@ -1029,8 +1031,230 @@ select {
   color: #b91c1c;
 }
 
+/* ─── Label 2-Page: Page 1 – Schedule ─── */
+.layout-label.layout-label-schedule .label-schedule-table {
+  font-size: 13px;
+}
+
+.layout-label.layout-label-schedule .label-schedule-table th,
+.layout-label.layout-label-schedule .label-schedule-table td {
+  padding: 5px 4px;
+}
+
+/* ─── Label 2-Page: Page 2 – QR + W-code ─── */
+.layout-label.layout-label-qrcode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.layout-label-qrcode .label-qrpage-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.layout-label-qrcode .label-qrpage-img {
+  width: 200px;
+  height: 200px;
+  border: 2px solid #1e293b;
+  padding: 4px;
+  background: white;
+}
+
+.layout-label-qrcode .label-qrpage-caption {
+  font-size: 11px;
+  font-weight: 800;
+  color: #334155;
+  text-align: center;
+}
+
+.layout-label-qrcode .label-qrpage-wcode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 2px solid black;
+  border-radius: 6px;
+  padding: 8px 24px;
+  width: 100%;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.layout-label-qrcode .label-qrpage-wlabel {
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.layout-label-qrcode .label-qrpage-wvalue {
+  font-size: 32px;
+  font-weight: 900;
+  color: black;
+  letter-spacing: 0.05em;
+}
+
+.layout-label-qrcode .label-qrpage-meta {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* ─── QR Sheet 2-up Layout ─── */
+.layout-qr-sheet {
+  width: 90mm;
+  max-width: 90mm;
+}
+
+/* shared sticker shell */
+.layout-qr-sheet .qr-sticker {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 90mm;
+  min-height: 28mm;
+  padding: 2mm 3mm;
+  box-sizing: border-box;
+  gap: 3mm;
+}
+
+/* ── Sticker 1: Schedule ── */
+.layout-qr-sheet .qr-sticker-schedule {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1mm;
+  padding: 1.5mm 3mm;
+}
+
+.layout-qr-sheet .qr-sticker-sched-header {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 2mm;
+}
+
+.layout-qr-sheet .qr-sticker-sched-wcode {
+  font-size: 7pt;
+  font-weight: 800;
+  color: #475569;
+  letter-spacing: 0.03em;
+}
+
+.layout-qr-sheet .qr-sticker-sched-date {
+  font-size: 6pt;
+  color: #94a3b8;
+}
+
+.layout-qr-sheet .qr-sticker-sched-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 7.5pt;
+  line-height: 1.2;
+}
+
+.layout-qr-sheet .qr-sticker-sched-table th {
+  font-size: 6.5pt;
+  font-weight: 700;
+  color: #475569;
+  text-align: left;
+  padding: 0 1mm 0.5mm;
+  border-bottom: 1px solid #1e293b;
+  white-space: nowrap;
+}
+
+.layout-qr-sheet .qr-sticker-sched-table td {
+  padding: 0.3mm 1mm;
+  vertical-align: middle;
+  border-bottom: 0.5px solid #e2e8f0;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.layout-qr-sheet .qr-sched-day {
+  font-weight: 700;
+  color: #334155;
+  width: 8mm;
+}
+
+/* ── Sticker 2: QR ── */
+.layout-qr-sheet .qr-sticker-qr {
+  padding: 1.5mm 2mm;
+  gap: 2mm;
+  align-items: center;
+}
+
+.layout-qr-sheet .qr-sticker-qr-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5mm;
+  flex-shrink: 0;
+}
+
+.layout-qr-sheet .qr-sticker-img {
+  height: calc(28mm - 4mm);
+  width: calc(28mm - 4mm);
+  border: 1.5px solid #1e293b;
+  border-radius: 1mm;
+  object-fit: contain;
+}
+
+.layout-qr-sheet .qr-sticker-scan {
+  font-size: 5.5pt;
+  color: #64748b;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.layout-qr-sheet .qr-sticker-info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5mm;
+  flex: 1;
+  min-width: 0;
+}
+
+/* shared text styles */
+.layout-qr-sheet .qr-sticker-wlabel {
+  font-size: 7pt;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.layout-qr-sheet .qr-sticker-wcode {
+  font-size: 22pt;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.layout-qr-sheet .qr-sticker-meta {
+  font-size: 7pt;
+  color: #64748b;
+  line-height: 1;
+}
+
+.layout-qr-sheet .qr-sticker-cut {
+  border-top: 1px dashed #94a3b8;
+  width: 90mm;
+  margin: 0;
+}
+
 /* Sharp crisp QR code rendering for printing */
 .label-qr-img,
+.qr-sticker-img,
 .sheet-head img,
 .qr-box img {
   image-rendering: -moz-crisp-edges;
@@ -1038,6 +1262,31 @@ select {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .panel,
+  .status,
+  .safety,
+  .voice-prompt-banner {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .panel:hover,
+  .day-row:hover,
+  .pill:hover,
+  .hold-pill:hover,
+  .metric:hover,
+  .icon-button:hover,
+  .icon-button:active,
+  .segmented button.active:active,
+  .saved-plan button:first-child:hover,
+  .trash:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
 }
 
 /* Toast Notifications */
