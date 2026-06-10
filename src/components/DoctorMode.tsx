@@ -40,8 +40,8 @@ export default function DoctorMode({
 }: {
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
-  printLayout: "half-a4" | "label" | "qr-sheet";
-  setPrintLayout: (layout: "half-a4" | "label" | "qr-sheet") => void;
+  printLayout: "half-a4" | "label";
+  setPrintLayout: (layout: "half-a4" | "label") => void;
 }) {
   const isMac =
     typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);

@@ -30,8 +30,8 @@ export default function BookletAndSharePanelContent({
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
   idPrefix?: string;
-  printLayout: "half-a4" | "label" | "qr-sheet";
-  setPrintLayout: (layout: "half-a4" | "label" | "qr-sheet") => void;
+  printLayout: "half-a4" | "label";
+  setPrintLayout: (layout: "half-a4" | "label") => void;
 }) {
   const [qr, setQr] = useState("");
   const [qrError, setQrError] = useState(false);
@@ -252,7 +252,7 @@ export default function BookletAndSharePanelContent({
 
           <div className="flex flex-col gap-1 text-left print:hidden mb-2.5">
             <span className="text-xs font-extrabold text-slate-500">{t[lang].printLayout}</span>
-            <div className="segmented !h-[36px] !min-h-[36px] !grid-cols-3">
+            <div className="segmented !h-[36px] !min-h-[36px] !grid-cols-2">
               <button
                 type="button"
                 className={`!min-h-[28px] !text-[11px] !py-0 !px-2 ${printLayout === "half-a4" ? "active" : ""}`}
@@ -266,13 +266,6 @@ export default function BookletAndSharePanelContent({
                 onClick={() => setPrintLayout("label")}
               >
                 {t[lang].printLabel}
-              </button>
-              <button
-                type="button"
-                className={`!min-h-[28px] !text-[11px] !py-0 !px-2 ${printLayout === "qr-sheet" ? "active" : ""}`}
-                onClick={() => setPrintLayout("qr-sheet")}
-              >
-                {t[lang].printQrSheet}
               </button>
             </div>
           </div>
@@ -300,12 +293,6 @@ export default function BookletAndSharePanelContent({
                 icon={<Printer size={14} />}
                 onClick={printZpl}
                 label={lang === "th" ? "พิมพ์ Zebra" : "Print Zebra"}
-              />
-            ) : printLayout === "qr-sheet" ? (
-              <IconButton
-                icon={<QrCode size={14} />}
-                onClick={() => window.print()}
-                label={lang === "th" ? "พิมพ์ QR" : "Print QR"}
               />
             ) : (
               <IconButton
