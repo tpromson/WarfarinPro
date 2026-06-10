@@ -126,7 +126,7 @@ export default function MedicationSheet({
                   : "-";
                 return (
                   <tr key={day}>
-                    <td className="qr-sched-day"><strong>{getDayLabel(day, lang).substring(0, 3)}</strong></td>
+                    <td className="qr-sched-day"><strong>{lang === "th" ? getDayLabel(day, lang).slice(3, 6) : getDayLabel(day, lang).slice(0, 3)}</strong></td>
                     <td>{firstWeekDesc}</td>
                     <td>{maintDesc}</td>
                   </tr>
@@ -196,7 +196,7 @@ export default function MedicationSheet({
                   : "-";
                 return (
                   <tr key={day}>
-                    <td><strong>{getDayLabel(day, lang).substring(0, 3)}</strong></td>
+                    <td><strong>{lang === "th" ? getDayLabel(day, lang).slice(3, 6) : getDayLabel(day, lang).slice(0, 3)}</strong></td>
                     <td>{firstWeekDesc}</td>
                     <td>{maintDesc}</td>
                   </tr>
