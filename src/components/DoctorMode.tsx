@@ -40,10 +40,11 @@ export default function DoctorMode({
 }: {
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
-  printLayout: "half-a4" | "label";
-  setPrintLayout: (layout: "half-a4" | "label") => void;
+  printLayout: "half-a4" | "label" | "qr-sheet";
+  setPrintLayout: (layout: "half-a4" | "label" | "qr-sheet") => void;
 }) {
-  const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
+  const isMac =
+    typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
   const modLabel = isMac ? "Ctrl/⌥+" : "Alt+";
 
   const [inr, setInr] = useState(2.4);
@@ -75,7 +76,8 @@ export default function DoctorMode({
       const modalElement = document.querySelector('[role="dialog"]');
       if (!modalElement) return;
 
-      const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const focusableSelectors =
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
       const focusables = modalElement.querySelectorAll(focusableSelectors);
       const firstFocusable = focusables[0] as HTMLElement;
 
@@ -116,7 +118,6 @@ export default function DoctorMode({
     };
   }, [showSummaryModal]);
 
-
   const target: TargetRange = useMemo(() => {
     if (preset === "mechanical") return { preset, lower: 2.5, upper: 3.5 };
     if (preset === "custom") return { preset, lower: customLower, upper: customUpper };
@@ -152,7 +153,10 @@ export default function DoctorMode({
     setMaintenance(buildMaintenanceSchedule(calculatedDose));
   }
 
-  const suggestedSchedule = useMemo(() => buildMaintenanceSchedule(calculatedDose), [calculatedDose]);
+  const suggestedSchedule = useMemo(
+    () => buildMaintenanceSchedule(calculatedDose),
+    [calculatedDose],
+  );
   const isScheduleModified = useMemo(() => {
     if (maintenance.length !== suggestedSchedule.length) return true;
     return maintenance.some((m, idx) => m.dose !== suggestedSchedule[idx].dose);
@@ -413,10 +417,13 @@ export default function DoctorMode({
                       checked={contexts.includes(flag)}
                       onChange={() => toggleContext(flag)}
                     />
-                    {lang === "th" ? (
-                      flag === "mechanicalValve" ? "ใส่ลิ้นหัวใจเทียม" :
-                      flag === "pregnancy" ? "ตั้งครรภ์" : "โรคตับ"
-                    ) : contextLabels[flag]}
+                    {lang === "th"
+                      ? flag === "mechanicalValve"
+                        ? "ใส่ลิ้นหัวใจเทียม"
+                        : flag === "pregnancy"
+                          ? "ตั้งครรภ์"
+                          : "โรคตับ"
+                      : contextLabels[flag]}
                   </label>
                 ))}
               </div>
@@ -436,13 +443,19 @@ export default function DoctorMode({
                       checked={interactions.includes(flag)}
                       onChange={() => toggleInteraction(flag)}
                     />
-                    {interactions.includes(flag) && lang === "th" ? (
-                      flag === "nsaid" ? "ยาแก้ปวด NSAIDs" :
-                      flag === "antibiotic" ? "ยาฆ่าเชื้อ/ยาปฏิชีวนะ" :
-                      flag === "amiodarone" ? "ยาคุมจังหวะหัวใจ" :
-                      flag === "antiepileptic" ? "ยากันชัก" :
-                      flag === "herbal" ? "สมุนไพร/อาหารเสริม" : "เครื่องดื่มแอลกอฮอล์"
-                    ) : interactionLabels[flag]}
+                    {interactions.includes(flag) && lang === "th"
+                      ? flag === "nsaid"
+                        ? "ยาแก้ปวด NSAIDs"
+                        : flag === "antibiotic"
+                          ? "ยาฆ่าเชื้อ/ยาปฏิชีวนะ"
+                          : flag === "amiodarone"
+                            ? "ยาคุมจังหวะหัวใจ"
+                            : flag === "antiepileptic"
+                              ? "ยากันชัก"
+                              : flag === "herbal"
+                                ? "สมุนไพร/อาหารเสริม"
+                                : "เครื่องดื่มแอลกอฮอล์"
+                      : interactionLabels[flag]}
                   </label>
                 ))}
               </div>
@@ -572,9 +585,7 @@ export default function DoctorMode({
                   printLayout={printLayout}
                   setPrintLayout={setPrintLayout}
                 />
-                <div className="print-sheet-wrapper">
-                  <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
-                </div>
+                <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
               </>
             ) : null}
           </>
