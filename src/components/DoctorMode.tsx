@@ -299,6 +299,7 @@ export default function DoctorMode({
   }
 
   return (
+    <>
     <div className="mx-auto grid gap-5 px-4 py-5 lg:grid-cols-[360px_1fr] grid-cols-1">
       <section className="space-y-4">
         <Panel title="Clinical Inputs" icon={<HeartPulse size={18} />}>
@@ -585,9 +586,6 @@ export default function DoctorMode({
                   printLayout={printLayout}
                   setPrintLayout={setPrintLayout}
                 />
-                <div className="print-only">
-                  <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
-                </div>
               </>
             ) : null}
           </>
@@ -658,5 +656,11 @@ export default function DoctorMode({
         </div>
       )}
     </div>
+    {plan && (
+      <div className="print-only">
+        <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
+      </div>
+    )}
+    </>
   );
 }
