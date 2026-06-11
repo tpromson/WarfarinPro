@@ -117,10 +117,10 @@ export function getDayShort(day: DayKey, lang: "th" | "en"): string {
     return getDayLabel(day, "en").slice(0, 3);
   }
   const short: Record<DayKey, string> = {
-    mon: "จัน",
-    tue: "อัง",
+    mon: "จันทร์",
+    tue: "อังคาร",
     wed: "พุธ",
-    thu: "พฤหัส",
+    thu: "พฤหัสบดี",
     fri: "ศุกร์",
     sat: "เสาร์",
     sun: "อาทิตย์",
