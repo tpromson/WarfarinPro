@@ -350,7 +350,7 @@ select {
 }
 
 .day-row {
-  grid-template-columns: minmax(90px, 130px) minmax(120px, 1fr) min-content;
+  grid-template-columns: 1fr auto;
   gap: 8px 16px;
   align-items: center;
 }
