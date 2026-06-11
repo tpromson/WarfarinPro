@@ -143,8 +143,8 @@
   }
 
   .layout-label-qrcode .label-qrpage-img {
-    width: 32mm !important;
-    height: 32mm !important;
+    width: 38mm !important;
+    height: 38mm !important;
     border: 1.5px solid black !important;
     padding: 1px !important;
     background: white !important;
@@ -161,7 +161,7 @@
     border: 1.5px solid black !important;
     border-radius: 4px !important;
     padding: 2mm 3mm !important;
-    width: 42mm !important;
+    width: 44mm !important;
     box-sizing: border-box !important;
     text-align: center !important;
   }
@@ -175,7 +175,7 @@
   }
 
   .layout-label-qrcode .label-qrpage-wvalue {
-    font-size: 20pt !important;
+    font-size: 22pt !important;
     font-weight: 900 !important;
     line-height: 1 !important;
   }
