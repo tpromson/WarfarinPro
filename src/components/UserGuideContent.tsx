@@ -1,4 +1,4 @@
-import { AlertTriangle, BookOpen, HeartPulse, Keyboard, Smartphone, Undo } from "lucide-react";
+import { AlertTriangle, BookOpen, HeartPulse, Keyboard, Pin, Smartphone, Undo } from "lucide-react";
 
 export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
   const isMac =
@@ -32,13 +32,91 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
           </div>
         </section>
 
+        {/* Visual Workflow Section */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-clinic-blue">
+            <svg className="h-5 w-5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+            <h3 className="text-lg font-bold">แผนผังขั้นตอนการทำงาน (Workflow Flowchart)</h3>
+          </div>
+
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-7 items-center bg-white border border-clinic-line rounded-2xl p-5 shadow-sm">
+            {/* Step 1 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">ขั้นตอนที่ 1</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-clinic-blue/10 text-clinic-blue mx-auto font-black text-sm">
+                INR
+              </div>
+              <div className="text-xs font-black text-slate-850">กรอกข้อมูลคนไข้</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                ป้อนผลตรวจ INR ล่าสุด โดสยาเดิม และข้อควรระวัง
+              </div>
+            </div>
+
+            {/* Arrow 1 */}
+            <div className="md:col-span-1 text-center py-1 md:py-0 select-none">
+              <span className="hidden md:inline text-clinic-blue text-xl font-bold">➜</span>
+              <span className="inline md:hidden text-clinic-blue text-lg font-bold">⬇</span>
+            </div>
+
+            {/* Step 2 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">ขั้นตอนที่ 2</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600 mx-auto font-black text-sm">
+                AUTO
+              </div>
+              <div className="text-xs font-black text-slate-850">คำนวณโดสแนะแนว</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                ระบบคำนวณปรับลด/เพิ่ม เปอร์เซ็นต์ยาให้อัตโนมัติ
+              </div>
+            </div>
+
+            {/* Arrow 2 */}
+            <div className="md:col-span-1 text-center py-1 md:py-0 select-none">
+              <span className="hidden md:inline text-clinic-blue text-xl font-bold">➜</span>
+              <span className="inline md:hidden text-clinic-blue text-lg font-bold">⬇</span>
+            </div>
+
+            {/* Step 3 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">ขั้นตอนที่ 3</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-orange-500/10 text-orange-600 mx-auto font-black text-sm">
+                ENTER
+              </div>
+              <div className="text-xs font-black text-slate-850">ลื่นไหลด้วย Enter</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                กด Enter เปิด Booklet เลื่อนดูจำนวนเม็ดจ่าย และกดอีกทีเพื่อปิด
+              </div>
+            </div>
+
+            {/* Arrow 3 */}
+            <div className="md:col-span-1 text-center py-1 md:py-0 select-none">
+              <span className="hidden md:inline text-clinic-blue text-xl font-bold">➜</span>
+              <span className="inline md:hidden text-clinic-blue text-lg font-bold">⬇</span>
+            </div>
+
+            {/* Step 4 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">ขั้นตอนที่ 4</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-purple-500/10 text-purple-600 mx-auto font-black text-sm">
+                QR
+              </div>
+              <div className="text-xs font-black text-slate-850">สแกน/แชร์ส่งคนไข้</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                พิมพ์ฉลากยา/สแกน QR ดูตารางเม็ดยาจำลองบนมือถือ
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Clinician Workspace */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-clinic-blue">
             <HeartPulse size={20} className="stroke-[2.5]" />
             <h3 className="text-lg font-bold">1. สำหรับบุคลากรทางการแพทย์ (Clinician Workspace)</h3>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
               <strong className="block text-sm font-extrabold text-clinic-blue">
                 การกรอกข้อมูลและ Target Presets
@@ -48,6 +126,14 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                 <strong>Previous weekly dose (mg)</strong> และเลือกวันมานัดตรวจคลินิก
                 เพื่อกำหนดระยะเวลางดยาชั่วคราวในสัปดาห์แรก (First Week Hold)
                 โดยระบบจะคำนวณสัดส่วนการปรับยาที่เหมาะสมให้อัตโนมัติ ตามค่า Target range ที่กำหนด
+              </p>
+            </div>
+            <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
+              <strong className="block text-sm font-extrabold text-clinic-blue">
+                การตั้งค่าคลังยา (Tablet Stock)
+              </strong>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                กำหนดขนาดเม็ดยาที่มีพร้อมจ่ายในโรงพยาบาลได้ 2 แบบ: <strong>ขนาด 2, 3 mg</strong> หรือ <strong>ขนาด 2, 3, 5 mg</strong> (เม็ดสีชมพูเพิ่มเข้ามา) ช่วยลดจำนวนเม็ดยาลงสำหรับคนไข้ที่ทานขนาดยาสูง และช่วยให้การจัดการยาปลอดภัยยิ่งขึ้น
               </p>
             </div>
             <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
@@ -76,7 +162,7 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                 <thead>
                   <tr className="bg-slate-50 border-b border-clinic-line text-slate-500 font-bold">
                     <th className="p-3">คีย์ลัด</th>
-                    <th className="p-3">ช่องข้อมูลที่โฟกัส / คำสั่งการทำงาน</th>
+                    <th className="p-3">ช่องข้อมูลที่โฟกัส / คำสั่งการทำงาน / ลำดับคีย์ลัด</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -123,8 +209,19 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                   <tr>
                     <td className="p-3 font-mono font-bold text-slate-500">Enter / Shift+Enter</td>
                     <td className="p-3">
-                      เคลื่อนย้ายโฟกัสลง / โฟกัสขึ้นตามลำดับช่องกรอกข้อมูลและปฏิทิน
+                      <strong>(เมื่ออยู่นอกป๊อปอัป):</strong> เคลื่อนย้ายโฟกัสลง / โฟกัสขึ้นตามลำดับช่องข้อมูล (เมื่อกด Enter ที่ช่องหยุดยาตัวสุดท้าย จะเปิดป๊อปอัป Booklet สรุปยาให้อัตโนมัติ)
                     </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-mono font-bold text-slate-500">Enter (ใน Booklet Modal)</td>
+                    <td className="p-3">
+                      <strong>กดครั้งที่ 1:</strong> เลื่อน (Scroll) หน้าต่างลงไปล่างสุดโดยอัตโนมัติ เพื่อรีวิวสูตรยาและจำนวนเม็ดยาจ่าย <br />
+                      <strong>กดครั้งที่ 2:</strong> ปิดหน้าต่างป๊อปอัปบันทึกยาทันที
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-mono font-bold text-slate-500">Escape (Esc)</td>
+                    <td className="p-3">ปิดหน้าต่างป๊อปอัปหรือแจ้งเตือนทุกรูปแบบทันที</td>
                   </tr>
                 </tbody>
               </table>
@@ -235,6 +332,63 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
             </div>
           </div>
         </section>
+
+        {/* Always on Top Guide */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-clinic-blue">
+            <Pin size={20} className="stroke-[2.5]" />
+            <h3 className="text-lg font-bold">3. การใช้งานเปิดคู่ขนานโปรแกรม HIS โรงพยาบาล (Always on Top)</h3>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-700">
+            กรณีที่ต้องการใช้งานหน้าคำนวณของ <strong>WarfarinPro</strong> ไปพร้อมๆ กับการป้อนข้อมูลลงโปรแกรมบันทึกเวชระเบียนโรงพยาบาล (HIS) ที่แสดงผลเต็มหน้าจอ เพื่อไม่ต้องสลับสลับหน้าต่างบ่อยๆ คุณสามารถล็อกหน้าต่างเว็บแอปให้อยู่หน้าสุดเสมอได้ด้วยโปรแกรมเครื่องมือเสริม ดังนี้:
+          </p>
+
+          {/* Visual Always on Top Flow */}
+          <div className="bg-slate-50 border border-clinic-line/60 rounded-xl p-4 space-y-3">
+            <div className="text-xs font-extrabold text-slate-600 uppercase tracking-wider">ผังขั้นตอนการใช้งาน Always on Top</div>
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-5 items-center bg-white p-3 rounded-xl border border-clinic-line/40 shadow-sm max-w-2xl">
+              <div className="text-center p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="text-[10px] font-extrabold text-clinic-blue">1. เปิดหน้าจอคู่กัน</div>
+                <div className="text-[9px] text-slate-500 mt-0.5">เปิดเบราว์เซอร์คู่กับ HIS</div>
+              </div>
+              <div className="text-center text-clinic-blue text-sm font-bold select-none py-1 sm:py-0">➜</div>
+              <div className="text-center p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="text-[10px] font-extrabold text-clinic-blue">2. กดคีย์ลัดตรึง</div>
+                <div className="text-[9px] text-slate-500 mt-0.5">กด Win + Ctrl + T</div>
+              </div>
+              <div className="text-center text-clinic-blue text-sm font-bold select-none py-1 sm:py-0">➜</div>
+              <div className="text-center p-2.5 bg-clinic-cyan/25 rounded-lg border border-clinic-cyan/40">
+                <div className="text-[10px] font-extrabold text-clinic-blue">3. ล็อกอยู่หน้าสุด!</div>
+                <div className="text-[9px] text-slate-500 mt-0.5">คีย์ข้อมูลเข้า HIS ได้สะดวกรวดเร็ว</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
+              <strong className="block text-sm font-extrabold text-clinic-blue flex items-center gap-1.5">
+                <span>Microsoft PowerToys</span>
+                <span className="text-[10px] bg-clinic-cyan/30 text-clinic-blue px-1.5 py-0.5 rounded font-black">แนะนำสำหรับ Windows 10/11</span>
+              </strong>
+              <ol className="list-decimal pl-4 text-xs text-slate-600 space-y-1.5">
+                <li>ดาวน์โหลดและติดตั้งโปรแกรม <strong>Microsoft PowerToys</strong> ฟรีจาก Microsoft Store หรือหน้า GitHub ของ Microsoft</li>
+                <li>เปิดโปรแกรม PowerToys แล้วคลิกเปิดใช้งานเครื่องมือ <strong>Always on Top</strong> (ปักหมุดไว้ด้านบนสุด)</li>
+                <li>สลับหน้าจอไปที่เบราว์เซอร์ที่เปิดโปรแกรม WarfarinPro จากนั้นกดปุ่มลัดคีย์บอร์ด <strong><kbd className="font-mono bg-slate-100 border rounded px-1.5 py-0.5 text-slate-700 font-bold select-none">Win + Ctrl + T</kbd></strong></li>
+                <li>หน้าต่างจะถูกตรึงไว้เหนือโปรแกรมอื่นๆ ตลอดเวลา (จะปรากฏเส้นขอบสีน้ำเงินรอบหน้าต่างพร้อมเสียงแจ้งเตือน)</li>
+                <li>หากต้องการยกเลิกการตรึง ให้คลิกที่หน้าต่างเบราว์เซอร์นั้นแล้วกดปุ่มลัดเดิม <strong><kbd className="font-mono bg-slate-100 border rounded px-1.5 py-0.5 text-slate-700 font-bold select-none">Win + Ctrl + T</kbd></strong> อีกครั้ง</li>
+              </ol>
+            </div>
+            <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
+              <strong className="block text-sm font-extrabold text-clinic-blue">
+                DeskPins หรือ TurboTop (ทางเลือกสเปกเบาสำหรับ Windows เก่า)
+              </strong>
+              <ul className="list-disc pl-4 text-xs text-slate-600 space-y-1.5">
+                <li><strong>DeskPins:</strong> ทำการติดตั้งและรันโปรแกรม ดับเบิลคลิกไอคอนรูปหมุดที่ System Tray (มุมขวาล่างของจอ) เมาส์จะเปลี่ยนเป็นรูปหมุด จากนั้นคลิกปักหมุดที่แถบหัวเรื่อง (Title Bar) ของหน้าต่างเว็บแอป เพื่อล็อกให้อยู่หน้าสุด</li>
+                <li><strong>TurboTop:</strong> รันโปรแกรมในซิสเต็มเทรย์ คลิกที่ไอคอน TurboTop จะมีรายชื่อหน้าต่างโปรแกรมที่เปิดอยู่ทั้งหมด ให้คลิกเลือกหน้าต่างเว็บแอป <strong>WarfarinPro</strong> เพื่อตรึงให้อยู่หน้าสุด</li>
+              </ul>
+            </div>
+          </div>
+        </section>
       </div>
     );
   } else {
@@ -263,13 +417,91 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
           </div>
         </section>
 
+        {/* Visual Workflow Section */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-clinic-blue">
+            <svg className="h-5 w-5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+            <h3 className="text-lg font-bold">Dosing & Prescription Workflow Flowchart</h3>
+          </div>
+
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-7 items-center bg-white border border-clinic-line rounded-2xl p-5 shadow-sm">
+            {/* Step 1 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">Step 1</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-clinic-blue/10 text-clinic-blue mx-auto font-black text-sm">
+                INR
+              </div>
+              <div className="text-xs font-black text-slate-850">Enter Inputs</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                Input patient INR, previous dose, and safety flags.
+              </div>
+            </div>
+
+            {/* Arrow 1 */}
+            <div className="md:col-span-1 text-center py-1 md:py-0 select-none">
+              <span className="hidden md:inline text-clinic-blue text-xl font-bold">➜</span>
+              <span className="inline md:hidden text-clinic-blue text-lg font-bold">⬇</span>
+            </div>
+
+            {/* Step 2 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">Step 2</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600 mx-auto font-black text-sm">
+                AUTO
+              </div>
+              <div className="text-xs font-black text-slate-850">Auto Dosing</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                System calculates dose adjustment percentages automatically.
+              </div>
+            </div>
+
+            {/* Arrow 2 */}
+            <div className="md:col-span-1 text-center py-1 md:py-0 select-none">
+              <span className="hidden md:inline text-clinic-blue text-xl font-bold">➜</span>
+              <span className="inline md:hidden text-clinic-blue text-lg font-bold">⬇</span>
+            </div>
+
+            {/* Step 3 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">Step 3</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-orange-500/10 text-orange-600 mx-auto font-black text-sm">
+                ENTER
+              </div>
+              <div className="text-xs font-black text-slate-850">Modal Review</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                Press Enter to open booklet modal, review doses, and close.
+              </div>
+            </div>
+
+            {/* Arrow 3 */}
+            <div className="md:col-span-1 text-center py-1 md:py-0 select-none">
+              <span className="hidden md:inline text-clinic-blue text-xl font-bold">➜</span>
+              <span className="inline md:hidden text-clinic-blue text-lg font-bold">⬇</span>
+            </div>
+
+            {/* Step 4 */}
+            <div className="md:col-span-1 border border-slate-100 rounded-xl p-4 bg-slate-50 text-center space-y-1.5 relative overflow-hidden group hover:shadow-md transition-all">
+              <div className="text-[10px] uppercase font-bold text-slate-400">Step 4</div>
+              <div className="inline-grid h-10 w-10 place-items-center rounded-lg bg-purple-500/10 text-purple-600 mx-auto font-black text-sm">
+                QR
+              </div>
+              <div className="text-xs font-black text-slate-850">Print / Share</div>
+              <div className="text-[10px] text-slate-500 leading-normal">
+                Print sticker labels, scan QR code or share patient view link.
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Clinician Workspace */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-clinic-blue">
             <HeartPulse size={20} className="stroke-[2.5]" />
             <h3 className="text-lg font-bold">1. Clinician Workspace Guide</h3>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
               <strong className="block text-sm font-extrabold text-clinic-blue">
                 Clinical Inputs & Target Presets
@@ -279,6 +511,14 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                 <strong>Previous weekly dose (mg)</strong>, and select the current clinic visit day.
                 Define their therapeutic targets using standard 2.0-3.0, mechanical valve 2.5-3.5,
                 or customizable custom ranges.
+              </p>
+            </div>
+            <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
+              <strong className="block text-sm font-extrabold text-clinic-blue">
+                Hospital Tablet Stock Setup
+              </strong>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Configure clinic stock strengths using either <strong>2 & 3 mg tablets</strong> or <strong>2, 3 & 5 mg tablets</strong> (introducing Pink 5 mg). Incorporating the 5 mg strength minimizes tablet splitting and counts for patients on high doses, increasing dispensing speed and safety.
               </p>
             </div>
             <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
@@ -307,7 +547,7 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                 <thead>
                   <tr className="bg-slate-50 border-b border-clinic-line text-slate-500 font-bold">
                     <th className="p-3">Shortcut</th>
-                    <th className="p-3">Action Description</th>
+                    <th className="p-3">Action Description / Hotkey Sequence</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -354,8 +594,19 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                   <tr>
                     <td className="p-3 font-mono font-bold text-slate-500">Enter / Shift+Enter</td>
                     <td className="p-3">
-                      Move focus downward / upward through forms and schedules
+                      <strong>(Outside Popups):</strong> Move focus downward / upward through inputs. Pressing Enter on the last hold-dose field automatically opens the Booklet Summary Modal.
                     </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-mono font-bold text-slate-500">Enter (in Booklet Modal)</td>
+                    <td className="p-3">
+                      <strong>1st Press:</strong> Automatically scrolls the modal body down to check tablet counts and printing layout. <br />
+                      <strong>2nd Press:</strong> Closes the summary popup window immediately.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-mono font-bold text-slate-500">Escape (Esc)</td>
+                    <td className="p-3">Close any open popup dialog or warnings immediately</td>
                   </tr>
                 </tbody>
               </table>
@@ -460,6 +711,63 @@ export default function UserGuideContent({ lang }: { lang: "th" | "en" }) {
                 locally (Save Plan) to view their schedule anytime at home even without cell signal
                 or internet.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Always on Top Guide */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-clinic-blue">
+            <Pin size={20} className="stroke-[2.5]" />
+            <h3 className="text-lg font-bold">3. Running Alongside Hospital HIS (Always on Top Mode)</h3>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-700">
+            For seamless medical record data entry without switching windows back and forth, you can lock the <strong>WarfarinPro</strong> web app window on top of your hospital information system (HIS) screen using the following utilities:
+          </p>
+
+          {/* Visual Always on Top Flow */}
+          <div className="bg-slate-50 border border-clinic-line/60 rounded-xl p-4 space-y-3">
+            <div className="text-xs font-extrabold text-slate-600 uppercase tracking-wider">Always on Top Workflow Flowchart</div>
+            <div className="grid gap-2 grid-cols-1 sm:grid-cols-5 items-center bg-white p-3 rounded-xl border border-clinic-line/40 shadow-sm max-w-2xl">
+              <div className="text-center p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="text-[10px] font-extrabold text-clinic-blue">1. Open Side-by-Side</div>
+                <div className="text-[9px] text-slate-500 mt-0.5">Arrange browser next to HIS</div>
+              </div>
+              <div className="text-center text-clinic-blue text-sm font-bold select-none py-1 sm:py-0">➜</div>
+              <div className="text-center p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                <div className="text-[10px] font-extrabold text-clinic-blue">2. Press Shortcut</div>
+                <div className="text-[9px] text-slate-500 mt-0.5">Press Win + Ctrl + T</div>
+              </div>
+              <div className="text-center text-clinic-blue text-sm font-bold select-none py-1 sm:py-0">➜</div>
+              <div className="text-center p-2.5 bg-clinic-cyan/25 rounded-lg border border-clinic-cyan/40">
+                <div className="text-[10px] font-extrabold text-clinic-blue">3. Window Locked!</div>
+                <div className="text-[9px] text-slate-500 mt-0.5">Input data to HIS without losing focus</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
+              <strong className="block text-sm font-extrabold text-clinic-blue flex items-center gap-1.5">
+                <span>Microsoft PowerToys</span>
+                <span className="text-[10px] bg-clinic-cyan/30 text-clinic-blue px-1.5 py-0.5 rounded font-black">Recommended for Windows 10/11</span>
+              </strong>
+              <ol className="list-decimal pl-4 text-xs text-slate-600 space-y-1.5">
+                <li>Download and install <strong>Microsoft PowerToys</strong> (available free in the Microsoft Store or on GitHub).</li>
+                <li>Launch PowerToys and verify that the <strong>Always on Top</strong> feature is enabled.</li>
+                <li>Click the WarfarinPro browser window and press the hotkey shortcut <strong><kbd className="font-mono bg-slate-100 border rounded px-1.5 py-0.5 text-slate-700 font-bold select-none">Win + Ctrl + T</kbd></strong>.</li>
+                <li>The window will be locked on top of all other software with a colored blue border and a confirmation chime.</li>
+                <li>Press the same shortcut again <strong><kbd className="font-mono bg-slate-100 border rounded px-1.5 py-0.5 text-slate-700 font-bold select-none">Win + Ctrl + T</kbd></strong> to unlock/release the window.</li>
+              </ol>
+            </div>
+            <div className="border border-clinic-line rounded-xl p-4 bg-white space-y-2">
+              <strong className="block text-sm font-extrabold text-clinic-blue">
+                DeskPins or TurboTop (Lightweight legacy alternatives)
+              </strong>
+              <ul className="list-disc pl-4 text-xs text-slate-600 space-y-1.5">
+                <li><strong>DeskPins:</strong> Run DeskPins, double-click the pin icon in the System Tray (bottom-right corner), and click the browser's title bar to lock it on top.</li>
+                <li><strong>TurboTop:</strong> Run TurboTop, click its menu icon in the system tray, and check the <strong>WarfarinPro</strong> window in the list to pin it.</li>
+              </ul>
             </div>
           </div>
         </section>

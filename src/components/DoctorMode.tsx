@@ -77,50 +77,73 @@ export default function DoctorMode({
   useEffect(() => {
     if (!showSummaryModal) return;
 
-    let handleTabKey: (e: KeyboardEvent) => void;
+    let handleModalKeys: (e: KeyboardEvent) => void;
 
     const timer = setTimeout(() => {
-      const modalElement = document.querySelector('[role="dialog"]');
+      const modalElement = document.querySelector('[role="dialog"]') as HTMLElement;
       if (!modalElement) return;
+
+      // Focus the modal container itself initially so Enter shortcut works directly
+      modalElement.focus();
 
       const focusableSelectors =
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-      const focusables = modalElement.querySelectorAll(focusableSelectors);
-      const firstFocusable = focusables[0] as HTMLElement;
 
-      if (firstFocusable) {
-        firstFocusable.focus();
-      }
+      handleModalKeys = (e: KeyboardEvent) => {
+        if (e.key === "Tab") {
+          const currentFocusables = modalElement.querySelectorAll(focusableSelectors);
+          if (currentFocusables.length === 0) return;
 
-      handleTabKey = (e: KeyboardEvent) => {
-        if (e.key !== "Tab") return;
+          const first = currentFocusables[0] as HTMLElement;
+          const last = currentFocusables[currentFocusables.length - 1] as HTMLElement;
 
-        const currentFocusables = modalElement.querySelectorAll(focusableSelectors);
-        if (currentFocusables.length === 0) return;
-
-        const first = currentFocusables[0] as HTMLElement;
-        const last = currentFocusables[currentFocusables.length - 1] as HTMLElement;
-
-        if (e.shiftKey) {
-          if (document.activeElement === first) {
-            last.focus();
-            e.preventDefault();
+          if (e.shiftKey) {
+            if (document.activeElement === first || document.activeElement === modalElement) {
+              last.focus();
+              e.preventDefault();
+            }
+          } else {
+            if (document.activeElement === last) {
+              first.focus();
+              e.preventDefault();
+            }
           }
-        } else {
-          if (document.activeElement === last) {
-            first.focus();
-            e.preventDefault();
+        } else if (e.key === "Enter") {
+          const target = e.target as HTMLElement;
+          const isInteractive =
+            target.tagName === "BUTTON" ||
+            target.tagName === "INPUT" ||
+            target.tagName === "SELECT" ||
+            target.tagName === "TEXTAREA";
+
+          if (isInteractive && target !== modalElement) {
+            return;
+          }
+
+          e.preventDefault();
+          const scrollContainer = modalElement.querySelector(".overflow-y-auto") as HTMLElement;
+          if (scrollContainer) {
+            const isAtBottom =
+              scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 25;
+            if (!isAtBottom) {
+              scrollContainer.scrollTo({
+                top: scrollContainer.scrollHeight,
+                behavior: "smooth",
+              });
+            } else {
+              setShowSummaryModal(false);
+            }
           }
         }
       };
 
-      window.addEventListener("keydown", handleTabKey);
+      window.addEventListener("keydown", handleModalKeys);
     }, 50);
 
     return () => {
       clearTimeout(timer);
-      if (handleTabKey) {
-        window.removeEventListener("keydown", handleTabKey);
+      if (handleModalKeys) {
+        window.removeEventListener("keydown", handleModalKeys);
       }
     };
   }, [showSummaryModal]);
@@ -727,9 +750,10 @@ export default function DoctorMode({
         {showSummaryModal && plan && (
           <div
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-labelledby="summary-modal-title"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden cursor-pointer"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden cursor-pointer outline-none"
             onClick={() => setShowSummaryModal(false)}
           >
             <div
