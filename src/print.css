@@ -102,15 +102,22 @@
   /* ─── Label 2-Page Print ─── */
   .sheet.layout-label-schedule {
     break-after: page !important;
+    padding: 0.5mm 2.5mm !important;
   }
 
   .layout-label.layout-label-schedule .label-schedule-table {
-    font-size: 12px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
   }
 
   .layout-label.layout-label-schedule .label-schedule-table th,
   .layout-label.layout-label-schedule .label-schedule-table td {
-    padding: 5px 3px !important;
+    padding: 2.5px 2px !important;
+  }
+
+  .layout-label.layout-label-schedule .label-footer {
+    margin-top: 3px !important;
+    padding-top: 3px !important;
   }
 
   .layout-label.layout-label-qrcode {
