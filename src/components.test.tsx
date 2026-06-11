@@ -13,6 +13,8 @@ function makeCombo(overrides: Partial<DayDose["combo"]> = {}): DayDose["combo"] 
     orangeHalf: 0,
     blueWhole: 1,
     blueHalf: 0,
+    pinkWhole: 0,
+    pinkHalf: 0,
     score: 3,
     ...overrides,
   };

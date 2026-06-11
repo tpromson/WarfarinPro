@@ -8,6 +8,7 @@ import {
   buildFirstWeek,
   isComplex,
   comboForDose,
+  getPillCombos,
   encodePlan,
   decodePlan,
   makePlan,
@@ -203,7 +204,10 @@ describe("comboForDose", () => {
     const combo = comboForDose(4);
     expect(combo.dose).toBe(4);
     expect(
-      combo.orangeWhole + combo.blueWhole + (combo.orangeHalf + combo.blueHalf) * 0.5,
+      combo.orangeWhole +
+        combo.blueWhole +
+        combo.pinkWhole +
+        (combo.orangeHalf + combo.blueHalf + combo.pinkHalf) * 0.5,
     ).toBeGreaterThan(0);
   });
   it("returns fallback for unknown dose", () => {
@@ -213,6 +217,23 @@ describe("comboForDose", () => {
   it("returns zero combo for dose 0", () => {
     const combo = comboForDose(0);
     expect(combo.dose).toBe(0);
+  });
+  it("filters out pink tablets when usePink is false", () => {
+    const combosWithPink = getPillCombos(true);
+    const combosWithoutPink = getPillCombos(false);
+    expect(combosWithPink.some((c) => c.pinkWhole > 0 || c.pinkHalf > 0)).toBe(true);
+    expect(combosWithoutPink.every((c) => c.pinkWhole === 0 && c.pinkHalf === 0)).toBe(true);
+  });
+  it("selects pink tablet for 5 mg when usePink is true, but orange+blue when false", () => {
+    const comboWithPink = comboForDose(5, true);
+    expect(comboWithPink.pinkWhole).toBe(1);
+    expect(comboWithPink.orangeWhole).toBe(0);
+    expect(comboWithPink.blueWhole).toBe(0);
+
+    const comboWithoutPink = comboForDose(5, false);
+    expect(comboWithoutPink.pinkWhole).toBe(0);
+    expect(comboWithoutPink.orangeWhole).toBe(1);
+    expect(comboWithoutPink.blueWhole).toBe(1);
   });
 });
 
@@ -284,7 +305,16 @@ describe("isComplex", () => {
     const schedule: DayDose[] = Array.from({ length: 7 }, (_, i) => ({
       day: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"][i] as DayKey,
       dose: 12,
-      combo: { dose: 12, orangeWhole: 4, blueWhole: 4, orangeHalf: 0, blueHalf: 0, score: 0 },
+      combo: {
+        dose: 12,
+        orangeWhole: 4,
+        blueWhole: 4,
+        pinkWhole: 0,
+        pinkHalf: 0,
+        orangeHalf: 0,
+        blueHalf: 0,
+        score: 0,
+      },
     }));
     expect(isComplex(schedule)).toBe(true);
   });
@@ -292,7 +322,16 @@ describe("isComplex", () => {
     const schedule: DayDose[] = Array.from({ length: 7 }, (_, i) => ({
       day: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"][i] as DayKey,
       dose: 5.5,
-      combo: { dose: 5.5, orangeWhole: 0, blueWhole: 0, orangeHalf: 1, blueHalf: 1, score: 0 },
+      combo: {
+        dose: 5.5,
+        orangeWhole: 0,
+        blueWhole: 0,
+        pinkWhole: 0,
+        pinkHalf: 0,
+        orangeHalf: 1,
+        blueHalf: 1,
+        score: 0,
+      },
     }));
     expect(isComplex(schedule)).toBe(true);
   });
@@ -300,7 +339,16 @@ describe("isComplex", () => {
     const schedule: DayDose[] = Array.from({ length: 7 }, (_, i) => ({
       day: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"][i] as DayKey,
       dose: 3,
-      combo: { dose: 3, orangeWhole: 0, blueWhole: 1, orangeHalf: 0, blueHalf: 0, score: 0 },
+      combo: {
+        dose: 3,
+        orangeWhole: 0,
+        blueWhole: 1,
+        pinkWhole: 0,
+        pinkHalf: 0,
+        orangeHalf: 0,
+        blueHalf: 0,
+        score: 0,
+      },
     }));
     expect(isComplex(schedule)).toBe(false);
   });

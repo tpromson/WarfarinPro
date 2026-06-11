@@ -186,7 +186,7 @@
     page-break-inside: avoid !important;
   }
 
-.layout-label .label-schedule-table {
+  .layout-label .label-schedule-table {
     font-size: 10px !important;
   }
 
@@ -379,6 +379,12 @@
     background: #dbeafe !important;
     border: 1.5px solid #2563eb !important;
     color: #1e3a8a !important;
+  }
+
+  .sheet.layout-half-a4 .pill.pink {
+    background: #fce7f3 !important;
+    border: 1.5px solid #db2777 !important;
+    color: #831843 !important;
   }
 
   .sheet.layout-half-a4 .hold-pill {

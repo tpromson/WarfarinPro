@@ -13,7 +13,9 @@ export function makePlan(params: {
   selectedAdjustment: number;
   holdDoses: number;
   maintenanceWeek?: DayDose[];
+  usePink?: boolean;
 }): MedicationPlan {
+  const usePink = params.usePink ?? true;
   const suggestion = getSuggestion(params.inr, params.target, params.safety);
   const calculatedWeeklyDose = roundToHalf(
     params.previousWeeklyDose * (1 + params.selectedAdjustment / 100),
@@ -26,10 +28,11 @@ export function makePlan(params: {
     );
   }
 
-  const maintenanceWeek = params.maintenanceWeek ?? buildMaintenanceSchedule(calculatedWeeklyDose);
+  const maintenanceWeek =
+    params.maintenanceWeek ?? buildMaintenanceSchedule(calculatedWeeklyDose, usePink);
   const scheduleWeeklyDose = roundToHalf(maintenanceWeek.reduce((sum, day) => sum + day.dose, 0));
   const roundedSchedule = Math.abs(scheduleWeeklyDose - calculatedWeeklyDose) > 0.001;
-  const firstWeek = buildFirstWeek(maintenanceWeek, params.clinicDay, params.holdDoses);
+  const firstWeek = buildFirstWeek(maintenanceWeek, params.clinicDay, params.holdDoses, usePink);
   const wCodeResult = makeWCode(scheduleWeeklyDose, params.holdDoses, params.clinicDay);
   if (wCodeResult.warning) {
     messages.push(wCodeResult.warning);

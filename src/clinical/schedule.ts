@@ -1,6 +1,6 @@
 import type { DayDose, DayKey } from "../types";
 import { days, roundToHalf } from "./days";
-import { comboForDose, pillCombos } from "./pillcombos";
+import { comboForDose, getPillCombos } from "./pillcombos";
 
 export const MAX_WEEKLY_DOSE = 100;
 
@@ -21,9 +21,10 @@ export const MAX_WEEKLY_DOSE = 100;
  * The algorithm is greedy and may not find a globally optimal distribution,
  * but it satisfies the ±0.5 mg weekly tolerance for all tested targets.
  */
-export function buildMaintenanceSchedule(weeklyDose: number): DayDose[] {
+export function buildMaintenanceSchedule(weeklyDose: number, usePink: boolean = true): DayDose[] {
   const target = roundToHalf(weeklyDose);
-  const candidateDoses = pillCombos.map((combo) => combo.dose).filter((dose) => dose <= 12);
+  const combos = getPillCombos(usePink);
+  const candidateDoses = combos.map((combo) => combo.dose).filter((dose) => dose <= 12);
   const avg = target / 7;
   let base = candidateDoses.reduce(
     (best, dose) => (dose <= avg && avg - dose < avg - best ? dose : best),
@@ -66,7 +67,7 @@ export function buildMaintenanceSchedule(weeklyDose: number): DayDose[] {
   return days.map((day, index) => ({
     day,
     dose: doses[index],
-    combo: comboForDose(doses[index]),
+    combo: comboForDose(doses[index], usePink),
   }));
 }
 
@@ -81,13 +82,16 @@ export function buildFirstWeek(
   maintenance: DayDose[],
   clinicDay: DayKey,
   holdDoses: number,
+  usePink: boolean = true,
 ): DayDose[] {
   const start = days.indexOf(clinicDay);
   const ordered = Array.from({ length: 7 }, (_, offset) => days[(start + offset) % 7]);
   return ordered.map((day, index) => {
-    if (index < holdDoses) return { day, dose: 0, hold: true, combo: comboForDose(0) };
+    if (index < holdDoses) return { day, dose: 0, hold: true, combo: comboForDose(0, usePink) };
     const maintenanceDose = maintenance.find((item) => item.day === day);
-    return maintenanceDose ? { ...maintenanceDose } : { day, dose: 0, combo: comboForDose(0) };
+    return maintenanceDose
+      ? { ...maintenanceDose }
+      : { day, dose: 0, combo: comboForDose(0, usePink) };
   });
 }
 
@@ -96,8 +100,11 @@ export function isComplex(schedule: DayDose[]): boolean {
     const tablets =
       day.combo.orangeWhole +
       day.combo.blueWhole +
-      (day.combo.orangeHalf + day.combo.blueHalf) * 0.5;
-    return tablets > 3 || (day.combo.orangeHalf && day.combo.blueHalf);
+      day.combo.pinkWhole +
+      (day.combo.orangeHalf + day.combo.blueHalf + day.combo.pinkHalf) * 0.5;
+    const splitCount =
+      (day.combo.orangeHalf ? 1 : 0) + (day.combo.blueHalf ? 1 : 0) + (day.combo.pinkHalf ? 1 : 0);
+    return tablets > 3 || splitCount > 1;
   });
 }
 

@@ -70,24 +70,32 @@ export default function BookletAndSharePanelContent({
     let w1OrangeHalf = 0;
     let w1BlueWhole = 0;
     let w1BlueHalf = 0;
+    let w1PinkWhole = 0;
+    let w1PinkHalf = 0;
 
     plan.firstWeek.forEach((d) => {
       w1OrangeWhole += d.combo.orangeWhole || 0;
       w1OrangeHalf += d.combo.orangeHalf || 0;
       w1BlueWhole += d.combo.blueWhole || 0;
       w1BlueHalf += d.combo.blueHalf || 0;
+      w1PinkWhole += d.combo.pinkWhole || 0;
+      w1PinkHalf += d.combo.pinkHalf || 0;
     });
 
     let maintOrangeWhole = 0;
     let maintOrangeHalf = 0;
     let maintBlueWhole = 0;
     let maintBlueHalf = 0;
+    let maintPinkWhole = 0;
+    let maintPinkHalf = 0;
 
     plan.maintenanceWeek.forEach((d) => {
       maintOrangeWhole += d.combo.orangeWhole || 0;
       maintOrangeHalf += d.combo.orangeHalf || 0;
       maintBlueWhole += d.combo.blueWhole || 0;
       maintBlueHalf += d.combo.blueHalf || 0;
+      maintPinkWhole += d.combo.pinkWhole || 0;
+      maintPinkHalf += d.combo.pinkHalf || 0;
     });
 
     const multiplier = Math.max(0, dispenseWeeks - 1);
@@ -96,9 +104,12 @@ export default function BookletAndSharePanelContent({
     const totalOrangeHalf = w1OrangeHalf + maintOrangeHalf * multiplier;
     const totalBlueWhole = w1BlueWhole + maintBlueWhole * multiplier;
     const totalBlueHalf = w1BlueHalf + maintBlueHalf * multiplier;
+    const totalPinkWhole = w1PinkWhole + maintPinkWhole * multiplier;
+    const totalPinkHalf = w1PinkHalf + maintPinkHalf * multiplier;
 
     const dispenseOrange = totalOrangeWhole + Math.ceil(totalOrangeHalf / 2);
     const dispenseBlue = totalBlueWhole + Math.ceil(totalBlueHalf / 2);
+    const dispensePink = totalPinkWhole + Math.ceil(totalPinkHalf / 2);
 
     return {
       orangeWhole: totalOrangeWhole,
@@ -107,29 +118,33 @@ export default function BookletAndSharePanelContent({
       blueWhole: totalBlueWhole,
       blueHalf: totalBlueHalf,
       dispenseBlue,
+      pinkWhole: totalPinkWhole,
+      pinkHalf: totalPinkHalf,
+      dispensePink,
     };
   }, [plan, dispenseWeeks]);
 
-  const shortUrl = useMemo(() => {
-    try {
-      const parsed = new URL(url);
-      const hashPart = parsed.hash || "";
-      const cleanHash = hashPart.length > 24 ? `${hashPart.substring(0, 21)}...` : hashPart;
-      return `${parsed.host}${parsed.pathname}${cleanHash}`;
-    } catch {
-      return url;
-    }
-  }, [url]);
-
   useEffect(() => {
-    setQr("");
-    setQrError(false);
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        setQr("");
+        setQrError(false);
+      }
+    });
+
     QRCode.toDataURL(url, { errorCorrectionLevel: "Q", margin: 3, width: 300 })
-      .then(setQr)
+      .then((val) => {
+        if (active) setQr(val);
+      })
       .catch((err) => {
         console.error("QR Code Error in BookletAndSharePanelContent:", err);
-        setQrError(true);
+        if (active) setQrError(true);
       });
+
+    return () => {
+      active = false;
+    };
   }, [url]);
 
   const lineText = `WarfarinPro ${plan.wCode}\nWeekly dose ${plan.scheduleWeeklyDose.toFixed(1)} mg\nOpen plan: ${url}`;
@@ -208,7 +223,6 @@ export default function BookletAndSharePanelContent({
 
         {/* Action Buttons */}
         <div className="space-y-3">
-
           {/* Group 1: ส่งให้ผู้ป่วย */}
           <div className="space-y-1.5">
             <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
@@ -227,12 +241,23 @@ export default function BookletAndSharePanelContent({
                 id={`${idPrefix}btn-copy-link`}
                 icon={<Copy size={14} />}
                 onClick={handleCopyLink}
-                label={copiedLink ? (lang === "th" ? "คัดลอกแล้ว!" : "Copied!") : (lang === "th" ? "คัดลอกลิงก์" : "Copy Link")}
+                label={
+                  copiedLink
+                    ? lang === "th"
+                      ? "คัดลอกแล้ว!"
+                      : "Copied!"
+                    : lang === "th"
+                      ? "คัดลอกลิงก์"
+                      : "Copy Link"
+                }
                 shortcut="Alt+C"
               />
               <button
                 onClick={() =>
-                  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`, "_blank")
+                  window.open(
+                    `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`,
+                    "_blank",
+                  )
                 }
                 className="w-full py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
               >
@@ -266,7 +291,9 @@ export default function BookletAndSharePanelContent({
             <div className="grid grid-cols-2 gap-1.5">
               <IconButton
                 icon={<FileDown size={14} />}
-                onClick={() => generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)}
+                onClick={() =>
+                  generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
+                }
                 label={t[lang].downloadPdf}
                 disabled={!qr || qrError}
               />
@@ -286,7 +313,6 @@ export default function BookletAndSharePanelContent({
               )}
             </div>
           </div>
-
         </div>
       </div>
 
@@ -476,7 +502,9 @@ export default function BookletAndSharePanelContent({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3.5">
+            <div
+              className={`grid gap-3.5 ${pillSums.dispensePink > 0 ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-2"}`}
+            >
               {/* Orange 2mg Card */}
               <div className="bg-orange-50/50 border border-orange-100/70 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 h-10 w-10 bg-orange-500/5 rounded-bl-full flex items-center justify-end pr-2 pb-2">
@@ -530,9 +558,37 @@ export default function BookletAndSharePanelContent({
                     : `Breakdown: ${pillSums.blueWhole} whole + ${pillSums.blueHalf} half`}
                 </p>
               </div>
+
+              {/* Pink 5mg Card */}
+              {pillSums.dispensePink > 0 && (
+                <div className="bg-pink-50/50 border border-pink-100/70 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 h-10 w-10 bg-pink-500/5 rounded-bl-full flex items-center justify-end pr-2 pb-2">
+                    <span className="pill pink !min-w-[18px] !h-4.5 !w-4.5 !text-[8px] !leading-none shadow-sm select-none">
+                      5
+                    </span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-pink-700">
+                      {lang === "th" ? "เม็ดสีชมพู 5 mg" : "Pink 5 mg"}
+                    </span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl font-black text-pink-950 font-mono">
+                        {pillSums.dispensePink}
+                      </span>
+                      <span className="text-[10px] text-pink-850 font-bold">
+                        {lang === "th" ? "เม็ดเต็ม" : "tabs"}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[9px] text-pink-850 mt-1.5 border-t border-pink-100/60 pt-1 font-bold leading-normal">
+                    {lang === "th"
+                      ? `รายละเอียด: เม็ดเต็ม ${pillSums.pinkWhole} + แบบครึ่ง ${pillSums.pinkHalf} ชิ้น`
+                      : `Breakdown: ${pillSums.pinkWhole} whole + ${pillSums.pinkHalf} half`}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-
         </div>
       </div>
     </div>

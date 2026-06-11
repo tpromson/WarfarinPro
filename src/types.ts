@@ -44,6 +44,8 @@ export interface PillCombo {
   orangeHalf: number;
   blueWhole: number;
   blueHalf: number;
+  pinkWhole: number;
+  pinkHalf: number;
   score: number;
 }
 

@@ -1,6 +1,6 @@
 export { days, dayLabels, interactionLabels, contextLabels, roundToHalf } from "./days";
 export type { DayKey } from "./days";
-export { pillCombos, comboForDose } from "./pillcombos";
+export { pillCombos, comboForDose, getPillCombos } from "./pillcombos";
 export { getSuggestion } from "./dosing";
 export { buildMaintenanceSchedule, buildFirstWeek, isComplex, MAX_WEEKLY_DOSE } from "./schedule";
 export { makeWCode, parseWCodeToPlan } from "./wcode";

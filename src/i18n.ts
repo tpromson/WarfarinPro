@@ -130,11 +130,13 @@ export function getDayShort(day: DayKey, lang: "th" | "en"): string {
 
 export function getPillComboDesc(
   combo: {
-    dose: number;
+    dose?: number;
     orangeWhole: number;
     orangeHalf: number;
     blueWhole: number;
     blueHalf: number;
+    pinkWhole: number;
+    pinkHalf: number;
   },
   hold?: boolean,
   lang: "th" | "en" = "th",
@@ -146,6 +148,8 @@ export function getPillComboDesc(
     if (combo.orangeHalf > 0) parts.push(`สีส้ม 1/2 เม็ด`);
     if (combo.blueWhole > 0) parts.push(`สีฟ้า ${combo.blueWhole} เม็ด`);
     if (combo.blueHalf > 0) parts.push(`สีฟ้า 1/2 เม็ด`);
+    if (combo.pinkWhole > 0) parts.push(`สีชมพู ${combo.pinkWhole} เม็ด`);
+    if (combo.pinkHalf > 0) parts.push(`สีชมพู 1/2 เม็ด`);
     return parts.length > 0 ? parts.join(" + ") : "งดยา";
   }
   if (combo.orangeWhole > 0)
@@ -154,5 +158,8 @@ export function getPillComboDesc(
   if (combo.blueWhole > 0)
     parts.push(`Blue ${combo.blueWhole} tab${combo.blueWhole > 1 ? "s" : ""}`);
   if (combo.blueHalf > 0) parts.push(`Blue 1/2 tab`);
+  if (combo.pinkWhole > 0)
+    parts.push(`Pink ${combo.pinkWhole} tab${combo.pinkWhole > 1 ? "s" : ""}`);
+  if (combo.pinkHalf > 0) parts.push(`Pink 1/2 tab`);
   return parts.length > 0 ? parts.join(" + ") : "HOLD";
 }

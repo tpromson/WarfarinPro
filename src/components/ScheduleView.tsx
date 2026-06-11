@@ -43,6 +43,8 @@ export default function ScheduleView({
               orangeHalf: 0,
               blueWhole: 0,
               blueHalf: 0,
+              pinkWhole: 0,
+              pinkHalf: 0,
               score: 0,
             },
             isBeforeClinic,
@@ -72,7 +74,7 @@ export default function ScheduleView({
       <div className="space-y-2">
         {sortedSchedule.map((day) => {
           const isBefore = "isBeforeClinic" in day && day.isBeforeClinic;
-          const isToday = day.day === todayKey && !isBefore;
+          const isToday = isCurrent && day.day === todayKey && !isBefore;
           return (
             <div
               key={day.day}

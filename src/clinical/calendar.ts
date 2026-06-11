@@ -12,6 +12,8 @@ function getPillDescription(dayDose: DayDose, lang: "th" | "en" = "th"): string 
     if (combo.orangeHalf > 0) parts.push(`เม็ดสีส้ม (2 mg) ครึ่งเม็ด`);
     if (combo.blueWhole > 0) parts.push(`เม็ดสีฟ้า (3 mg) จำนวน ${combo.blueWhole} เม็ด`);
     if (combo.blueHalf > 0) parts.push(`เม็ดสีฟ้า (3 mg) ครึ่งเม็ด`);
+    if (combo.pinkWhole > 0) parts.push(`เม็ดสีชมพู (5 mg) จำนวน ${combo.pinkWhole} เม็ด`);
+    if (combo.pinkHalf > 0) parts.push(`เม็ดสีชมพู (5 mg) ครึ่งเม็ด`);
     return `รับประทาน ${dayDose.dose} mg: ${parts.join(" และ ")}`;
   }
   if (combo.orangeWhole > 0)
@@ -20,6 +22,9 @@ function getPillDescription(dayDose: DayDose, lang: "th" | "en" = "th"): string 
   if (combo.blueWhole > 0)
     parts.push(`Blue (3 mg) ${combo.blueWhole} tab${combo.blueWhole > 1 ? "s" : ""}`);
   if (combo.blueHalf > 0) parts.push(`Blue (3 mg) 1/2 tab`);
+  if (combo.pinkWhole > 0)
+    parts.push(`Pink (5 mg) ${combo.pinkWhole} tab${combo.pinkWhole > 1 ? "s" : ""}`);
+  if (combo.pinkHalf > 0) parts.push(`Pink (5 mg) 1/2 tab`);
   return `Take ${dayDose.dose} mg: ${parts.join(" and ")}`;
 }
 

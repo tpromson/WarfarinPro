@@ -13,6 +13,8 @@ function getPillComboShortDesc(
     orangeHalf: number;
     blueWhole: number;
     blueHalf: number;
+    pinkWhole: number;
+    pinkHalf: number;
     dose: number;
   },
   hold?: boolean,
@@ -25,17 +27,29 @@ function getPillComboShortDesc(
     if (combo.orangeHalf > 0) parts.push(`ส้ม 1/2`);
     if (combo.blueWhole > 0) parts.push(`ฟ้า ${combo.blueWhole}`);
     if (combo.blueHalf > 0) parts.push(`ฟ้า 1/2`);
+    if (combo.pinkWhole > 0) parts.push(`ชมพู ${combo.pinkWhole}`);
+    if (combo.pinkHalf > 0) parts.push(`ชมพู 1/2`);
     return parts.length > 0 ? parts.join("+") : "งดยา";
   }
   if (combo.orangeWhole > 0) parts.push(`Or ${combo.orangeWhole}`);
   if (combo.orangeHalf > 0) parts.push(`Or 1/2`);
   if (combo.blueWhole > 0) parts.push(`Bl ${combo.blueWhole}`);
   if (combo.blueHalf > 0) parts.push(`Bl 1/2`);
+  if (combo.pinkWhole > 0) parts.push(`Pk ${combo.pinkWhole}`);
+  if (combo.pinkHalf > 0) parts.push(`Pk 1/2`);
   return parts.length > 0 ? parts.join("+") : "HOLD";
 }
 
 function pillDetailDesc(
-  combo: { orangeWhole: number; orangeHalf: number; blueWhole: number; blueHalf: number; dose: number },
+  combo: {
+    orangeWhole: number;
+    orangeHalf: number;
+    blueWhole: number;
+    blueHalf: number;
+    pinkWhole: number;
+    pinkHalf: number;
+    dose: number;
+  },
   lang: "th" | "en",
 ): string {
   if (combo.dose === 0) return lang === "th" ? "งดยา" : "HOLD";
@@ -45,12 +59,16 @@ function pillDetailDesc(
     if (combo.orangeHalf > 0) parts.push(`ส้ม ½ เม็ด`);
     if (combo.blueWhole > 0) parts.push(`ฟ้า ${combo.blueWhole} เม็ด`);
     if (combo.blueHalf > 0) parts.push(`ฟ้า ½ เม็ด`);
+    if (combo.pinkWhole > 0) parts.push(`ชมพู ${combo.pinkWhole} เม็ด`);
+    if (combo.pinkHalf > 0) parts.push(`ชมพู ½ เม็ด`);
     return parts.length > 0 ? parts.join("+") : "งดยา";
   }
   if (combo.orangeWhole > 0) parts.push(`Or×${combo.orangeWhole}`);
   if (combo.orangeHalf > 0) parts.push(`Or×½`);
   if (combo.blueWhole > 0) parts.push(`Bl×${combo.blueWhole}`);
   if (combo.blueHalf > 0) parts.push(`Bl×½`);
+  if (combo.pinkWhole > 0) parts.push(`Pk×${combo.pinkWhole}`);
+  if (combo.pinkHalf > 0) parts.push(`Pk×½`);
   return parts.length > 0 ? parts.join("+") : "HOLD";
 }
 
@@ -68,14 +86,26 @@ export default function MedicationSheet({
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
 
   useEffect(() => {
-    setQr("");
-    setQrError(false);
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        setQr("");
+        setQrError(false);
+      }
+    });
+
     QRCode.toDataURL(url, { errorCorrectionLevel: "Q", margin: 2, width: 400 })
-      .then(setQr)
+      .then((val) => {
+        if (active) setQr(val);
+      })
       .catch((err) => {
         console.error("QR Code Error in MedicationSheet:", err);
-        setQrError(true);
+        if (active) setQrError(true);
       });
+
+    return () => {
+      active = false;
+    };
   }, [url]);
 
   useEffect(() => {
@@ -94,7 +124,10 @@ export default function MedicationSheet({
 
   if (printLayout === "qr-sheet") {
     return (
-      <section className="sheet layout-qr-sheet" aria-label={lang === "th" ? "ตารางยา + QR แยกดวง" : "Schedule + QR split stickers"}>
+      <section
+        className="sheet layout-qr-sheet"
+        aria-label={lang === "th" ? "ตารางยา + QR แยกดวง" : "Schedule + QR split stickers"}
+      >
         {/* Sticker 1: Schedule table */}
         <div className="qr-sticker qr-sticker-schedule">
           <div className="qr-sticker-sched-header">
@@ -118,15 +151,17 @@ export default function MedicationSheet({
                   ? "-"
                   : firstWeekDay
                     ? firstWeekDay.hold
-                      ? lang === "th" ? "งดยา" : "HOLD"
+                      ? lang === "th"
+                        ? "งดยา"
+                        : "HOLD"
                       : pillDetailDesc(firstWeekDay.combo, lang)
                     : "-";
-                const maintDesc = maintDay
-                  ? pillDetailDesc(maintDay.combo, lang)
-                  : "-";
+                const maintDesc = maintDay ? pillDetailDesc(maintDay.combo, lang) : "-";
                 return (
                   <tr key={day}>
-                    <td className="qr-sched-day"><strong>{getDayShort(day, lang)}</strong></td>
+                    <td className="qr-sched-day">
+                      <strong>{getDayShort(day, lang)}</strong>
+                    </td>
                     <td>{firstWeekDesc}</td>
                     <td>{maintDesc}</td>
                   </tr>
@@ -145,14 +180,30 @@ export default function MedicationSheet({
               <div className="qr-sticker-img" style={{ background: "#f1f5f9" }} />
             )}
             {qrError && (
-              <div className="qr-sticker-img" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#64748b", textAlign: "center" }}>
+              <div
+                className="qr-sticker-img"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 8,
+                  color: "#64748b",
+                  textAlign: "center",
+                }}
+              >
                 {lang === "th" ? "QR ใช้งานไม่ได้" : "QR unavailable"}
               </div>
             )}
             {qr && !qrError && (
-              <img src={qr} alt={lang === "th" ? "QR โค้ดตารางยา" : "Medication schedule QR"} className="qr-sticker-img" />
+              <img
+                src={qr}
+                alt={lang === "th" ? "QR โค้ดตารางยา" : "Medication schedule QR"}
+                className="qr-sticker-img"
+              />
             )}
-            <span className="qr-sticker-scan">{lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for schedule/audio"}</span>
+            <span className="qr-sticker-scan">
+              {lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for schedule/audio"}
+            </span>
           </div>
           <div className="qr-sticker-info-col">
             <span className="qr-sticker-wlabel">W-Code</span>
@@ -168,7 +219,10 @@ export default function MedicationSheet({
     return (
       <>
         {/* Page 1: Schedule Table */}
-        <section className="sheet layout-label layout-label-schedule" aria-label={lang === "th" ? "ตารางกินยา" : "Dosing schedule"}>
+        <section
+          className="sheet layout-label layout-label-schedule"
+          aria-label={lang === "th" ? "ตารางกินยา" : "Dosing schedule"}
+        >
           <table className="label-schedule-table">
             <thead>
               <tr>
@@ -186,17 +240,23 @@ export default function MedicationSheet({
                   ? "-"
                   : firstWeekDay
                     ? firstWeekDay.hold
-                      ? lang === "th" ? "งดยา" : "HOLD"
+                      ? lang === "th"
+                        ? "งดยา"
+                        : "HOLD"
                       : `${firstWeekDay.dose}mg (${getPillComboShortDesc(firstWeekDay.combo, false, lang)})`
                     : "-";
                 const maintDesc = maintDay
                   ? maintDay.dose === 0
-                    ? lang === "th" ? "งดยา" : "HOLD"
+                    ? lang === "th"
+                      ? "งดยา"
+                      : "HOLD"
                     : `${maintDay.dose}mg (${getPillComboShortDesc(maintDay.combo, false, lang)})`
                   : "-";
                 return (
                   <tr key={day}>
-                    <td><strong>{getDayShort(day, lang)}</strong></td>
+                    <td>
+                      <strong>{getDayShort(day, lang)}</strong>
+                    </td>
                     <td>{firstWeekDesc}</td>
                     <td>{maintDesc}</td>
                   </tr>
@@ -205,7 +265,10 @@ export default function MedicationSheet({
             </tbody>
           </table>
           <div className="label-footer">
-            <span className="label-warning-text" style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <span
+              className="label-warning-text"
+              style={{ display: "flex", alignItems: "center", gap: 3 }}
+            >
               <AlertTriangle size={10} aria-hidden="true" />
               {lang === "th"
                 ? "พบแพทย์ทันทีหากมีเลือดออกผิดปกติ อุจจาระดำ"
@@ -215,20 +278,47 @@ export default function MedicationSheet({
         </section>
 
         {/* Page 2: QR + W-code */}
-        <section className="sheet layout-label layout-label-qrcode" aria-label={lang === "th" ? "QR และรหัสยา" : "QR and medication code"}>
+        <section
+          className="sheet layout-label layout-label-qrcode"
+          aria-label={lang === "th" ? "QR และรหัสยา" : "QR and medication code"}
+        >
           <div className="label-qrpage-qr">
             {!qr && !qrError && (
-              <div className="label-qrpage-img" style={{ background: "#f1f5f9" }} role="img" aria-label={lang === "th" ? "กำลังสร้าง QR" : "Generating QR"} />
+              <div
+                className="label-qrpage-img"
+                style={{ background: "#f1f5f9" }}
+                role="img"
+                aria-label={lang === "th" ? "กำลังสร้าง QR" : "Generating QR"}
+              />
             )}
             {qrError && (
-              <div className="label-qrpage-img" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", fontSize: 12, fontWeight: 800, color: "#475569", padding: 4, textAlign: "center" }}>
+              <div
+                className="label-qrpage-img"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "#f8fafc",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#475569",
+                  padding: 4,
+                  textAlign: "center",
+                }}
+              >
                 {lang === "th" ? "QR ใช้งานไม่ได้" : "QR unavailable"}
               </div>
             )}
             {qr && !qrError && (
-              <img src={qr} alt={lang === "th" ? "QR โค้ดตารางยา" : "Medication schedule QR"} className="label-qrpage-img" />
+              <img
+                src={qr}
+                alt={lang === "th" ? "QR โค้ดตารางยา" : "Medication schedule QR"}
+                className="label-qrpage-img"
+              />
             )}
-            <span className="label-qrpage-caption">{lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for schedule/audio"}</span>
+            <span className="label-qrpage-caption">
+              {lang === "th" ? "สแกนดูตาราง/ฟังเสียง" : "Scan for schedule/audio"}
+            </span>
           </div>
           <div className="label-qrpage-wcode">
             <span className="label-qrpage-wlabel">W-Code</span>
@@ -245,7 +335,10 @@ export default function MedicationSheet({
   // A5 Landscape Layout
   return (
     <>
-      <section className="sheet layout-half-a4" aria-label={lang === "th" ? "ใบแนะนำการรับประทานยา" : "Medication instruction sheet"}>
+      <section
+        className="sheet layout-half-a4"
+        aria-label={lang === "th" ? "ใบแนะนำการรับประทานยา" : "Medication instruction sheet"}
+      >
         <div className="sheet-head">
           <div>
             <h2>{lang === "th" ? "ตารางแนะนำการรับประทานยา" : "Warfarin Medication Sheet"}</h2>

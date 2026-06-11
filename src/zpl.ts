@@ -37,12 +37,16 @@ function pillText(combo: {
   orangeHalf: number;
   blueWhole: number;
   blueHalf: number;
+  pinkWhole: number;
+  pinkHalf: number;
 }): string {
   const parts: string[] = [];
   if (combo.orangeWhole > 0) parts.push(`ส้ม ${combo.orangeWhole}`);
   if (combo.orangeHalf > 0) parts.push(`ส้ม 1/2`);
   if (combo.blueWhole > 0) parts.push(`ฟ้า ${combo.blueWhole}`);
   if (combo.blueHalf > 0) parts.push(`ฟ้า 1/2`);
+  if (combo.pinkWhole > 0) parts.push(`ชมพู ${combo.pinkWhole}`);
+  if (combo.pinkHalf > 0) parts.push(`ชมพู 1/2`);
   return parts.join("+") || "งดยา";
 }
 
@@ -74,15 +78,15 @@ export function generateZpl(plan: MedicationPlan, url: string): string {
   // ── Label 1: Schedule Table ─────────────────────────────────────────────
   // Column X positions: Day(0-22mm) | Week1(22-56mm) | Maint(56-88mm)
   const colDay = LM;
-  const colW1  = LM + d(22);
-  const colMt  = LM + d(56);
-  const rowH   = 32; // dots per row ≈ 4mm
-  const hdrY   = d(3);
+  const colW1 = LM + d(22);
+  const colMt = LM + d(56);
+  const rowH = 32; // dots per row ≈ 4mm
+  const hdrY = d(3);
 
   // Pre-calculate label 1 length
-  const hrY1   = hdrY + 26;
+  const hrY1 = hdrY + 26;
   const footY1 = hrY1 + 4 + days.length * rowH + 8;
-  const ll1    = footY1 + 2 + 6 + 22 + d(5); // rule + gap + warning text + bottom margin
+  const ll1 = footY1 + 2 + 6 + 22 + d(5); // rule + gap + warning text + bottom margin
 
   add("^XA");
   add(`^PW${LABEL_W}`);
@@ -116,15 +120,15 @@ export function generateZpl(plan: MedicationPlan, url: string): string {
   // ── Label 2: Large QR + W-code ──────────────────────────────────────────
   // QR: mag 14, estimated module count 33 (v4) to 37 (v5) depending on URL length
   // v4 width = 14×33 = 462 dots ≈ 57.8mm; v5 = 14×37 = 518 dots ≈ 64.8mm (both fit 90mm)
-  const qrMag  = 14;
-  const qrEst  = qrMag * 33; // estimated size for centering (v4)
-  const qrX    = Math.round((LABEL_W - qrEst) / 2);
-  const qrY    = d(6);
-  const captY  = qrY + qrEst + d(4);
+  const qrMag = 14;
+  const qrEst = qrMag * 33; // estimated size for centering (v4)
+  const qrX = Math.round((LABEL_W - qrEst) / 2);
+  const qrY = d(6);
+  const captY = qrY + qrEst + d(4);
   const wcLblY = captY + 26;
   const wcValY = wcLblY + 26;
-  const dateY  = wcValY + 52;
-  const ll2    = dateY + 22 + d(6);
+  const dateY = wcValY + 52;
+  const ll2 = dateY + 22 + d(6);
 
   add("^XA");
   add(`^PW${LABEL_W}`);

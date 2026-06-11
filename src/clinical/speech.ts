@@ -88,6 +88,13 @@ function speakPillDetails(
     if (combo.blueHalf > 0) {
       parts.push("สีฟ้า ครึ่งเม็ด");
     }
+    if (combo.pinkWhole > 0) {
+      const countText = thaiNumbers[combo.pinkWhole] || String(combo.pinkWhole);
+      parts.push(`สีชมพู ${countText} เม็ด`);
+    }
+    if (combo.pinkHalf > 0) {
+      parts.push("สีชมพู ครึ่งเม็ด");
+    }
     return parts.join(" กับ ");
   } else {
     const englishNumbers = [
@@ -116,6 +123,13 @@ function speakPillDetails(
     }
     if (combo.blueHalf > 0) {
       parts.push("half blue tablet");
+    }
+    if (combo.pinkWhole > 0) {
+      const countText = englishNumbers[combo.pinkWhole] || String(combo.pinkWhole);
+      parts.push(`${countText} pink tablet${combo.pinkWhole > 1 ? "s" : ""}`);
+    }
+    if (combo.pinkHalf > 0) {
+      parts.push("half pink tablet");
     }
     return parts.join(" and ");
   }

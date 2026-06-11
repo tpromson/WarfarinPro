@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, Copy, Repeat, Undo } from "lucide-react";
-import { comboForDose, dayLabels, pillCombos } from "../clinical";
+import { comboForDose, dayLabels, getPillCombos } from "../clinical";
 import PillVisual from "./PillVisual";
 import type { DayDose, DayKey } from "../types";
-
-const doseOptions = pillCombos.map((combo) => combo.dose).filter((dose) => dose <= 12);
 
 const days: DayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
@@ -14,20 +12,33 @@ export default function ScheduleEditor({
   onKeyDown,
   onReset,
   isModified,
+  usePink = true,
 }: {
   schedule: DayDose[];
   onChange: (schedule: DayDose[]) => void;
   onKeyDown?: (e: React.KeyboardEvent, currentId: string) => void;
   onReset?: () => void;
   isModified?: boolean;
+  usePink?: boolean;
 }) {
   const [showAlternate, setShowAlternate] = useState(false);
   const [oddDose, setOddDose] = useState(3);
   const [evenDose, setEvenDose] = useState(3);
 
+  const doseOptions = useMemo(() => {
+    return getPillCombos(usePink)
+      .map((combo) => combo.dose)
+      .filter((dose) => dose <= 12);
+  }, [usePink]);
+
   function copyToAllDays(dose: number) {
     onChange(
-      schedule.map((item) => ({ ...item, dose, combo: comboForDose(dose), hold: dose === 0 })),
+      schedule.map((item) => ({
+        ...item,
+        dose,
+        combo: comboForDose(dose, usePink),
+        hold: dose === 0,
+      })),
     );
   }
 
@@ -36,7 +47,7 @@ export default function ScheduleEditor({
       schedule.map((item) => {
         const dayIndex = days.indexOf(item.day);
         const dose = dayIndex % 2 === 0 ? oddDose : evenDose; // 0-indexed: mon(0), tue(1), ...
-        return { ...item, dose, combo: comboForDose(dose), hold: dose === 0 };
+        return { ...item, dose, combo: comboForDose(dose, usePink), hold: dose === 0 };
       }),
     );
     setShowAlternate(false);
@@ -68,7 +79,7 @@ export default function ScheduleEditor({
                   onChange(
                     schedule.map((item) =>
                       item.day === day.day
-                        ? { ...item, dose, combo: comboForDose(dose), hold: dose === 0 }
+                        ? { ...item, dose, combo: comboForDose(dose, usePink), hold: dose === 0 }
                         : item,
                     ),
                   );

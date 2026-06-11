@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 const ORANGE = { fill: "#f8a87c", stroke: "#f59a68", text: "#fff" };
 const BLUE = { fill: "#78bef7", stroke: "#5fa9e7", text: "#fff" };
+const PINK = { fill: "#f5a3c7", stroke: "#e07ba8", text: "#fff" };
 
 function WholePill({ color, label }: { color: typeof ORANGE; label: string }) {
   return (
@@ -122,6 +123,10 @@ export default function PillVisual({
     pills.push(<WholePill key={`bw-${i}`} color={BLUE} label="3" />);
   for (let i = 0; i < combo.blueHalf; i++)
     pills.push(<HalfPill key={`bh-${i}`} color={BLUE} label="1/2" />);
+  for (let i = 0; i < combo.pinkWhole; i++)
+    pills.push(<WholePill key={`pw-${i}`} color={PINK} label="5" />);
+  for (let i = 0; i < combo.pinkHalf; i++)
+    pills.push(<HalfPill key={`ph-${i}`} color={PINK} label="1/2" />);
 
   return (
     <span
