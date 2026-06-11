@@ -278,9 +278,9 @@ export default function PatientMode({
         </div>
 
         {/* Toolkit tools - mobile: stacked, desktop: row */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 items-stretch sm:items-center">
           {/* Group 1: Audio Dosing Guidance */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap sm:flex-nowrap">
             <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
               Audio
             </span>
@@ -349,7 +349,7 @@ export default function PatientMode({
           </div>
 
           {/* Group 2: Dosing Tools & Reminders */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap sm:flex-nowrap">
             <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
               Tools
             </span>
@@ -430,7 +430,7 @@ export default function PatientMode({
           </div>
 
           {/* Group 3: File Management */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap sm:flex-nowrap">
             <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
               File
             </span>
