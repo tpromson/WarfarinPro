@@ -25,7 +25,7 @@ import {
 import { t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
 import { speechController, SpeechStatus } from "../tts";
-import type { MedicationPlan } from "../types";
+import type { DayDose, MedicationPlan } from "../types";
 import Panel from "./Panel";
 import IconButton from "./IconButton";
 import MedicationSheet from "./MedicationSheet";
