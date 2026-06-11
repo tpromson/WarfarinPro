@@ -62,6 +62,7 @@ export function makePlan(params: {
     },
     firstWeek,
     maintenanceWeek,
+    usePink,
   };
 }
 

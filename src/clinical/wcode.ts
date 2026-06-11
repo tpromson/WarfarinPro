@@ -22,7 +22,7 @@ export function makeWCode(weeklyDose: number, holdDoses: number, clinicDay?: Day
   };
 }
 
-export function parseWCodeToPlan(wCode: string): MedicationPlan | null {
+export function parseWCodeToPlan(wCode: string, usePink: boolean = true): MedicationPlan | null {
   const code = wCode.trim().toUpperCase();
 
   const fullMatch = code.match(/^W(\d{3})(\d)([0-6])?$/);
@@ -43,8 +43,8 @@ export function parseWCodeToPlan(wCode: string): MedicationPlan | null {
   }
 
   const target = { preset: "standard" as TargetPreset, lower: 2, upper: 3 };
-  const maintenanceWeek = buildMaintenanceSchedule(weeklyDose);
-  const firstWeek = buildFirstWeek(maintenanceWeek, clinicDay, holdDoses);
+  const maintenanceWeek = buildMaintenanceSchedule(weeklyDose, usePink);
+  const firstWeek = buildFirstWeek(maintenanceWeek, clinicDay, holdDoses, usePink);
 
   return {
     version: 1,
@@ -70,6 +70,7 @@ export function parseWCodeToPlan(wCode: string): MedicationPlan | null {
     },
     firstWeek,
     maintenanceWeek,
+    usePink,
   };
 }
 

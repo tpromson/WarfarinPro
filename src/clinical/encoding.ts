@@ -23,6 +23,7 @@ interface CompressedPlan {
   h: number;
   m: number[];
   s: [number, InteractionFlag[], ContextFlag[]];
+  k?: number;
 }
 
 export function encodePlan(plan: MedicationPlan): string {
@@ -37,6 +38,7 @@ export function encodePlan(plan: MedicationPlan): string {
     h: plan.firstWeekHoldDoses,
     m: plan.maintenanceWeek.map((day) => day.dose),
     s: [plan.safety.majorBleeding ? 1 : 0, plan.safety.interactionFlags, plan.safety.contextFlags],
+    k: plan.usePink === false ? 0 : 1,
   };
   return btoa(unescape(encodeURIComponent(JSON.stringify({ v: 2, plan: compressed }))));
 }
@@ -70,6 +72,7 @@ export function decodePlan(encoded: string): MedicationPlan | null {
         interactions: c.s[1],
         contexts: c.s[2],
       };
+      const usePink = c.k === undefined ? true : c.k === 1;
 
       const maintenanceWeek: DayDose[] = c.m.map((dose, idx) => {
         const day = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"][idx] as DayKey;
@@ -77,11 +80,11 @@ export function decodePlan(encoded: string): MedicationPlan | null {
           day,
           dose,
           hold: dose === 0,
-          combo: comboForDose(dose),
+          combo: comboForDose(dose, usePink),
         };
       });
 
-      const firstWeek = buildFirstWeek(maintenanceWeek, c.c, c.h);
+      const firstWeek = buildFirstWeek(maintenanceWeek, c.c, c.h, usePink);
       const scheduleWeeklyDose = maintenanceWeek.reduce((sum, d) => sum + d.dose, 0);
       const roundedScheduleWeekly = Math.round(scheduleWeeklyDose * 2) / 2;
       const calculatedWeeklyDose = Math.round(c.p * (1 + c.a / 100) * 2) / 2;
@@ -113,6 +116,7 @@ export function decodePlan(encoded: string): MedicationPlan | null {
         },
         firstWeek,
         maintenanceWeek,
+        usePink,
         source: "wcode",
       };
     }

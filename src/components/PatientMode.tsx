@@ -17,6 +17,7 @@ import {
 import QRCode from "qrcode";
 import {
   buildPatientUrl,
+  comboForDose,
   generateGoogleCalendarUrl,
   generateIcsFile,
   parseWCodeToPlan,
@@ -59,8 +60,24 @@ export default function PatientMode({
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [_pdfLoading, setPdfLoading] = useState(false);
   const [qr, setQr] = useState("");
+  const [usePink, setUsePink] = useState<boolean>(() => plan?.usePink ?? true);
+  const [wCodeUsePink, setWCodeUsePink] = useState<boolean>(true);
 
-  const url = useMemo(() => (plan ? buildPatientUrl(plan) : ""), [plan]);
+  const processedPlan = useMemo(() => {
+    if (!plan) return null;
+    const overrideCombo = (day: DayDose): DayDose => ({
+      ...day,
+      combo: comboForDose(day.dose, usePink),
+    });
+    return {
+      ...plan,
+      usePink,
+      maintenanceWeek: plan.maintenanceWeek.map(overrideCombo),
+      firstWeek: plan.firstWeek.map(overrideCombo),
+    };
+  }, [plan, usePink]);
+
+  const url = useMemo(() => (processedPlan ? buildPatientUrl(processedPlan) : ""), [processedPlan]);
 
   useEffect(() => {
     if (!url) return;
@@ -99,6 +116,7 @@ export default function PatientMode({
   const [prevPlanId, setPrevPlanId] = useState(plan?.id);
   if (plan && plan.id !== prevPlanId) {
     setPrevPlanId(plan.id);
+    setUsePink(plan.usePink ?? true);
     setCalStartDate(plan.issuedDate);
     const [y, m, d] = plan.issuedDate.split("-").map(Number);
     const date = new Date(y, m - 1, d);
@@ -149,7 +167,7 @@ export default function PatientMode({
   if (!plan) {
     const handleWCodeSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      const parsed = parseWCodeToPlan(wCodeInput);
+      const parsed = parseWCodeToPlan(wCodeInput, wCodeUsePink);
       if (parsed) {
         setWCodeError("");
         onSelect(parsed);
@@ -159,7 +177,7 @@ export default function PatientMode({
     };
 
     return (
-      <div className="mx-auto max-w-xl px-4 py-8 space-y-6">
+      <div className="mx-auto max-w-xl px-4 py-8 space-y-6 animate-fadeIn">
         <Panel title={t[lang].enterWCode} icon={<UserRound size={18} />}>
           <form onSubmit={handleWCodeSubmit} className="space-y-4">
             <label className="field">
@@ -176,6 +194,23 @@ export default function PatientMode({
                 className="uppercase tracking-wide"
                 style={{ textTransform: "uppercase" }}
               />
+            </label>
+            <label className="field">
+              <span>{lang === "th" ? "ขนาดเม็ดยาวาร์ฟารินที่ได้รับจากโรงพยาบาล" : "Warfarin Tablet Stock"}</span>
+              <span className="select-wrap">
+                <select
+                  value={wCodeUsePink ? "true" : "false"}
+                  onChange={(e) => setWCodeUsePink(e.target.value === "true")}
+                >
+                  <option value="false">
+                    {lang === "th" ? "มีเฉพาะขนาด 2 mg และ 3 mg" : "2 mg & 3 mg tablets only"}
+                  </option>
+                  <option value="true">
+                    {lang === "th" ? "มีขนาด 2 mg, 3 mg และ 5 mg" : "2 mg, 3 mg & 5 mg tablets"}
+                  </option>
+                </select>
+                <ChevronDown size={16} />
+              </span>
             </label>
             {wCodeError && <p className="text-xs text-clinic-red font-bold">{wCodeError}</p>}
             <button
@@ -236,7 +271,9 @@ export default function PatientMode({
           </div>
           <button
             onClick={() => {
-              speechController.play(plan, speakGender, lang);
+              if (processedPlan) {
+                speechController.play(processedPlan, speakGender, lang);
+              }
               setShowVoicePrompt(false);
             }}
             className="flex-shrink-0 px-4 py-2 bg-clinic-blue text-white rounded-lg font-bold text-sm shadow hover:bg-clinic-blue/90 active:scale-95 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
@@ -310,7 +347,7 @@ export default function PatientMode({
               <IconButton
                 className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
                 icon={<Play size={14} />}
-                onClick={() => speechController.play(plan, speakGender, lang)}
+                onClick={() => processedPlan && speechController.play(processedPlan, speakGender, lang)}
                 label={lang === "th" ? "ฟังคำแนะนำยา" : "Listen Dosing"}
               />
             )}
@@ -404,7 +441,9 @@ export default function PatientMode({
                       className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left font-bold rounded-lg border border-slate-100"
                       onClick={() => {
                         setShowCalMenu(false);
-                        handleDownloadIcs(plan, calStartDate, calEndDate);
+                        if (processedPlan) {
+                          handleDownloadIcs(processedPlan, calStartDate, calEndDate);
+                        }
                       }}
                     >
                       <CalendarDays size={14} className="text-clinic-blue" />
@@ -414,10 +453,12 @@ export default function PatientMode({
                       className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left font-bold rounded-lg border border-slate-100"
                       onClick={() => {
                         setShowCalMenu(false);
-                        window.open(
-                          generateGoogleCalendarUrl(plan, calStartDate, calEndDate, lang),
-                          "_blank",
-                        );
+                        if (processedPlan) {
+                          window.open(
+                            generateGoogleCalendarUrl(processedPlan, calStartDate, calEndDate, lang),
+                            "_blank",
+                          );
+                        }
                       }}
                     >
                       <CalendarDays size={14} className="text-orange-500" />
@@ -429,7 +470,29 @@ export default function PatientMode({
             </div>
           </div>
 
-          {/* Group 3: File Management */}
+          {/* Group 3: Tablet Configuration */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap sm:flex-nowrap">
+            <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
+              Tablet
+            </span>
+            <span className="select-wrap !h-[32px] !min-h-[32px] flex items-center">
+              <select
+                value={usePink ? "true" : "false"}
+                onChange={(e) => setUsePink(e.target.value === "true")}
+                className="!h-[32px] !min-h-[32px] !py-0 !pl-2.5 !pr-7 !text-[11px] !font-bold !bg-white !border-slate-200 hover:!border-slate-300 !rounded-lg focus:outline-none"
+              >
+                <option value="false">
+                  {lang === "th" ? "ยาเม็ด 2, 3 mg" : "2, 3 mg tablets"}
+                </option>
+                <option value="true">
+                  {lang === "th" ? "ยาเม็ด 2, 3, 5 mg" : "2, 3, 5 mg tablets"}
+                </option>
+              </select>
+              <ChevronDown size={12} className="!right-2" />
+            </span>
+          </div>
+
+          {/* Group 4: File Management */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-xl p-1.5 shadow-sm justify-center sm:justify-start flex-wrap sm:flex-nowrap">
             <span className="text-[9px] uppercase font-black text-slate-400 px-1.5 border-r border-slate-200 sm:mr-0.5 tracking-wider hidden sm:inline">
               File
@@ -445,18 +508,22 @@ export default function PatientMode({
               </select>
               <ChevronDown size={12} className="!right-2" />
             </span>
-            <IconButton
-              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
-              icon={<Save size={14} />}
-              onClick={() => onSave(plan)}
-              label={lang === "th" ? "บันทึก" : "Save"}
-            />
-            <IconButton
-              className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
-              icon={<FileDown size={14} />}
-              onClick={() => handleDownloadPdf(`warfarin-${plan.wCode}.pdf`)}
-              label="PDF"
-            />
+            {processedPlan && (
+              <>
+                <IconButton
+                  className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+                  icon={<Save size={14} />}
+                  onClick={() => onSave(processedPlan)}
+                  label={lang === "th" ? "บันทึก" : "Save"}
+                />
+                <IconButton
+                  className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
+                  icon={<FileDown size={14} />}
+                  onClick={() => handleDownloadPdf(`warfarin-${processedPlan.wCode}.pdf`)}
+                  label="PDF"
+                />
+              </>
+            )}
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<Printer size={14} />}
@@ -467,7 +534,7 @@ export default function PatientMode({
         </div>
       </div>
 
-      {plan.source === "wcode" && (
+      {processedPlan && processedPlan.source === "wcode" && (
         <div className="mb-4 rounded-xl p-4 flex items-start gap-3 bg-orange-50 border border-orange-200 print:hidden">
           <AlertCircle size={20} className="text-orange-500 shrink-0 mt-0.5" />
           <div>
@@ -480,7 +547,7 @@ export default function PatientMode({
       )}
 
       <div className={isLargeFont ? "elderly-mode" : ""}>
-        <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
+        {processedPlan && <MedicationSheet plan={processedPlan} lang={lang} printLayout={printLayout} />}
       </div>
 
       {savedPlans.length ? (

@@ -81,6 +81,7 @@ export interface MedicationPlan {
   firstWeek: DayDose[];
   maintenanceWeek: DayDose[];
   source?: "wcode";
+  usePink?: boolean;
 }
 
 export interface PlanPayload {
