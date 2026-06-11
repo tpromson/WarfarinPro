@@ -121,51 +121,71 @@
   }
 
   .layout-label.layout-label-qrcode {
+    display: grid !important;
+    grid-template-columns: 1fr 1.2fr !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    justify-items: center !important;
+    gap: 2mm 4mm !important;
+    padding: 1mm 3mm !important;
+    height: 52mm !important;
+    margin-top: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .layout-label-qrcode .label-qrpage-qr {
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 8mm !important;
-    padding: 4mm !important;
-    margin-top: 0 !important;
+    gap: 1.5mm !important;
   }
 
   .layout-label-qrcode .label-qrpage-img {
-    width: 68mm !important;
-    height: 68mm !important;
-    border: 2px solid black !important;
-    padding: 2px !important;
+    width: 32mm !important;
+    height: 32mm !important;
+    border: 1.5px solid black !important;
+    padding: 1px !important;
     background: white !important;
   }
 
   .layout-label-qrcode .label-qrpage-caption {
-    font-size: 11px !important;
+    font-size: 9px !important;
     font-weight: 800 !important;
   }
 
   .layout-label-qrcode .label-qrpage-wcode {
-    border: 2px solid black !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    border: 1.5px solid black !important;
     border-radius: 4px !important;
-    padding: 4mm 6mm !important;
-    width: 84mm !important;
+    padding: 2mm 3mm !important;
+    width: 42mm !important;
     box-sizing: border-box !important;
     text-align: center !important;
   }
 
   .layout-label-qrcode .label-qrpage-wlabel {
-    font-size: 10px !important;
+    font-size: 8px !important;
     font-weight: 800 !important;
     color: #64748b !important;
+    display: block !important;
+    margin-bottom: 0.5mm !important;
   }
 
   .layout-label-qrcode .label-qrpage-wvalue {
-    font-size: 28pt !important;
+    font-size: 20pt !important;
     font-weight: 900 !important;
+    line-height: 1 !important;
   }
 
   .layout-label-qrcode .label-qrpage-meta {
-    font-size: 11px !important;
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    font-size: 9px !important;
     font-weight: 700 !important;
+    margin-top: -1mm !important;
   }
 
   /* ─── Label (Sticker) Print Layout ─── */
