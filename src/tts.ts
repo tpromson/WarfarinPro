@@ -1,6 +1,7 @@
 import { MedicationPlan } from "./types";
 import { planSpeech } from "./clinical";
 import { logVoiceEvent } from "./voiceLog";
+import { trackEvent } from "./analytics";
 
 export type SpeechStatus = "idle" | "playing" | "paused";
 export type SpeechVoiceInfo = {
@@ -137,6 +138,7 @@ class SpeechController {
     this.setVoiceInfo(null);
     this.setStatus("playing");
     logVoiceEvent("play_requested", { lang, gender });
+    trackEvent("audio_event", { action: "play_requested", lang, gender });
 
     const speechText = planSpeech(plan, gender, lang);
     const apiKey = import.meta.env.VITE_GOOGLE_TTS_API_KEY;
@@ -174,6 +176,14 @@ class SpeechController {
         };
         this.setVoiceInfo(voiceInfo);
         logVoiceEvent("voice_selected", { ...voiceInfo, lang, gender, cached });
+        trackEvent("audio_event", {
+          action: "voice_selected",
+          lang,
+          gender,
+          provider: "google_tts",
+          model: voiceInfo.model,
+          result: cached ? "cached" : "generated",
+        });
 
         const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
         this.activeAudio = audio;
@@ -182,6 +192,7 @@ class SpeechController {
           this.setStatus("idle");
           this.setVoiceInfo(null);
           logVoiceEvent("ended", { lang, gender, provider: "Google Cloud TTS" });
+          trackEvent("audio_event", { action: "ended", lang, gender, provider: "google_tts" });
           this.activeAudio = null;
         });
 
@@ -209,6 +220,7 @@ class SpeechController {
           error: toSafeErrorMessage(error),
           reason: "falling back to browser TTS",
         });
+        trackEvent("error_event", { area: "voice", type: "google_tts_fallback", lang, gender });
       }
     }
 
@@ -217,6 +229,7 @@ class SpeechController {
       this.setStatus("idle");
       this.setVoiceInfo(null);
       logVoiceEvent("browser_tts_unavailable", { lang, gender, provider: "Browser Web Speech" });
+      trackEvent("error_event", { area: "voice", type: "browser_tts_unavailable", lang, gender });
       return;
     }
 
@@ -235,6 +248,7 @@ class SpeechController {
       this.setStatus("idle");
       this.setVoiceInfo(null);
       logVoiceEvent("ended", { lang, gender, provider: "Browser Web Speech" });
+      trackEvent("audio_event", { action: "ended", lang, gender, provider: "browser_web_speech" });
     };
     utterance.onerror = (event) => {
       this.setStatus("idle");
@@ -245,6 +259,7 @@ class SpeechController {
         provider: "Browser Web Speech",
         error: event.error,
       });
+      trackEvent("error_event", { area: "voice", type: "browser_tts_error", lang, gender });
     };
 
     const applyVoiceAndSpeak = () => {
@@ -269,6 +284,13 @@ class SpeechController {
         };
         this.setVoiceInfo(voiceInfo);
         logVoiceEvent("voice_selected", { ...voiceInfo, lang, gender });
+        trackEvent("audio_event", {
+          action: "voice_selected",
+          lang,
+          gender,
+          provider: "browser_web_speech",
+          model: voiceInfo.model,
+        });
       } else {
         utterance.pitch = gender === "female" ? 1.15 : 0.75;
         const voiceInfo: SpeechVoiceInfo = {
@@ -278,6 +300,13 @@ class SpeechController {
         };
         this.setVoiceInfo(voiceInfo);
         logVoiceEvent("voice_selected", { ...voiceInfo, lang, gender });
+        trackEvent("audio_event", {
+          action: "voice_selected",
+          lang,
+          gender,
+          provider: "browser_web_speech",
+          model: voiceInfo.model,
+        });
       }
       window.speechSynthesis.speak(utterance);
     };
@@ -303,6 +332,7 @@ class SpeechController {
       this.setStatus("paused");
     }
     logVoiceEvent("pause", this.voiceInfo ?? {});
+    trackEvent("audio_event", { action: "pause", provider: this.voiceInfo?.provider, model: this.voiceInfo?.model });
   }
 
   resume() {
@@ -315,6 +345,7 @@ class SpeechController {
           error: toSafeErrorMessage(err),
           reason: "failed to resume audio",
         });
+        trackEvent("error_event", { area: "voice", type: "resume_failed" });
         this.setStatus("idle");
       });
       this.setStatus("playing");
@@ -323,6 +354,7 @@ class SpeechController {
       this.setStatus("playing");
     }
     logVoiceEvent("resume", this.voiceInfo ?? {});
+    trackEvent("audio_event", { action: "resume", provider: this.voiceInfo?.provider, model: this.voiceInfo?.model });
   }
 
   stop() {
@@ -339,6 +371,7 @@ class SpeechController {
     }
     this.setStatus("idle");
     logVoiceEvent("stop", this.voiceInfo ?? {});
+    trackEvent("audio_event", { action: "stop", provider: this.voiceInfo?.provider, model: this.voiceInfo?.model });
     this.setVoiceInfo(null);
   }
 }

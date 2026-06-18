@@ -17,6 +17,7 @@ import { generateZpl } from "../zpl";
 import IconButton from "./IconButton";
 import PillVisual from "./PillVisual";
 import type { MedicationPlan } from "../types";
+import { trackEvent } from "../analytics";
 
 export default function BookletAndSharePanelContent({
   plan,
@@ -43,6 +44,7 @@ export default function BookletAndSharePanelContent({
   const url = useMemo(() => buildPatientUrl(plan), [plan]);
 
   async function printZpl() {
+    trackEvent("tool_used", { section: "doctor_mode", tool: "print_zebra", lang });
     const zpl = generateZpl(plan, url);
     // Zebra Browser Print SDK must be installed on the user's machine.
     // It exposes window.BrowserPrint. If not available, fall back to download.
@@ -152,12 +154,14 @@ export default function BookletAndSharePanelContent({
   const handleCopyWCode = () => {
     navigator.clipboard.writeText(plan.wCode);
     setCopiedWCode(true);
+    trackEvent("tool_used", { section: "doctor_mode", tool: "copy_wcode", lang });
     setTimeout(() => setCopiedWCode(false), 2000);
   };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
+    trackEvent("tool_used", { section: "doctor_mode", tool: "copy_patient_link", lang });
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
@@ -230,7 +234,10 @@ export default function BookletAndSharePanelContent({
             </span>
             <button
               id={`${idPrefix}btn-open-patient`}
-              onClick={() => onOpenPatient(plan)}
+              onClick={() => {
+                trackEvent("tool_used", { section: "doctor_mode", tool: "open_patient_view", lang });
+                onOpenPatient(plan);
+              }}
               className="w-full py-2.5 bg-clinic-blue hover:bg-clinic-blue/90 text-white font-extrabold text-sm rounded-xl shadow transition-all focus:outline-none flex items-center justify-center gap-2"
             >
               <UserRound size={16} />
@@ -253,12 +260,13 @@ export default function BookletAndSharePanelContent({
                 shortcut="Alt+C"
               />
               <button
-                onClick={() =>
+                onClick={() => {
+                  trackEvent("tool_used", { section: "doctor_mode", tool: "line_share", lang });
                   window.open(
                     `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`,
                     "_blank",
-                  )
-                }
+                  );
+                }}
                 className="w-full py-1.5 border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-lg transition-colors focus:outline-none flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <MessageCircle size={14} className="text-[#06C755]" />
@@ -276,14 +284,30 @@ export default function BookletAndSharePanelContent({
               <button
                 type="button"
                 className={`!min-h-[28px] !text-[11px] !py-0 !px-2 ${printLayout === "half-a4" ? "active" : ""}`}
-                onClick={() => setPrintLayout("half-a4")}
+                onClick={() => {
+                  setPrintLayout("half-a4");
+                  trackEvent("tool_used", {
+                    section: "doctor_mode",
+                    tool: "print_layout",
+                    layout: "half-a4",
+                    lang,
+                  });
+                }}
               >
                 {t[lang].printHalfA4}
               </button>
               <button
                 type="button"
                 className={`!min-h-[28px] !text-[11px] !py-0 !px-2 ${printLayout === "label" ? "active" : ""}`}
-                onClick={() => setPrintLayout("label")}
+                onClick={() => {
+                  setPrintLayout("label");
+                  trackEvent("tool_used", {
+                    section: "doctor_mode",
+                    tool: "print_layout",
+                    layout: "label",
+                    lang,
+                  });
+                }}
               >
                 {t[lang].printLabel}
               </button>
@@ -291,9 +315,10 @@ export default function BookletAndSharePanelContent({
             <div className="grid grid-cols-2 gap-1.5">
               <IconButton
                 icon={<FileDown size={14} />}
-                onClick={() =>
-                  generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`)
-                }
+                onClick={() => {
+                  trackEvent("tool_used", { section: "doctor_mode", tool: "pdf", lang });
+                  generateMedicationSheetPdf(plan, qr, lang, `warfarin-${plan.wCode}.pdf`);
+                }}
                 label={t[lang].downloadPdf}
                 disabled={!qr || qrError}
               />
@@ -306,7 +331,15 @@ export default function BookletAndSharePanelContent({
               ) : (
                 <IconButton
                   icon={<Printer size={14} />}
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    window.print();
+                    trackEvent("tool_used", {
+                      section: "doctor_mode",
+                      tool: "print",
+                      layout: printLayout,
+                      lang,
+                    });
+                  }}
                   label={lang === "th" ? "พิมพ์ใบยา" : "Print Leaflet"}
                   shortcut="Alt+H"
                 />

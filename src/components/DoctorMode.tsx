@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, CalendarDays, ChevronDown, HeartPulse, ShieldAlert } from "lucide-react";
 import {
   buildMaintenanceSchedule,
@@ -28,6 +28,7 @@ import HardStop from "./HardStop";
 import ScheduleEditor from "./ScheduleEditor";
 import BookletAndSharePanel from "./BookletAndSharePanel";
 import MedicationSheet from "./MedicationSheet";
+import { trackEvent } from "../analytics";
 
 const interactionKeys = Object.keys(interactionLabels) as InteractionFlag[];
 const contextKeys: ContextFlag[] = ["mechanicalValve", "pregnancy", "liverDisease"];
@@ -66,6 +67,8 @@ export default function DoctorMode({
   const [isSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const trackedPlanReady = useRef(false);
+  const trackedHardStop = useRef(false);
 
   useEffect(() => {
     if (toastMessage) {
@@ -196,6 +199,7 @@ export default function DoctorMode({
 
   const handleResetSchedule = () => {
     setMaintenance(suggestedSchedule);
+    trackEvent("tool_used", { section: "doctor_mode", tool: "reset_schedule", lang });
   };
 
   const plan = useMemo(
@@ -229,6 +233,27 @@ export default function DoctorMode({
 
   const scheduleDelta = plan ? Math.abs(plan.scheduleWeeklyDose - plan.calculatedWeeklyDose) : 0;
   const canShare = Boolean(plan && scheduleDelta <= 0.5 && plan.wCode !== "W----");
+
+  useEffect(() => {
+    if (plan && !trackedPlanReady.current) {
+      trackedPlanReady.current = true;
+      trackEvent("workflow_step_completed", { step: "plan_available", section: "doctor_mode", lang });
+    }
+  }, [lang, plan]);
+
+  useEffect(() => {
+    if (suggestion.severity === "hard-stop" && !trackedHardStop.current) {
+      trackedHardStop.current = true;
+      trackEvent("workflow_step_completed", {
+        step: "hard_stop_presented",
+        section: "doctor_mode",
+        result: "blocked",
+        lang,
+      });
+    } else if (suggestion.severity !== "hard-stop") {
+      trackedHardStop.current = false;
+    }
+  }, [lang, suggestion.severity]);
 
   useEffect(() => {
     const handleGlobalShortcuts = (e: KeyboardEvent) => {
@@ -358,6 +383,12 @@ export default function DoctorMode({
               onClick={() => {
                 setTabletSetup("2_3");
                 localStorage.setItem("warfarinpro.tablet_setup", "2_3");
+                trackEvent("tool_used", {
+                  section: "doctor_mode",
+                  tool: "tablet_setup",
+                  result: "2_3",
+                  lang,
+                });
               }}
               className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-clinic-blue bg-slate-50/50 hover:bg-clinic-cyan/5 transition-all group flex flex-col gap-1.5 focus:outline-none focus:ring-2 focus:ring-clinic-blue/20"
             >
@@ -386,6 +417,12 @@ export default function DoctorMode({
               onClick={() => {
                 setTabletSetup("2_3_5");
                 localStorage.setItem("warfarinpro.tablet_setup", "2_3_5");
+                trackEvent("tool_used", {
+                  section: "doctor_mode",
+                  tool: "tablet_setup",
+                  result: "2_3_5",
+                  lang,
+                });
               }}
               className="w-full text-left p-4 rounded-xl border border-slate-200 hover:border-clinic-blue bg-slate-50/50 hover:bg-clinic-cyan/5 transition-all group flex flex-col gap-1.5 focus:outline-none focus:ring-2 focus:ring-clinic-blue/20"
             >
@@ -525,6 +562,12 @@ export default function DoctorMode({
                     const val = event.target.value as "2_3" | "2_3_5";
                     setTabletSetup(val);
                     localStorage.setItem("warfarinpro.tablet_setup", val);
+                    trackEvent("tool_used", {
+                      section: "doctor_mode",
+                      tool: "tablet_setup",
+                      result: val,
+                      lang,
+                    });
                   }}
                 >
                   <option value="2_3">

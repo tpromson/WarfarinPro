@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HeartPulse, HelpCircle, Info, Lock, ShieldAlert, UserRound, X } from "lucide-react";
 import { parsePatientHash } from "./clinical";
 import { deleteSavedPlan, loadSavedPlans, savePlan } from "./storage";
@@ -7,6 +7,7 @@ import DoctorMode from "./components/DoctorMode";
 import PatientMode from "./components/PatientMode";
 import UserGuideContent from "./components/UserGuideContent";
 import { config } from "./config";
+import { trackEvent } from "./analytics";
 
 export default function App() {
   const [active, setActive] = useState<"doctor" | "patient" | "help">(() => {
@@ -26,13 +27,23 @@ export default function App() {
   const [passError, setPassError] = useState(false);
   const [rememberPasscode, setRememberPasscode] = useState(true);
 
+  useEffect(() => {
+    trackEvent("section_viewed", {
+      section:
+        active === "doctor" ? "doctor_mode" : active === "help" ? "user_guide" : "patient_viewer",
+      lang,
+    });
+  }, [active, lang]);
+
   const handleHomeClick = () => {
     window.location.hash = "";
     setOpenedPlan(null);
     setActive("patient");
+    trackEvent("tool_used", { section: "app_header", tool: "home", lang });
   };
 
   const handleDoctorClick = () => {
+    trackEvent("tool_used", { section: "app_header", tool: "doctor_mode", lang });
     if (doctorUnlocked) {
       setActive("doctor");
     } else {
@@ -55,9 +66,15 @@ export default function App() {
       setPassInput("");
       setPassError(false);
       setActive("doctor");
+      trackEvent("workflow_step_completed", {
+        step: "doctor_unlocked",
+        result: rememberPasscode ? "remembered" : "session_only",
+        lang,
+      });
     } else {
       setPassError(true);
       setPassInput("");
+      trackEvent("error_event", { area: "doctor_access", type: "passcode_failed", lang });
     }
   };
 
@@ -65,6 +82,7 @@ export default function App() {
     setDoctorUnlocked(false);
     localStorage.removeItem("warfarinpro.doctor_unlocked");
     setActive("patient");
+    trackEvent("tool_used", { section: "app_header", tool: "doctor_lock", lang });
   };
 
   return (
@@ -103,7 +121,10 @@ export default function App() {
                     ? "bg-clinic-blue text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
-                onClick={() => setLang("th")}
+                onClick={() => {
+                  setLang("th");
+                  trackEvent("tool_used", { section: "app_header", tool: "language", lang: "th" });
+                }}
               >
                 TH
               </button>
@@ -115,7 +136,10 @@ export default function App() {
                     ? "bg-clinic-blue text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
-                onClick={() => setLang("en")}
+                onClick={() => {
+                  setLang("en");
+                  trackEvent("tool_used", { section: "app_header", tool: "language", lang: "en" });
+                }}
               >
                 EN
               </button>
@@ -138,7 +162,10 @@ export default function App() {
                 role="tab"
                 aria-selected={active === "patient"}
                 className={active === "patient" ? "active" : ""}
-                onClick={() => setActive("patient")}
+                onClick={() => {
+                  setActive("patient");
+                  trackEvent("tool_used", { section: "app_header", tool: "patient_mode", lang });
+                }}
               >
                 <UserRound size={16} /> {lang === "th" ? "ผู้ป่วย" : "Patient"}
               </button>
@@ -146,7 +173,10 @@ export default function App() {
                 role="tab"
                 aria-selected={active === "help"}
                 className={active === "help" ? "active" : ""}
-                onClick={() => setActive("help")}
+                onClick={() => {
+                  setActive("help");
+                  trackEvent("tool_used", { section: "app_header", tool: "user_guide", lang });
+                }}
               >
                 <HelpCircle size={16} /> {lang === "th" ? "คู่มือ" : "Guide"}
               </button>
@@ -251,6 +281,11 @@ export default function App() {
             onOpenPatient={(plan) => {
               setOpenedPlan(plan);
               setActive("patient");
+              trackEvent("workflow_step_completed", {
+                step: "patient_view_opened",
+                source: "doctor_mode",
+                lang,
+              });
             }}
             lang={lang}
             printLayout={printLayout}
@@ -264,8 +299,14 @@ export default function App() {
           <PatientMode
             plan={openedPlan}
             savedPlans={savedPlans}
-            onSave={(plan) => setSavedPlans(savePlan(plan))}
-            onDelete={(id) => setSavedPlans(deleteSavedPlan(id))}
+            onSave={(plan) => {
+              setSavedPlans(savePlan(plan));
+              trackEvent("tool_used", { section: "patient_toolkit", tool: "save_plan", lang });
+            }}
+            onDelete={(id) => {
+              setSavedPlans(deleteSavedPlan(id));
+              trackEvent("tool_used", { section: "saved_plans", tool: "delete_plan", lang });
+            }}
             onSelect={setOpenedPlan}
             lang={lang}
             printLayout={printLayout}

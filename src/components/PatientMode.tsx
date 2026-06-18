@@ -26,6 +26,7 @@ import { t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
 import { speechController, SpeechStatus, SpeechVoiceInfo } from "../tts";
 import type { DayDose, MedicationPlan } from "../types";
+import { trackEvent } from "../analytics";
 import Panel from "./Panel";
 import IconButton from "./IconButton";
 import MedicationSheet from "./MedicationSheet";
@@ -155,6 +156,7 @@ export default function PatientMode({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    trackEvent("tool_used", { section: "patient_toolkit", tool: "calendar_ics", lang });
   };
 
   const handleDownloadPdf = async (filename: string) => {
@@ -162,8 +164,10 @@ export default function PatientMode({
     setPdfLoading(true);
     try {
       await generateMedicationSheetPdf(plan, qr, lang, filename);
+      trackEvent("tool_used", { section: "patient_toolkit", tool: "pdf", result: "success", lang });
     } catch (err) {
       console.error("PDF error:", err);
+      trackEvent("error_event", { area: "pdf", type: "export_failed", lang });
     } finally {
       setPdfLoading(false);
     }
@@ -176,8 +180,14 @@ export default function PatientMode({
       if (parsed) {
         setWCodeError("");
         onSelect(parsed);
+        trackEvent("workflow_step_completed", {
+          step: "patient_plan_loaded",
+          source: "wcode",
+          lang,
+        });
       } else {
         setWCodeError(t[lang].wcodeError);
+        trackEvent("error_event", { area: "patient_wcode", type: "parse_failed", lang });
       }
     };
 
@@ -284,6 +294,7 @@ export default function PatientMode({
             onClick={() => {
               if (processedPlan) {
                 speechController.play(processedPlan, speakGender, lang);
+                trackEvent("tool_used", { section: "patient_toolkit", tool: "voice", action: "play", lang });
               }
               setShowVoicePrompt(false);
             }}
@@ -341,7 +352,15 @@ export default function PatientMode({
                 role="radio"
                 aria-checked={speakGender === "female"}
                 className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "female" ? "active" : ""}`}
-                onClick={() => setSpeakGender("female")}
+                onClick={() => {
+                  setSpeakGender("female");
+                  trackEvent("tool_used", {
+                    section: "patient_toolkit",
+                    tool: "voice_gender",
+                    gender: "female",
+                    lang,
+                  });
+                }}
               >
                 👩‍⚕️ {lang === "th" ? "หญิง" : "Female"}
               </button>
@@ -349,7 +368,15 @@ export default function PatientMode({
                 role="radio"
                 aria-checked={speakGender === "male"}
                 className={`!min-h-[32px] !py-0 !px-2.5 !text-xs ${speakGender === "male" ? "active" : ""}`}
-                onClick={() => setSpeakGender("male")}
+                onClick={() => {
+                  setSpeakGender("male");
+                  trackEvent("tool_used", {
+                    section: "patient_toolkit",
+                    tool: "voice_gender",
+                    gender: "male",
+                    lang,
+                  });
+                }}
               >
                 👨‍⚕️ {lang === "th" ? "ชาย" : "Male"}
               </button>
@@ -358,7 +385,17 @@ export default function PatientMode({
               <IconButton
                 className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
                 icon={<Play size={14} />}
-                onClick={() => processedPlan && speechController.play(processedPlan, speakGender, lang)}
+                onClick={() => {
+                  if (processedPlan) {
+                    speechController.play(processedPlan, speakGender, lang);
+                    trackEvent("tool_used", {
+                      section: "patient_toolkit",
+                      tool: "voice",
+                      action: "play",
+                      lang,
+                    });
+                  }
+                }}
                 label={lang === "th" ? "ฟังคำแนะนำยา" : "Listen Dosing"}
               />
             )}
@@ -367,13 +404,29 @@ export default function PatientMode({
                 <IconButton
                   className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 text-yellow-800"
                   icon={<Pause size={14} />}
-                  onClick={() => speechController.pause()}
+                  onClick={() => {
+                    speechController.pause();
+                    trackEvent("tool_used", {
+                      section: "patient_toolkit",
+                      tool: "voice",
+                      action: "pause",
+                      lang,
+                    });
+                  }}
                   label={lang === "th" ? "หยุดชั่วคราว" : "Pause"}
                 />
                 <IconButton
                   className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800"
                   icon={<Square size={14} />}
-                  onClick={() => speechController.stop()}
+                  onClick={() => {
+                    speechController.stop();
+                    trackEvent("tool_used", {
+                      section: "patient_toolkit",
+                      tool: "voice",
+                      action: "stop",
+                      lang,
+                    });
+                  }}
                   label={lang === "th" ? "หยุด" : "Stop"}
                 />
               </>
@@ -383,13 +436,29 @@ export default function PatientMode({
                 <IconButton
                   className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-green-50 hover:bg-green-100 border border-green-200 text-green-800"
                   icon={<Play size={14} />}
-                  onClick={() => speechController.resume()}
+                  onClick={() => {
+                    speechController.resume();
+                    trackEvent("tool_used", {
+                      section: "patient_toolkit",
+                      tool: "voice",
+                      action: "resume",
+                      lang,
+                    });
+                  }}
                   label={lang === "th" ? "ฟังต่อ" : "Resume"}
                 />
                 <IconButton
                   className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-800"
                   icon={<Square size={14} />}
-                  onClick={() => speechController.stop()}
+                  onClick={() => {
+                    speechController.stop();
+                    trackEvent("tool_used", {
+                      section: "patient_toolkit",
+                      tool: "voice",
+                      action: "stop",
+                      lang,
+                    });
+                  }}
                   label={lang === "th" ? "หยุด" : "Stop"}
                 />
               </>
@@ -410,7 +479,15 @@ export default function PatientMode({
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<ZoomIn size={14} />}
-              onClick={() => setIsLargeFont(!isLargeFont)}
+              onClick={() => {
+                setIsLargeFont(!isLargeFont);
+                trackEvent("tool_used", {
+                  section: "patient_toolkit",
+                  tool: "zoom",
+                  result: isLargeFont ? "normal" : "large",
+                  lang,
+                });
+              }}
               label={isLargeFont ? t[lang].zoomNormal : t[lang].zoomText}
             />
 
@@ -418,7 +495,10 @@ export default function PatientMode({
               <IconButton
                 className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
                 icon={<CalendarDays size={14} />}
-                onClick={() => setShowCalMenu(!showCalMenu)}
+                onClick={() => {
+                  setShowCalMenu(!showCalMenu);
+                  trackEvent("tool_used", { section: "patient_toolkit", tool: "calendar_menu", lang });
+                }}
                 label={t[lang].addToCal}
                 aria-haspopup={true}
                 aria-expanded={showCalMenu}
@@ -475,6 +555,11 @@ export default function PatientMode({
                             generateGoogleCalendarUrl(processedPlan, calStartDate, calEndDate, lang),
                             "_blank",
                           );
+                          trackEvent("tool_used", {
+                            section: "patient_toolkit",
+                            tool: "calendar_google",
+                            lang,
+                          });
                         }
                       }}
                     >
@@ -495,7 +580,15 @@ export default function PatientMode({
             <span className="select-wrap !h-[32px] !min-h-[32px] flex items-center">
               <select
                 value={usePink ? "true" : "false"}
-                onChange={(e) => setUsePink(e.target.value === "true")}
+                onChange={(e) => {
+                  setUsePink(e.target.value === "true");
+                  trackEvent("tool_used", {
+                    section: "patient_toolkit",
+                    tool: "tablet_setup",
+                    result: e.target.value === "true" ? "2_3_5" : "2_3",
+                    lang,
+                  });
+                }}
                 className="!h-[32px] !min-h-[32px] !py-0 !pl-2.5 !pr-7 !text-[11px] !font-bold !bg-white !border-slate-200 hover:!border-slate-300 !rounded-lg focus:outline-none"
               >
                 <option value="false">
@@ -517,7 +610,15 @@ export default function PatientMode({
             <span className="select-wrap !h-[32px] !min-h-[32px] flex items-center">
               <select
                 value={printLayout}
-                onChange={(e) => setPrintLayout(e.target.value as "half-a4" | "label")}
+                onChange={(e) => {
+                  setPrintLayout(e.target.value as "half-a4" | "label");
+                  trackEvent("tool_used", {
+                    section: "patient_toolkit",
+                    tool: "print_layout",
+                    layout: e.target.value,
+                    lang,
+                  });
+                }}
                 className="!h-[32px] !min-h-[32px] !py-0 !pl-2.5 !pr-7 !text-[11px] !font-bold !bg-white !border-slate-200 hover:!border-slate-300 !rounded-lg"
               >
                 <option value="half-a4">{t[lang].printHalfA4}</option>
@@ -544,7 +645,15 @@ export default function PatientMode({
             <IconButton
               className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
               icon={<Printer size={14} />}
-              onClick={() => window.print()}
+              onClick={() => {
+                window.print();
+                trackEvent("tool_used", {
+                  section: "patient_toolkit",
+                  tool: "print",
+                  layout: printLayout,
+                  lang,
+                });
+              }}
               label={lang === "th" ? "พิมพ์" : "Print"}
             />
           </div>

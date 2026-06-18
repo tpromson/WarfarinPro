@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { speechController } from "./tts";
 import type { DayDose, MedicationPlan } from "./types";
 import { clearVoiceLog, getVoiceLogEntries } from "./voiceLog";
+import { clearAnalyticsDebugLog, getAnalyticsDebugLog } from "./analytics";
 
 function makeDose(day: DayDose["day"]): DayDose {
   return {
@@ -52,6 +53,7 @@ function makePlan(): MedicationPlan {
 describe("speechController voice metadata", () => {
   beforeEach(() => {
     vi.stubEnv("VITE_GOOGLE_TTS_API_KEY", "test-key");
+    vi.stubEnv("VITE_ANALYTICS_ENABLED", "false");
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -66,8 +68,10 @@ describe("speechController voice metadata", () => {
       pause = vi.fn();
     }
     vi.stubGlobal("Audio", MockAudio);
+    window.plausible = vi.fn() as typeof window.plausible;
     sessionStorage.clear();
     clearVoiceLog();
+    clearAnalyticsDebugLog();
   });
 
   afterEach(() => {
@@ -76,6 +80,8 @@ describe("speechController voice metadata", () => {
     vi.unstubAllGlobals();
     sessionStorage.clear();
     clearVoiceLog();
+    clearAnalyticsDebugLog();
+    delete window.plausible;
   });
 
   it("reports the Google TTS voice model used for the current playback", async () => {
@@ -130,5 +136,24 @@ describe("speechController voice metadata", () => {
     );
     expect(JSON.stringify(logs)).not.toContain("W123");
     expect(JSON.stringify(logs)).not.toContain("test-plan");
+  });
+
+  it("writes safe audio analytics without plan identifiers", async () => {
+    vi.stubEnv("VITE_ANALYTICS_ENABLED", "true");
+    vi.stubEnv("VITE_ANALYTICS_PROVIDER", "plausible");
+
+    await speechController.play(makePlan(), "female", "th");
+
+    expect(window.plausible).toHaveBeenCalledWith("audio_event", {
+      props: expect.objectContaining({
+        action: "voice_selected",
+        lang: "th",
+        gender: "female",
+        provider: "google_tts",
+        model: "Chirp 3 HD",
+      }),
+    });
+    expect(JSON.stringify(getAnalyticsDebugLog())).not.toContain("W123");
+    expect(JSON.stringify(getAnalyticsDebugLog())).not.toContain("test-plan");
   });
 });
