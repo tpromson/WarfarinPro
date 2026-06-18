@@ -1,14 +1,53 @@
 import { MedicationPlan } from "./types";
 import { planSpeech } from "./clinical";
+import { logVoiceEvent } from "./voiceLog";
 
 export type SpeechStatus = "idle" | "playing" | "paused";
+export type SpeechVoiceInfo = {
+  provider: "Google Cloud TTS" | "Browser Web Speech";
+  model: string;
+  voiceName: string;
+};
+
+type GoogleTtsResult = {
+  audioContent: string;
+  voiceName: string;
+};
+
+type CachedGoogleAudio = GoogleTtsResult;
+
+function getGoogleVoiceModel(voiceName: string): string {
+  if (voiceName.includes("Chirp3-HD")) return "Chirp 3 HD";
+  if (voiceName.includes("Neural2")) return "Neural2";
+  return "Google TTS";
+}
+
+function parseCachedGoogleAudio(cachedValue: string, fallbackVoiceName: string): CachedGoogleAudio {
+  try {
+    const parsed = JSON.parse(cachedValue) as Partial<CachedGoogleAudio>;
+    if (typeof parsed.audioContent === "string" && typeof parsed.voiceName === "string") {
+      return {
+        audioContent: parsed.audioContent,
+        voiceName: parsed.voiceName,
+      };
+    }
+  } catch {
+    // Older cache entries stored only the base64 audio string.
+  }
+  return { audioContent: cachedValue, voiceName: fallbackVoiceName };
+}
+
+function toSafeErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.slice(0, 240);
+}
 
 async function synthesizeGoogleTts(
   text: string,
   apiKey: string,
   gender: "female" | "male",
   lang: "th" | "en",
-): Promise<string> {
+): Promise<GoogleTtsResult> {
   // Multiple voices in priority order — if the first fails (not available in the project
   // or region), subsequent ones are tried before giving up and falling back to browser TTS.
   const voiceNames =
@@ -44,7 +83,7 @@ async function synthesizeGoogleTts(
         continue;
       }
       const data = await response.json();
-      return data.audioContent;
+      return { audioContent: data.audioContent, voiceName };
     } catch (e) {
       lastError = e instanceof Error ? e : new Error(String(e));
     }
@@ -56,14 +95,25 @@ class SpeechController {
   private activeAudio: HTMLAudioElement | null = null;
   private status: SpeechStatus = "idle";
   private subscribers: Set<(status: SpeechStatus) => void> = new Set();
+  private voiceInfo: SpeechVoiceInfo | null = null;
+  private voiceInfoSubscribers: Set<(voiceInfo: SpeechVoiceInfo | null) => void> = new Set();
 
   private setStatus(status: SpeechStatus) {
     this.status = status;
     this.subscribers.forEach((callback) => callback(status));
   }
 
+  private setVoiceInfo(voiceInfo: SpeechVoiceInfo | null) {
+    this.voiceInfo = voiceInfo;
+    this.voiceInfoSubscribers.forEach((callback) => callback(voiceInfo));
+  }
+
   getStatus(): SpeechStatus {
     return this.status;
+  }
+
+  getVoiceInfo(): SpeechVoiceInfo | null {
+    return this.voiceInfo;
   }
 
   subscribe(callback: (status: SpeechStatus) => void) {
@@ -74,9 +124,19 @@ class SpeechController {
     };
   }
 
+  subscribeVoiceInfo(callback: (voiceInfo: SpeechVoiceInfo | null) => void) {
+    this.voiceInfoSubscribers.add(callback);
+    callback(this.voiceInfo);
+    return () => {
+      this.voiceInfoSubscribers.delete(callback);
+    };
+  }
+
   async play(plan: MedicationPlan, gender: "female" | "male" = "female", lang: "th" | "en" = "th") {
     this.stop();
+    this.setVoiceInfo(null);
     this.setStatus("playing");
+    logVoiceEvent("play_requested", { lang, gender });
 
     const speechText = planSpeech(plan, gender, lang);
     const apiKey = import.meta.env.VITE_GOOGLE_TTS_API_KEY;
@@ -84,18 +144,44 @@ class SpeechController {
     if (apiKey) {
       try {
         const cacheKey = `warfarinpro.audio.${plan.id}.${gender}.${lang}`;
-        let audioContent = sessionStorage.getItem(cacheKey);
+        let cachedAudio = sessionStorage.getItem(cacheKey);
+        let voiceName =
+          lang === "th"
+            ? gender === "female"
+              ? "th-TH-Chirp3-HD-Kore"
+              : "th-TH-Chirp3-HD-Charon"
+            : gender === "female"
+              ? "en-US-Chirp3-HD-Kore"
+              : "en-US-Chirp3-HD-Charon";
+        let audioContent: string;
 
-        if (!audioContent) {
-          audioContent = await synthesizeGoogleTts(speechText, apiKey, gender, lang);
-          sessionStorage.setItem(cacheKey, audioContent);
+        const cached = Boolean(cachedAudio);
+        if (cachedAudio) {
+          const parsedCache = parseCachedGoogleAudio(cachedAudio, voiceName);
+          audioContent = parsedCache.audioContent;
+          voiceName = parsedCache.voiceName;
+        } else {
+          const result = await synthesizeGoogleTts(speechText, apiKey, gender, lang);
+          audioContent = result.audioContent;
+          voiceName = result.voiceName;
+          sessionStorage.setItem(cacheKey, JSON.stringify(result));
         }
+
+        const voiceInfo: SpeechVoiceInfo = {
+          provider: "Google Cloud TTS",
+          model: getGoogleVoiceModel(voiceName),
+          voiceName,
+        };
+        this.setVoiceInfo(voiceInfo);
+        logVoiceEvent("voice_selected", { ...voiceInfo, lang, gender, cached });
 
         const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
         this.activeAudio = audio;
 
         audio.addEventListener("ended", () => {
           this.setStatus("idle");
+          this.setVoiceInfo(null);
+          logVoiceEvent("ended", { lang, gender, provider: "Google Cloud TTS" });
           this.activeAudio = null;
         });
 
@@ -116,12 +202,21 @@ class SpeechController {
         return;
       } catch (error) {
         console.error("Google Cloud TTS failed, falling back to browser TTS:", error);
+        logVoiceEvent("google_tts_failed", {
+          lang,
+          gender,
+          provider: "Google Cloud TTS",
+          error: toSafeErrorMessage(error),
+          reason: "falling back to browser TTS",
+        });
       }
     }
 
     // Fallback: Web Speech API Synthesis
     if (!("speechSynthesis" in window)) {
       this.setStatus("idle");
+      this.setVoiceInfo(null);
+      logVoiceEvent("browser_tts_unavailable", { lang, gender, provider: "Browser Web Speech" });
       return;
     }
 
@@ -138,9 +233,18 @@ class SpeechController {
 
     utterance.onend = () => {
       this.setStatus("idle");
+      this.setVoiceInfo(null);
+      logVoiceEvent("ended", { lang, gender, provider: "Browser Web Speech" });
     };
-    utterance.onerror = () => {
+    utterance.onerror = (event) => {
       this.setStatus("idle");
+      this.setVoiceInfo(null);
+      logVoiceEvent("error", {
+        lang,
+        gender,
+        provider: "Browser Web Speech",
+        error: event.error,
+      });
     };
 
     const applyVoiceAndSpeak = () => {
@@ -158,8 +262,22 @@ class SpeechController {
           utterance.voice = femaleVoice ?? langVoices[0];
           utterance.pitch = 1.15;
         }
+        const voiceInfo: SpeechVoiceInfo = {
+          provider: "Browser Web Speech",
+          model: "Web Speech API",
+          voiceName: utterance.voice?.name ?? targetLang,
+        };
+        this.setVoiceInfo(voiceInfo);
+        logVoiceEvent("voice_selected", { ...voiceInfo, lang, gender });
       } else {
         utterance.pitch = gender === "female" ? 1.15 : 0.75;
+        const voiceInfo: SpeechVoiceInfo = {
+          provider: "Browser Web Speech",
+          model: "Web Speech API",
+          voiceName: targetLang,
+        };
+        this.setVoiceInfo(voiceInfo);
+        logVoiceEvent("voice_selected", { ...voiceInfo, lang, gender });
       }
       window.speechSynthesis.speak(utterance);
     };
@@ -184,6 +302,7 @@ class SpeechController {
       window.speechSynthesis.pause();
       this.setStatus("paused");
     }
+    logVoiceEvent("pause", this.voiceInfo ?? {});
   }
 
   resume() {
@@ -191,6 +310,11 @@ class SpeechController {
     if (this.activeAudio) {
       this.activeAudio.play().catch((err) => {
         console.error("Failed to resume audio:", err);
+        logVoiceEvent("error", {
+          ...(this.voiceInfo ?? {}),
+          error: toSafeErrorMessage(err),
+          reason: "failed to resume audio",
+        });
         this.setStatus("idle");
       });
       this.setStatus("playing");
@@ -198,10 +322,14 @@ class SpeechController {
       window.speechSynthesis.resume();
       this.setStatus("playing");
     }
+    logVoiceEvent("resume", this.voiceInfo ?? {});
   }
 
   stop() {
-    if (this.status === "idle") return;
+    if (this.status === "idle") {
+      this.setVoiceInfo(null);
+      return;
+    }
     if (this.activeAudio) {
       this.activeAudio.pause();
       this.activeAudio.currentTime = 0;
@@ -210,6 +338,8 @@ class SpeechController {
       window.speechSynthesis.cancel();
     }
     this.setStatus("idle");
+    logVoiceEvent("stop", this.voiceInfo ?? {});
+    this.setVoiceInfo(null);
   }
 }
 

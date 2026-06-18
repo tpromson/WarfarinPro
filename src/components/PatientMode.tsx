@@ -24,7 +24,7 @@ import {
 } from "../clinical";
 import { t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
-import { speechController, SpeechStatus } from "../tts";
+import { speechController, SpeechStatus, SpeechVoiceInfo } from "../tts";
 import type { DayDose, MedicationPlan } from "../types";
 import Panel from "./Panel";
 import IconButton from "./IconButton";
@@ -57,6 +57,7 @@ export default function PatientMode({
   const [isLargeFont, setIsLargeFont] = useState(false);
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
   const [audioStatus, setAudioStatus] = useState<SpeechStatus>("idle");
+  const [voiceInfo, setVoiceInfo] = useState<SpeechVoiceInfo | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [_pdfLoading, setPdfLoading] = useState(false);
   const [qr, setQr] = useState("");
@@ -88,6 +89,10 @@ export default function PatientMode({
 
   useEffect(() => {
     return speechController.subscribe(setAudioStatus);
+  }, []);
+
+  useEffect(() => {
+    return speechController.subscribeVoiceInfo(setVoiceInfo);
   }, []);
 
   useEffect(() => {
@@ -267,6 +272,12 @@ export default function PatientMode({
                   ? "กดปุ่มเพื่อฟังเสียงอธิบายวิธีกินยาภาษาไทยสำหรับตารางนี้"
                   : "Click the button to listen to voice guidance for this schedule"}
               </p>
+              {voiceInfo && (
+                <p className="mt-1 text-[10px] font-bold text-clinic-blue break-all">
+                  {lang === "th" ? "เสียงที่ใช้" : "Voice model"}: {voiceInfo.provider} •{" "}
+                  {voiceInfo.model} • {voiceInfo.voiceName}
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -382,6 +393,12 @@ export default function PatientMode({
                   label={lang === "th" ? "หยุด" : "Stop"}
                 />
               </>
+            )}
+            {voiceInfo && (
+              <span className="w-full sm:w-auto text-[10px] font-bold text-slate-500 px-1.5 break-all">
+                {lang === "th" ? "เสียงที่ใช้" : "Voice model"}: {voiceInfo.provider} •{" "}
+                {voiceInfo.model} • {voiceInfo.voiceName}
+              </span>
             )}
           </div>
 

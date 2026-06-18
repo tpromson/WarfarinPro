@@ -1,10 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import PillVisual from "./components/PillVisual";
 import HardStop from "./components/HardStop";
 import StatusBanner from "./components/StatusBanner";
 import ScheduleView from "./components/ScheduleView";
-import type { DayDose } from "./types";
+import PatientMode from "./components/PatientMode";
+import { speechController } from "./tts";
+import type { DayDose, MedicationPlan } from "./types";
 
 function makeCombo(overrides: Partial<DayDose["combo"]> = {}): DayDose["combo"] {
   return {
@@ -17,6 +19,40 @@ function makeCombo(overrides: Partial<DayDose["combo"]> = {}): DayDose["combo"] 
     pinkHalf: 0,
     score: 3,
     ...overrides,
+  };
+}
+
+function makePlan(): MedicationPlan {
+  const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+  const week = days.map((day) => ({
+    day,
+    dose: 5,
+    combo: makeCombo(),
+  }));
+  return {
+    version: 1,
+    id: "patient-mode-test-plan",
+    issuedDate: "2026-06-18",
+    clinicDay: "mon",
+    target: { preset: "standard", lower: 2, upper: 3 },
+    currentInr: 2.4,
+    previousWeeklyDose: 35,
+    calculatedWeeklyDose: 35,
+    scheduleWeeklyDose: 35,
+    selectedAdjustment: 0,
+    firstWeekHoldDoses: 0,
+    wCode: "W123",
+    safety: {
+      severity: "normal",
+      messages: [],
+      interactionFlags: [],
+      contextFlags: [],
+      complexSchedule: false,
+      roundedSchedule: false,
+      majorBleeding: false,
+    },
+    firstWeek: week,
+    maintenanceWeek: week,
   };
 }
 
@@ -218,5 +254,54 @@ describe("ScheduleView", () => {
       />,
     );
     expect(container.textContent).toContain("ก่อนวันปรับยา");
+  });
+});
+
+describe("PatientMode voice model display", () => {
+  beforeEach(() => {
+    vi.stubEnv("VITE_GOOGLE_TTS_API_KEY", "test-key");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ audioContent: "ZmFrZS1tcDM=" }),
+      }),
+    );
+    class MockAudio {
+      currentTime = 0;
+      addEventListener = vi.fn();
+      play = vi.fn().mockResolvedValue(undefined);
+      pause = vi.fn();
+    }
+    vi.stubGlobal("Audio", MockAudio);
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    speechController.stop();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    sessionStorage.clear();
+  });
+
+  it("shows the current read-aloud voice model in Thai patient mode", async () => {
+    const plan = makePlan();
+    await speechController.play(plan, "female", "th");
+
+    render(
+      <PatientMode
+        plan={plan}
+        savedPlans={[]}
+        onSave={vi.fn()}
+        onDelete={vi.fn()}
+        onSelect={vi.fn()}
+        lang="th"
+        printLayout="half-a4"
+        setPrintLayout={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText(/เสียงที่ใช้/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/th-TH-Chirp3-HD-Kore/).length).toBeGreaterThan(0);
   });
 });
