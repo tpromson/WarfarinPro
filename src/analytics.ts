@@ -125,8 +125,8 @@ export function initializeAnalytics() {
 
     window.plausible =
       window.plausible ||
-      function plausibleQueue() {
-        (window.plausible!.q = window.plausible!.q || []).push(arguments);
+      function plausibleQueue(eventName: string, options?: { props?: AnalyticsProps }) {
+        (window.plausible!.q = window.plausible!.q || []).push([eventName, options]);
       };
 
     if (document.querySelector(`script[data-domain="${domain}"]`)) return;

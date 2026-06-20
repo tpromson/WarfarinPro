@@ -52,13 +52,17 @@ function makePlan(): MedicationPlan {
 
 describe("speechController voice metadata", () => {
   beforeEach(() => {
-    vi.stubEnv("VITE_GOOGLE_TTS_API_KEY", "test-key");
+    vi.stubEnv("VITE_TTS_ENDPOINT", "/api/tts");
     vi.stubEnv("VITE_ANALYTICS_ENABLED", "false");
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ audioContent: "ZmFrZS1tcDM=" }),
+        json: () =>
+          Promise.resolve({
+            audioContent: "ZmFrZS1tcDM=",
+            voiceName: "th-TH-Chirp3-HD-Kore",
+          }),
       }),
     );
     class MockAudio {
@@ -87,6 +91,13 @@ describe("speechController voice metadata", () => {
   it("reports the Google TTS voice model used for the current playback", async () => {
     await speechController.play(makePlan(), "female", "th");
 
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/tts",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
     expect(speechController.getVoiceInfo()).toEqual({
       provider: "Google Cloud TTS",
       model: "Chirp 3 HD",
@@ -94,25 +105,26 @@ describe("speechController voice metadata", () => {
     });
   });
 
-  it("keeps the successful fallback Google voice name when replaying cached audio", async () => {
-    vi.mocked(fetch)
-      .mockResolvedValueOnce({
-        ok: false,
-        text: () => Promise.resolve("voice unavailable"),
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ audioContent: "ZmFrZS1tcDM=" }),
-      } as Response);
+  it("keeps the proxy-selected Google voice name when replaying cached audio", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          audioContent: "ZmFrZS1tcDM=",
+          voiceName: "th-TH-Chirp3-HD-Aoede",
+        }),
+    } as Response);
 
     const plan = makePlan();
     await speechController.play(plan, "female", "th");
     expect(speechController.getVoiceInfo()?.voiceName).toBe("th-TH-Chirp3-HD-Aoede");
+    expect(fetch).toHaveBeenCalledTimes(1);
 
     speechController.stop();
     await speechController.play(plan, "female", "th");
 
     expect(speechController.getVoiceInfo()?.voiceName).toBe("th-TH-Chirp3-HD-Aoede");
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 
   it("writes safe local voice logs without plan identifiers", async () => {
@@ -155,5 +167,58 @@ describe("speechController voice metadata", () => {
     });
     expect(JSON.stringify(getAnalyticsDebugLog())).not.toContain("W123");
     expect(JSON.stringify(getAnalyticsDebugLog())).not.toContain("test-plan");
+  });
+
+  it("stops instead of falling back to browser speech when the TTS endpoint is missing", async () => {
+    vi.stubEnv("VITE_TTS_ENDPOINT", "");
+    const speak = vi.fn();
+    vi.stubGlobal("speechSynthesis", {
+      cancel: vi.fn(),
+      getVoices: vi.fn(() => []),
+      pause: vi.fn(),
+      resume: vi.fn(),
+      speak,
+    });
+
+    await speechController.play(makePlan(), "female", "th");
+
+    expect(speak).not.toHaveBeenCalled();
+    expect(speechController.getStatus()).toBe("idle");
+    expect(getVoiceLogEntries()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: "google_tts_failed",
+          provider: "Google Cloud TTS",
+          reason: "missing cloud TTS endpoint",
+        }),
+      ]),
+    );
+  });
+
+  it("stops instead of falling back to browser speech when Google synthesis fails", async () => {
+    vi.mocked(fetch).mockRejectedValue(new Error("network unavailable"));
+    const speak = vi.fn();
+    vi.stubGlobal("speechSynthesis", {
+      cancel: vi.fn(),
+      getVoices: vi.fn(() => []),
+      pause: vi.fn(),
+      resume: vi.fn(),
+      speak,
+    });
+
+    await speechController.play(makePlan(), "female", "th");
+
+    expect(speak).not.toHaveBeenCalled();
+    expect(speechController.getStatus()).toBe("idle");
+    expect(getVoiceLogEntries()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: "google_tts_failed",
+          provider: "Google Cloud TTS",
+          error: "network unavailable",
+          reason: "cloud TTS required",
+        }),
+      ]),
+    );
   });
 });
