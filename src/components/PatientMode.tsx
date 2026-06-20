@@ -24,7 +24,7 @@ import {
 } from "../clinical";
 import { t } from "../i18n";
 import { generateMedicationSheetPdf } from "../pdf";
-import { speechController, SpeechStatus, SpeechVoiceInfo } from "../tts";
+import { speechController, SpeechErrorInfo, SpeechStatus, SpeechVoiceInfo } from "../tts";
 import type { DayDose, MedicationPlan } from "../types";
 import { trackEvent } from "../analytics";
 import Panel from "./Panel";
@@ -59,6 +59,7 @@ export default function PatientMode({
   const [showVoicePrompt, setShowVoicePrompt] = useState(true);
   const [audioStatus, setAudioStatus] = useState<SpeechStatus>("idle");
   const [voiceInfo, setVoiceInfo] = useState<SpeechVoiceInfo | null>(null);
+  const [voiceError, setVoiceError] = useState<SpeechErrorInfo | null>(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [_pdfLoading, setPdfLoading] = useState(false);
   const [qr, setQr] = useState("");
@@ -94,6 +95,10 @@ export default function PatientMode({
 
   useEffect(() => {
     return speechController.subscribeVoiceInfo(setVoiceInfo);
+  }, []);
+
+  useEffect(() => {
+    return speechController.subscribeErrorInfo(setVoiceError);
   }, []);
 
   useEffect(() => {
@@ -171,6 +176,12 @@ export default function PatientMode({
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  const handleVoicePlay = async () => {
+    if (!processedPlan) return;
+    trackEvent("tool_used", { section: "patient_toolkit", tool: "voice", action: "play", lang });
+    await speechController.play(processedPlan, speakGender, lang);
   };
 
   if (!plan) {
@@ -292,15 +303,27 @@ export default function PatientMode({
           </div>
           <button
             onClick={() => {
-              if (processedPlan) {
-                speechController.play(processedPlan, speakGender, lang);
-                trackEvent("tool_used", { section: "patient_toolkit", tool: "voice", action: "play", lang });
-              }
+              handleVoicePlay();
               setShowVoicePrompt(false);
             }}
             className="flex-shrink-0 px-4 py-2 bg-clinic-blue text-white rounded-lg font-bold text-sm shadow hover:bg-clinic-blue/90 active:scale-95 transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
           >
             <span>{lang === "th" ? "กดฟังเสียงแนะนำยา" : "Listen Dosing"}</span>
+          </button>
+        </div>
+      )}
+
+      {voiceError && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-red-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-bold print:hidden">
+          <div className="flex items-start gap-2">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span>{voiceError.message}</span>
+          </div>
+          <button
+            onClick={handleVoicePlay}
+            className="px-3 py-1.5 bg-white border border-red-200 rounded-lg text-red-800 hover:bg-red-100 transition-colors"
+          >
+            {lang === "th" ? "ลองอีกครั้ง" : "Try again"}
           </button>
         </div>
       )}
@@ -385,17 +408,7 @@ export default function PatientMode({
               <IconButton
                 className="!min-h-[32px] !h-[32px] !text-xs !py-1 !px-2.5"
                 icon={<Play size={14} />}
-                onClick={() => {
-                  if (processedPlan) {
-                    speechController.play(processedPlan, speakGender, lang);
-                    trackEvent("tool_used", {
-                      section: "patient_toolkit",
-                      tool: "voice",
-                      action: "play",
-                      lang,
-                    });
-                  }
-                }}
+                onClick={handleVoicePlay}
                 label={lang === "th" ? "ฟังคำแนะนำยา" : "Listen Dosing"}
               />
             )}

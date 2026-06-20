@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import PillVisual from "./components/PillVisual";
 import HardStop from "./components/HardStop";
 import StatusBanner from "./components/StatusBanner";
@@ -264,7 +264,11 @@ describe("PatientMode voice model display", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ audioContent: "ZmFrZS1tcDM=" }),
+        json: () =>
+          Promise.resolve({
+            audioContent: "ZmFrZS1tcDM=",
+            voiceName: "th-TH-Chirp3-HD-Kore",
+          }),
       }),
     );
     class MockAudio {
@@ -303,5 +307,34 @@ describe("PatientMode voice model display", () => {
 
     expect(screen.getAllByText(/เสียงที่ใช้/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/th-TH-Chirp3-HD-Kore/).length).toBeGreaterThan(0);
+  });
+
+  it("shows a cloud TTS failure message and retry action", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      text: () => Promise.resolve("cloud unavailable"),
+    } as Response);
+    const plan = makePlan();
+
+    render(
+      <PatientMode
+        plan={plan}
+        savedPlans={[]}
+        onSave={vi.fn()}
+        onDelete={vi.fn()}
+        onSelect={vi.fn()}
+        lang="th"
+        printLayout="half-a4"
+        setPrintLayout={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("กดฟังเสียงแนะนำยา"));
+
+    await waitFor(() => {
+      expect(screen.getByText(/ไม่สามารถสร้างเสียงอ่านจาก Cloud TTS ได้/)).toBeInTheDocument();
+    });
+    expect(screen.getByText("ลองอีกครั้ง")).toBeInTheDocument();
   });
 });
