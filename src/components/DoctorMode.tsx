@@ -29,9 +29,18 @@ import ScheduleEditor from "./ScheduleEditor";
 import BookletAndSharePanel from "./BookletAndSharePanel";
 import MedicationSheet from "./MedicationSheet";
 import { trackEvent } from "../analytics";
+import CoordinationSavePanel from "./CoordinationSavePanel";
+import { loadStaffProfile, savePlanToCoordinationSession } from "../coordination/api";
+import { getSupabaseClient } from "../coordination/supabaseClient";
 
 const interactionKeys = Object.keys(interactionLabels) as InteractionFlag[];
 const contextKeys: ContextFlag[] = ["mechanicalValve", "pregnancy", "liverDisease"];
+
+function getLocalClinicDate(): string {
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 10);
+}
 
 export default function DoctorMode({
   onOpenPatient,
@@ -67,6 +76,9 @@ export default function DoctorMode({
   const [isSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [coordinationSaving, setCoordinationSaving] = useState(false);
+  const [coordinationError, setCoordinationError] = useState("");
+  const [coordinationStatus, setCoordinationStatus] = useState("");
   const trackedPlanReady = useRef(false);
   const trackedHardStop = useRef(false);
 
@@ -355,6 +367,77 @@ export default function DoctorMode({
     setContexts((current) =>
       current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag],
     );
+  }
+
+  async function handleSaveToCoordination(hn: string) {
+    if (!plan) return;
+
+    setCoordinationSaving(true);
+    setCoordinationError("");
+    setCoordinationStatus("");
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await getSupabaseClient().auth.getUser();
+
+      if (authError || !user) {
+        throw new Error(
+          lang === "th"
+            ? "กรุณาเข้าสู่ระบบเจ้าหน้าที่ในแท็บประสานงานก่อน"
+            : "Please sign in as staff on the coordination tab first.",
+        );
+      }
+
+      const profile = await loadStaffProfile(user.id);
+      if (profile.role !== "doctor" && profile.role !== "admin") {
+        throw new Error(
+          lang === "th"
+            ? "เฉพาะแพทย์หรือผู้ดูแลระบบเท่านั้นที่บันทึกแผนยาได้"
+            : "Only doctors or admins can save medication plans.",
+        );
+      }
+
+      const clinicDate = getLocalClinicDate();
+      const result = await savePlanToCoordinationSession({
+        hn,
+        clinicDate,
+        plan,
+        userId: profile.userId,
+      });
+
+      setCoordinationStatus(
+        result.created
+          ? lang === "th"
+            ? "สร้าง session วันนี้และบันทึกแผนยาแล้ว"
+            : "Created today's session and saved the medication plan."
+          : lang === "th"
+            ? "อัปเดตแผนยาใน session วันนี้แล้ว"
+            : "Updated today's coordination session.",
+      );
+      trackEvent("workflow_step_completed", {
+        section: "doctor_mode",
+        step: "coordination_plan_saved",
+        result: result.created ? "created" : "updated",
+        lang,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : lang === "th"
+            ? "ไม่สามารถบันทึก session แพทย์-เภสัชได้"
+            : "Unable to save the coordination session.";
+      setCoordinationError(message);
+      trackEvent("error_event", {
+        area: "coordination",
+        type: "plan_save_failed",
+        lang,
+      });
+    } finally {
+      setCoordinationSaving(false);
+    }
   }
 
   if (tabletSetup === null) {
@@ -780,6 +863,13 @@ export default function DoctorMode({
                     highlighted={isSummaryHighlighted}
                     printLayout={printLayout}
                     setPrintLayout={setPrintLayout}
+                  />
+                  <CoordinationSavePanel
+                    lang={lang}
+                    loading={coordinationSaving}
+                    error={coordinationError}
+                    status={coordinationStatus}
+                    onSave={handleSaveToCoordination}
                   />
                   <div className="print-sheet-wrapper">
                     <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />

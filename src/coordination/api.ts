@@ -115,14 +115,17 @@ export async function createDoctorSession({
   plan: MedicationPlan;
   userId: string;
 }): Promise<ClinicSession> {
+  const reviewedAt = new Date().toISOString();
   const { data, error } = await getSupabaseClient()
     .from("clinic_sessions")
     .insert({
       session_hash: sessionHash,
       clinic_date: clinicDate,
       current_plan: plan,
-      status: "draft",
+      status: "physician_reviewed",
       created_by: userId,
+      physician_reviewed_by: userId,
+      physician_reviewed_at: reviewedAt,
       expires_at: todayEndIso(clinicDate),
     })
     .select("*")
@@ -133,6 +136,35 @@ export async function createDoctorSession({
   }
 
   return mapClinicSession(data as ClinicSessionRow);
+}
+
+export async function savePlanToCoordinationSession({
+  hn,
+  clinicDate,
+  plan,
+  userId,
+}: {
+  hn: string;
+  clinicDate: string;
+  plan: MedicationPlan;
+  userId: string;
+}): Promise<{ sessionId: string; created: boolean }> {
+  const result = await findSessionByHn(hn, clinicDate);
+  if (result.found && result.sessionId) {
+    await savePhysicianReviewedPlan(result.sessionId, plan, userId);
+    return { sessionId: result.sessionId, created: false };
+  }
+  if (!result.sessionHash) {
+    throw new Error("Session hash was not returned for new coordination session");
+  }
+
+  const session = await createDoctorSession({
+    sessionHash: result.sessionHash,
+    clinicDate,
+    plan,
+    userId,
+  });
+  return { sessionId: session.id, created: true };
 }
 
 export async function savePhysicianReviewedPlan(

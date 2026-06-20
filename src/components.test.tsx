@@ -9,6 +9,7 @@ import StaffLogin from "./components/StaffLogin";
 import StaffCoordination from "./components/StaffCoordination";
 import DoctorSessionPanel from "./components/DoctorSessionPanel";
 import PharmacySessionPanel from "./components/PharmacySessionPanel";
+import CoordinationSavePanel from "./components/CoordinationSavePanel";
 import { speechController } from "./tts";
 import type { DayDose, MedicationPlan } from "./types";
 
@@ -438,5 +439,31 @@ describe("PharmacySessionPanel", () => {
     fireEvent.click(screen.getByText("ขอให้แพทย์แก้ไข"));
 
     expect(onRequestCorrection).toHaveBeenCalledWith("pill_burden", "จำนวนเม็ดยาต่อวันสูง");
+  });
+});
+
+describe("CoordinationSavePanel", () => {
+  it("submits HN to save the current plan", () => {
+    const onSave = vi.fn();
+    render(<CoordinationSavePanel lang="th" loading={false} error="" status="" onSave={onSave} />);
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByRole("button", { name: "บันทึกเข้า session แพทย์-เภสัช" }));
+
+    expect(onSave).toHaveBeenCalledWith("12345");
+  });
+
+  it("shows save status", () => {
+    render(
+      <CoordinationSavePanel
+        lang="en"
+        loading={false}
+        error=""
+        status="Saved to coordination session"
+        onSave={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Saved to coordination session")).toBeInTheDocument();
   });
 });

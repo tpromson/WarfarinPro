@@ -94,4 +94,43 @@ describe("coordination API", () => {
       }),
     ).rejects.toThrow("Session is not ready to dispense");
   });
+
+  it("creates and physician-reviews a coordination session when no session exists for HN", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ found: false, sessionHash: "hashed-hn" }),
+      }),
+    );
+    insertSelectSingleMock.mockResolvedValueOnce({
+      data: {
+        id: "session-1",
+        session_hash: "hashed-hn",
+        clinic_date: "2026-06-21",
+        status: "physician_reviewed",
+        current_plan: null,
+        expires_at: "2026-06-21T23:59:59.000+07:00",
+        created_by: "doctor-1",
+        physician_reviewed_by: "doctor-1",
+        physician_reviewed_at: "2026-06-21T12:00:00.000Z",
+        pharmacy_reviewed_by: null,
+        pharmacy_reviewed_at: null,
+        dispensed_by: null,
+        dispensed_at: null,
+      },
+      error: null,
+    });
+
+    const { savePlanToCoordinationSession } = await import("./api");
+
+    await expect(
+      savePlanToCoordinationSession({
+        hn: "12345",
+        clinicDate: "2026-06-21",
+        plan: {} as never,
+        userId: "doctor-1",
+      }),
+    ).resolves.toEqual({ sessionId: "session-1", created: true });
+  });
 });
