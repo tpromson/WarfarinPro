@@ -5,6 +5,10 @@ import HardStop from "./components/HardStop";
 import StatusBanner from "./components/StatusBanner";
 import ScheduleView from "./components/ScheduleView";
 import PatientMode from "./components/PatientMode";
+import StaffLogin from "./components/StaffLogin";
+import StaffCoordination from "./components/StaffCoordination";
+import DoctorSessionPanel from "./components/DoctorSessionPanel";
+import PharmacySessionPanel from "./components/PharmacySessionPanel";
 import { speechController } from "./tts";
 import type { DayDose, MedicationPlan } from "./types";
 
@@ -336,5 +340,103 @@ describe("PatientMode voice model display", () => {
       expect(screen.getByText(/ไม่สามารถสร้างเสียงอ่านจาก Cloud TTS ได้/)).toBeInTheDocument();
     });
     expect(screen.getByText("ลองอีกครั้ง")).toBeInTheDocument();
+  });
+});
+
+describe("StaffLogin", () => {
+  it("submits email and password", () => {
+    const onLogin = vi.fn();
+    render(<StaffLogin lang="th" loading={false} error="" onLogin={onLogin} />);
+
+    fireEvent.change(screen.getByLabelText("อีเมล"), { target: { value: "doctor@example.com" } });
+    fireEvent.change(screen.getByLabelText("รหัสผ่าน"), { target: { value: "secret123" } });
+    fireEvent.click(screen.getByRole("button", { name: "เข้าสู่ระบบเจ้าหน้าที่" }));
+
+    expect(onLogin).toHaveBeenCalledWith("doctor@example.com", "secret123");
+  });
+
+  it("shows login errors", () => {
+    render(<StaffLogin lang="en" loading={false} error="Invalid credentials" onLogin={vi.fn()} />);
+
+    expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
+  });
+});
+
+describe("StaffCoordination", () => {
+  it("shows doctor workflow for doctor role", () => {
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u1", role: "doctor", displayName: "Doctor A", active: true }}
+      />,
+    );
+
+    expect(screen.getByText("Doctor A")).toBeInTheDocument();
+    expect(screen.getByText("เปิดหรือสร้าง session วันนี้")).toBeInTheDocument();
+  });
+
+  it("shows pharmacist workflow for pharmacist role", () => {
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    expect(screen.getByText("Pharmacist B")).toBeInTheDocument();
+    expect(screen.getByText("ค้นหา session วันนี้")).toBeInTheDocument();
+  });
+});
+
+describe("DoctorSessionPanel", () => {
+  it("submits HN to open or create today's session", () => {
+    const onOpen = vi.fn();
+    render(<DoctorSessionPanel lang="th" loading={false} error="" onOpenSession={onOpen} />);
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("เปิดหรือสร้าง session"));
+
+    expect(onOpen).toHaveBeenCalledWith("12345");
+  });
+});
+
+describe("PharmacySessionPanel", () => {
+  it("submits HN to find today's session", () => {
+    const onFind = vi.fn();
+    render(
+      <PharmacySessionPanel
+        lang="th"
+        loading={false}
+        error=""
+        onFindSession={onFind}
+        onRequestCorrection={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("ค้นหา session"));
+
+    expect(onFind).toHaveBeenCalledWith("12345");
+  });
+
+  it("submits structured correction reason and short note", () => {
+    const onRequestCorrection = vi.fn();
+    render(
+      <PharmacySessionPanel
+        lang="th"
+        loading={false}
+        error=""
+        onFindSession={vi.fn()}
+        onRequestCorrection={onRequestCorrection}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("เหตุผล"), { target: { value: "pill_burden" } });
+    fireEvent.change(screen.getByLabelText("หมายเหตุสั้น ๆ"), {
+      target: { value: "จำนวนเม็ดยาต่อวันสูง" },
+    });
+    fireEvent.click(screen.getByText("ขอให้แพทย์แก้ไข"));
+
+    expect(onRequestCorrection).toHaveBeenCalledWith("pill_burden", "จำนวนเม็ดยาต่อวันสูง");
   });
 });

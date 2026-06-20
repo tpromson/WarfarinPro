@@ -5,12 +5,17 @@ import { deleteSavedPlan, loadSavedPlans, savePlan } from "./storage";
 import type { MedicationPlan } from "./types";
 import DoctorMode from "./components/DoctorMode";
 import PatientMode from "./components/PatientMode";
+import StaffCoordination from "./components/StaffCoordination";
+import StaffLogin from "./components/StaffLogin";
 import UserGuideContent from "./components/UserGuideContent";
 import { config } from "./config";
 import { trackEvent } from "./analytics";
+import { getSupabaseClient } from "./coordination/supabaseClient";
+import { loadStaffProfile } from "./coordination/api";
+import type { StaffProfile } from "./coordination/types";
 
 export default function App() {
-  const [active, setActive] = useState<"doctor" | "patient" | "help">(() => {
+  const [active, setActive] = useState<"doctor" | "patient" | "help" | "staff">(() => {
     return parsePatientHash() ? "patient" : "patient";
   });
   const [openedPlan, setOpenedPlan] = useState<MedicationPlan | null>(() => {
@@ -26,11 +31,20 @@ export default function App() {
   const [passInput, setPassInput] = useState("");
   const [passError, setPassError] = useState(false);
   const [rememberPasscode, setRememberPasscode] = useState(true);
+  const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
+  const [staffLoginLoading, setStaffLoginLoading] = useState(false);
+  const [staffLoginError, setStaffLoginError] = useState("");
 
   useEffect(() => {
     trackEvent("section_viewed", {
       section:
-        active === "doctor" ? "doctor_mode" : active === "help" ? "user_guide" : "patient_viewer",
+        active === "doctor"
+          ? "doctor_mode"
+          : active === "help"
+            ? "user_guide"
+            : active === "staff"
+              ? "staff_coordination"
+              : "patient_viewer",
       lang,
     });
   }, [active, lang]);
@@ -83,6 +97,30 @@ export default function App() {
     localStorage.removeItem("warfarinpro.doctor_unlocked");
     setActive("patient");
     trackEvent("tool_used", { section: "app_header", tool: "doctor_lock", lang });
+  };
+
+  const handleStaffLogin = async (email: string, password: string) => {
+    setStaffLoginLoading(true);
+    setStaffLoginError("");
+    try {
+      const { data, error } = await getSupabaseClient().auth.signInWithPassword({ email, password });
+      if (error || !data.user) {
+        throw new Error(error?.message ?? "Staff login failed");
+      }
+      const profile = await loadStaffProfile(data.user.id);
+      setStaffProfile(profile);
+      trackEvent("workflow_step_completed", {
+        step: "staff_logged_in",
+        result: profile.role,
+        lang,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setStaffLoginError(message);
+      trackEvent("error_event", { area: "staff_auth", type: "login_failed", lang });
+    } finally {
+      setStaffLoginLoading(false);
+    }
   };
 
   return (
@@ -179,6 +217,17 @@ export default function App() {
                 }}
               >
                 <HelpCircle size={16} /> {lang === "th" ? "คู่มือ" : "Guide"}
+              </button>
+              <button
+                role="tab"
+                aria-selected={active === "staff"}
+                className={active === "staff" ? "active" : ""}
+                onClick={() => {
+                  setActive("staff");
+                  trackEvent("tool_used", { section: "app_header", tool: "staff_coordination", lang });
+                }}
+              >
+                <Lock size={16} /> {lang === "th" ? "ประสานงาน" : "Staff"}
               </button>
             </div>
 
@@ -295,6 +344,17 @@ export default function App() {
           <div className="mx-auto max-w-4xl w-full p-6 animate-fadeIn">
             <UserGuideContent lang={lang} />
           </div>
+        ) : active === "staff" ? (
+          staffProfile ? (
+            <StaffCoordination lang={lang} profile={staffProfile} />
+          ) : (
+            <StaffLogin
+              lang={lang}
+              loading={staffLoginLoading}
+              error={staffLoginError}
+              onLogin={handleStaffLogin}
+            />
+          )
         ) : (
           <PatientMode
             plan={openedPlan}
