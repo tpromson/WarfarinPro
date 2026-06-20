@@ -196,3 +196,54 @@ create policy archived_summaries_admin_read on public.archived_session_summaries
 for select
 to authenticated
 using (public.current_staff_role() = 'admin');
+
+create function public.archive_expired_clinic_sessions()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  archived_count integer;
+begin
+  insert into public.archived_session_summaries (
+    session_hash,
+    clinic_date,
+    final_status,
+    created_at,
+    physician_reviewed_at,
+    pharmacy_reviewed_at,
+    dispensed_at,
+    created_by,
+    physician_reviewed_by,
+    pharmacy_reviewed_by,
+    dispensed_by,
+    correction_request_count,
+    event_count
+  )
+  select
+    s.session_hash,
+    s.clinic_date,
+    case when s.status = 'dispensed' then s.status else 'expired'::public.coordination_status end,
+    s.created_at,
+    s.physician_reviewed_at,
+    s.pharmacy_reviewed_at,
+    s.dispensed_at,
+    s.created_by,
+    s.physician_reviewed_by,
+    s.pharmacy_reviewed_by,
+    s.dispensed_by,
+    (select count(*) from public.correction_requests c where c.session_id = s.id),
+    (select count(*) from public.session_events e where e.session_id = s.id)
+  from public.clinic_sessions s
+  where s.expires_at <= now()
+  on conflict (session_hash, clinic_date) do nothing;
+
+  get diagnostics archived_count = row_count;
+
+  delete from public.clinic_sessions
+  where expires_at <= now();
+
+  return jsonb_build_object('archived', archived_count);
+end;
+$$;
