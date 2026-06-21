@@ -479,6 +479,43 @@ describe("StaffCoordination", () => {
     fireEvent.click(screen.getByRole("button", { name: "พิมพ์ใบยา" }));
     expect(printSpy).toHaveBeenCalled();
   });
+
+  it("hides coordination controls when printing the opened medication sheet", async () => {
+    coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
+      found: true,
+      sessionId: "session-1",
+    });
+    coordinationApiMock.loadClinicSession.mockResolvedValueOnce({
+      id: "session-1",
+      sessionHash: "hashed-hn",
+      clinicDate: "2026-06-21",
+      status: "physician_reviewed",
+      currentPlan: makePlan(),
+      expiresAt: "2026-06-21T23:59:59.000+07:00",
+      createdBy: "doctor-1",
+      physicianReviewedBy: "doctor-1",
+      physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+      pharmacyReviewedBy: null,
+      pharmacyReviewedAt: null,
+      dispensedBy: null,
+      dispensedAt: null,
+    });
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("ค้นหา session"));
+    fireEvent.click(await screen.findByRole("button", { name: "เปิดใบยาเพื่อพิมพ์" }));
+
+    const heading = screen.getByText("ประสานงานแพทย์-เภสัช");
+    expect(heading.closest(".print\\:hidden")).not.toBeNull();
+    expect(screen.getByLabelText("ใบแนะนำการรับประทานยา").closest(".print\\:hidden")).toBeNull();
+  });
 });
 
 describe("DoctorSessionPanel", () => {

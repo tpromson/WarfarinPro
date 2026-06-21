@@ -91,81 +91,85 @@ export default function StaffCoordination({
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold">
-            {lang === "th" ? "ประสานงานแพทย์-เภสัช" : "Doctor-Pharmacy Coordination"}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600">
-            <span>{profile.displayName}</span> · <span>{profile.role}</span>
-          </p>
+      <div className="print:hidden">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold">
+              {lang === "th" ? "ประสานงานแพทย์-เภสัช" : "Doctor-Pharmacy Coordination"}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600">
+              <span>{profile.displayName}</span> · <span>{profile.role}</span>
+            </p>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <h3 className="text-sm font-extrabold text-clinic-ink">{heading}</h3>
+          {statusMessage && (
+            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+              {statusMessage}
+            </p>
+          )}
+          {session && (
+            <section className="grid gap-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft sm:grid-cols-[1fr_1fr_1fr_auto]">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  {lang === "th" ? "สถานะ" : "Status"}
+                </p>
+                <p className="text-sm font-extrabold text-clinic-ink">
+                  {lang === "th" ? "สถานะ session" : "Session status"}: {session.status}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  {lang === "th" ? "แผนยา" : "Medication plan"}
+                </p>
+                <p className="text-sm font-extrabold text-clinic-ink">
+                  {session.currentPlan?.wCode ?? (lang === "th" ? "ยังไม่มีแผนยา" : "No plan yet")}
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  {lang === "th" ? "วันคลินิก" : "Clinic date"}
+                </p>
+                <p className="text-sm font-extrabold text-clinic-ink">{session.clinicDate}</p>
+              </div>
+              <div className="flex items-end">
+                <button
+                  className="icon-button w-full justify-center"
+                  disabled={!canOpenPrintSheet}
+                  onClick={() => setPrintSheetOpen(true)}
+                  type="button"
+                >
+                  <FileText size={16} />
+                  {lang === "th" ? "เปิดใบยาเพื่อพิมพ์" : "Open printable sheet"}
+                </button>
+              </div>
+            </section>
+          )}
+          {printBlocked && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+              {lang === "th"
+                ? "มีคำขอแก้ไขค้างอยู่ รอแพทย์ approve/revise ก่อนพิมพ์จ่าย"
+                : "A correction is pending. Wait for physician approval or revision before dispensing."}
+            </p>
+          )}
+          {profile.role === "pharmacist" ? (
+            <PharmacySessionPanel
+              lang={lang}
+              loading={loading}
+              error={error}
+              onFindSession={handleOpenSession}
+              onRequestCorrection={handleCorrection}
+            />
+          ) : (
+            <DoctorSessionPanel lang={lang} loading={loading} error={error} onOpenSession={handleOpenSession} />
+          )}
         </div>
       </div>
       <div className="space-y-3">
-        <h3 className="text-sm font-extrabold text-clinic-ink">{heading}</h3>
-        {statusMessage && (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
-            {statusMessage}
-          </p>
-        )}
-        {session && (
-          <section className="grid gap-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft sm:grid-cols-[1fr_1fr_1fr_auto]">
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                {lang === "th" ? "สถานะ" : "Status"}
-              </p>
-              <p className="text-sm font-extrabold text-clinic-ink">
-                {lang === "th" ? "สถานะ session" : "Session status"}: {session.status}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                {lang === "th" ? "แผนยา" : "Medication plan"}
-              </p>
-              <p className="text-sm font-extrabold text-clinic-ink">
-                {session.currentPlan?.wCode ?? (lang === "th" ? "ยังไม่มีแผนยา" : "No plan yet")}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                {lang === "th" ? "วันคลินิก" : "Clinic date"}
-              </p>
-              <p className="text-sm font-extrabold text-clinic-ink">{session.clinicDate}</p>
-            </div>
-            <div className="flex items-end">
-              <button
-                className="icon-button w-full justify-center"
-                disabled={!canOpenPrintSheet}
-                onClick={() => setPrintSheetOpen(true)}
-                type="button"
-              >
-                <FileText size={16} />
-                {lang === "th" ? "เปิดใบยาเพื่อพิมพ์" : "Open printable sheet"}
-              </button>
-            </div>
-          </section>
-        )}
-        {printBlocked && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
-            {lang === "th"
-              ? "มีคำขอแก้ไขค้างอยู่ รอแพทย์ approve/revise ก่อนพิมพ์จ่าย"
-              : "A correction is pending. Wait for physician approval or revision before dispensing."}
-          </p>
-        )}
-        {profile.role === "pharmacist" ? (
-          <PharmacySessionPanel
-            lang={lang}
-            loading={loading}
-            error={error}
-            onFindSession={handleOpenSession}
-            onRequestCorrection={handleCorrection}
-          />
-        ) : (
-          <DoctorSessionPanel lang={lang} loading={loading} error={error} onOpenSession={handleOpenSession} />
-        )}
         {printSheetOpen && currentPlan && (
           <section className="space-y-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between print:hidden">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                   {lang === "th" ? "ใบยาพร้อมพิมพ์" : "Printable medication sheet"}
