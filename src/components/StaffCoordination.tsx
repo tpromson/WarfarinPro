@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { findSessionByHn, requestCorrection } from "../coordination/api";
-import type { CorrectionReason, StaffProfile } from "../coordination/types";
+import { findSessionByHn, loadClinicSession, requestCorrection } from "../coordination/api";
+import type { ClinicSession, CorrectionReason, StaffProfile } from "../coordination/types";
 import DoctorSessionPanel from "./DoctorSessionPanel";
 import PharmacySessionPanel from "./PharmacySessionPanel";
 
@@ -15,6 +15,7 @@ export default function StaffCoordination({
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<ClinicSession | null>(null);
   const heading =
     profile.role === "pharmacist"
       ? lang === "th"
@@ -28,11 +29,14 @@ export default function StaffCoordination({
     setLoading(true);
     setError("");
     setStatusMessage("");
+    setSession(null);
     try {
       const clinicDate = new Date().toISOString().slice(0, 10);
       const result = await findSessionByHn(hn, clinicDate);
       if (result.found && result.sessionId) {
+        const loadedSession = await loadClinicSession(result.sessionId);
         setSessionId(result.sessionId);
+        setSession(loadedSession);
         setStatusMessage(
           lang === "th"
             ? "พบ session วันนี้สำหรับ HN นี้"
@@ -66,6 +70,7 @@ export default function StaffCoordination({
     setError("");
     try {
       await requestCorrection(sessionId, reason, note, profile.userId);
+      setSession((current) => (current ? { ...current, status: "correction_requested" } : current));
       setStatusMessage(lang === "th" ? "ส่งคำขอแก้ไขให้แพทย์แล้ว" : "Correction request sent");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -92,6 +97,32 @@ export default function StaffCoordination({
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
             {statusMessage}
           </p>
+        )}
+        {session && (
+          <section className="grid gap-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft sm:grid-cols-3">
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                {lang === "th" ? "สถานะ" : "Status"}
+              </p>
+              <p className="text-sm font-extrabold text-clinic-ink">
+                {lang === "th" ? "สถานะ session" : "Session status"}: {session.status}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                {lang === "th" ? "แผนยา" : "Medication plan"}
+              </p>
+              <p className="text-sm font-extrabold text-clinic-ink">
+                {session.currentPlan?.wCode ?? (lang === "th" ? "ยังไม่มีแผนยา" : "No plan yet")}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                {lang === "th" ? "วันคลินิก" : "Clinic date"}
+              </p>
+              <p className="text-sm font-extrabold text-clinic-ink">{session.clinicDate}</p>
+            </div>
+          </section>
         )}
         {profile.role === "pharmacist" ? (
           <PharmacySessionPanel

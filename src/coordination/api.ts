@@ -104,6 +104,20 @@ export async function findSessionByHn(hn: string, clinicDate: string): Promise<F
   return (await response.json()) as FindSessionResult;
 }
 
+export async function loadClinicSession(sessionId: string): Promise<ClinicSession> {
+  const { data, error } = await getSupabaseClient()
+    .from("clinic_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Session load failed: ${error?.message ?? "missing session"}`);
+  }
+
+  return mapClinicSession(data as ClinicSessionRow);
+}
+
 export async function createDoctorSession({
   sessionHash,
   clinicDate,

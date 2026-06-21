@@ -75,6 +75,36 @@ describe("coordination API", () => {
     );
   });
 
+  it("loads a clinic session by id", async () => {
+    singleMock.mockResolvedValueOnce({
+      data: {
+        id: "session-1",
+        session_hash: "hashed-hn",
+        clinic_date: "2026-06-21",
+        status: "physician_reviewed",
+        current_plan: null,
+        expires_at: "2026-06-21T23:59:59.000+07:00",
+        created_by: "doctor-1",
+        physician_reviewed_by: "doctor-1",
+        physician_reviewed_at: "2026-06-21T12:00:00.000Z",
+        pharmacy_reviewed_by: null,
+        pharmacy_reviewed_at: null,
+        dispensed_by: null,
+        dispensed_at: null,
+      },
+      error: null,
+    });
+
+    const { loadClinicSession } = await import("./api");
+
+    await expect(loadClinicSession("session-1")).resolves.toEqual(
+      expect.objectContaining({
+        id: "session-1",
+        status: "physician_reviewed",
+      }),
+    );
+  });
+
   it("rejects correction notes longer than 300 characters", async () => {
     const { requestCorrection } = await import("./api");
 

@@ -13,6 +13,14 @@ import CoordinationSavePanel from "./components/CoordinationSavePanel";
 import { speechController } from "./tts";
 import type { DayDose, MedicationPlan } from "./types";
 
+const coordinationApiMock = vi.hoisted(() => ({
+  findSessionByHn: vi.fn(),
+  loadClinicSession: vi.fn(),
+  requestCorrection: vi.fn(),
+}));
+
+vi.mock("./coordination/api", () => coordinationApiMock);
+
 function makeCombo(overrides: Partial<DayDose["combo"]> = {}): DayDose["combo"] {
   return {
     dose: 5,
@@ -364,6 +372,12 @@ describe("StaffLogin", () => {
 });
 
 describe("StaffCoordination", () => {
+  beforeEach(() => {
+    coordinationApiMock.findSessionByHn.mockReset();
+    coordinationApiMock.loadClinicSession.mockReset();
+    coordinationApiMock.requestCorrection.mockReset();
+  });
+
   it("shows doctor workflow for doctor role", () => {
     render(
       <StaffCoordination
@@ -386,6 +400,44 @@ describe("StaffCoordination", () => {
 
     expect(screen.getByText("Pharmacist B")).toBeInTheDocument();
     expect(screen.getByText("ค้นหา session วันนี้")).toBeInTheDocument();
+  });
+
+  it("loads and shows session details after finding today's session", async () => {
+    coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
+      found: true,
+      sessionId: "session-1",
+    });
+    coordinationApiMock.loadClinicSession.mockResolvedValueOnce({
+      id: "session-1",
+      sessionHash: "hashed-hn",
+      clinicDate: "2026-06-21",
+      status: "physician_reviewed",
+      currentPlan: makePlan(),
+      expiresAt: "2026-06-21T23:59:59.000+07:00",
+      createdBy: "doctor-1",
+      physicianReviewedBy: "doctor-1",
+      physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+      pharmacyReviewedBy: null,
+      pharmacyReviewedAt: null,
+      dispensedBy: null,
+      dispensedAt: null,
+    });
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("ค้นหา session"));
+
+    await waitFor(() => {
+      expect(screen.getByText("สถานะ session: physician_reviewed")).toBeInTheDocument();
+    });
+    expect(coordinationApiMock.loadClinicSession).toHaveBeenCalledWith("session-1");
+    expect(screen.getByText("W123")).toBeInTheDocument();
   });
 });
 
