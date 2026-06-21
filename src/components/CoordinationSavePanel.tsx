@@ -31,7 +31,12 @@ export default function CoordinationSavePanel({
       >
         <label className="field flex-1">
           HN
-          <input value={hn} onChange={(event) => setHn(event.target.value)} required />
+          <input
+            id="coordination-hn-input"
+            value={hn}
+            onChange={(event) => setHn(event.target.value)}
+            required
+          />
         </label>
         <button className="icon-button self-end" disabled={loading} type="submit">
           {loading

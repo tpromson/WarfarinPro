@@ -5,6 +5,7 @@ import HardStop from "./components/HardStop";
 import StatusBanner from "./components/StatusBanner";
 import ScheduleView from "./components/ScheduleView";
 import PatientMode from "./components/PatientMode";
+import DoctorMode from "./components/DoctorMode";
 import StaffLogin from "./components/StaffLogin";
 import StaffCoordination from "./components/StaffCoordination";
 import DoctorSessionPanel from "./components/DoctorSessionPanel";
@@ -17,7 +18,9 @@ import type { DayDose, MedicationPlan } from "./types";
 const coordinationApiMock = vi.hoisted(() => ({
   findSessionByHn: vi.fn(),
   loadClinicSession: vi.fn(),
+  loadStaffProfile: vi.fn(),
   requestCorrection: vi.fn(),
+  savePlanToCoordinationSession: vi.fn(),
 }));
 
 vi.mock("./coordination/api", () => coordinationApiMock);
@@ -276,6 +279,39 @@ describe("MedicationSheet", () => {
     render(<MedicationSheet plan={makePlan()} lang="th" printLayout="half-a4" />);
 
     expect(screen.getByRole("img", { name: "กำลังสร้าง QR" })).toHaveClass("qr-code-box");
+  });
+});
+
+describe("DoctorMode keyboard workflow", () => {
+  beforeEach(() => {
+    localStorage.setItem("warfarinpro.tablet_setup", "2_3");
+  });
+
+  afterEach(() => {
+    localStorage.removeItem("warfarinpro.tablet_setup");
+  });
+
+  it("moves focus to coordination HN after closing the booklet summary with Enter", async () => {
+    render(
+      <DoctorMode
+        lang="th"
+        onOpenPatient={vi.fn()}
+        printLayout="half-a4"
+        setPrintLayout={vi.fn()}
+      />,
+    );
+
+    fireEvent.keyDown(window, { key: "s", altKey: true, code: "KeyS" });
+    const dialog = await screen.findByRole("dialog", { name: "สรุปสำหรับลงสมุดยา & แนะนำผู้ป่วย" });
+    await waitFor(() => expect(dialog).toHaveFocus());
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    fireEvent.keyDown(window, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("HN")).toHaveFocus();
+    });
   });
 });
 

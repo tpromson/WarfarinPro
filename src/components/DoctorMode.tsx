@@ -81,6 +81,7 @@ export default function DoctorMode({
   const [coordinationStatus, setCoordinationStatus] = useState("");
   const trackedPlanReady = useRef(false);
   const trackedHardStop = useRef(false);
+  const focusCoordinationAfterSummaryClose = useRef(false);
 
   useEffect(() => {
     if (toastMessage) {
@@ -146,7 +147,7 @@ export default function DoctorMode({
                 behavior: "smooth",
               });
             } else {
-              setShowSummaryModal(false);
+              closeSummaryAndFocusCoordination();
             }
           }
         }
@@ -161,6 +162,15 @@ export default function DoctorMode({
         window.removeEventListener("keydown", handleModalKeys);
       }
     };
+  }, [showSummaryModal]);
+
+  useEffect(() => {
+    if (showSummaryModal || !focusCoordinationAfterSummaryClose.current) return;
+
+    focusCoordinationAfterSummaryClose.current = false;
+    window.setTimeout(() => {
+      document.getElementById("coordination-hn-input")?.focus();
+    }, 0);
   }, [showSummaryModal]);
 
   const target: TargetRange = useMemo(() => {
@@ -367,6 +377,11 @@ export default function DoctorMode({
     setContexts((current) =>
       current.includes(flag) ? current.filter((item) => item !== flag) : [...current, flag],
     );
+  }
+
+  function closeSummaryAndFocusCoordination() {
+    focusCoordinationAfterSummaryClose.current = true;
+    setShowSummaryModal(false);
   }
 
   async function handleSaveToCoordination(hn: string) {
@@ -887,7 +902,7 @@ export default function DoctorMode({
             aria-modal="true"
             aria-labelledby="summary-modal-title"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden cursor-pointer outline-none"
-            onClick={() => setShowSummaryModal(false)}
+            onClick={closeSummaryAndFocusCoordination}
           >
             <div
               className="relative w-full max-w-4xl bg-white rounded-2xl shadow-soft border border-clinic-line overflow-hidden flex flex-col max-h-[90vh] cursor-default"
@@ -904,7 +919,7 @@ export default function DoctorMode({
                   </h2>
                 </div>
                 <button
-                  onClick={() => setShowSummaryModal(false)}
+                  onClick={closeSummaryAndFocusCoordination}
                   className="text-white/80 hover:text-white text-xl font-bold font-mono focus:outline-none p-1"
                 >
                   ✕
@@ -929,7 +944,7 @@ export default function DoctorMode({
               {/* Modal Footer */}
               <div className="bg-slate-50 border-t border-clinic-line p-3.5 flex justify-end gap-2">
                 <button
-                  onClick={() => setShowSummaryModal(false)}
+                  onClick={closeSummaryAndFocusCoordination}
                   className="px-4 py-1.5 bg-slate-300 text-slate-700 hover:bg-slate-400 font-bold text-xs rounded-lg transition-colors focus:outline-none"
                 >
                   {lang === "th" ? "ปิดหน้าต่าง" : "Close"}
