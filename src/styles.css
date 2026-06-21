@@ -11,6 +11,15 @@
   overflow: hidden;
 }
 
+.coordination-sheet-visible.print-sheet-wrapper {
+  position: static;
+  left: auto;
+  top: auto;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
 * {
   box-sizing: border-box;
 }

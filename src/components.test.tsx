@@ -666,7 +666,11 @@ describe("StaffCoordination", () => {
     await screen.findByRole("button", { name: "เปิดใบยาเพื่อพิมพ์" });
     fireEvent.click(screen.getByRole("button", { name: "เปิดใบยาเพื่อพิมพ์" }));
 
+    expect(screen.getByText("ใบยา")).toBeInTheDocument();
     expect(screen.getByLabelText("ใบแนะนำการรับประทานยา")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("ใบแนะนำการรับประทานยา").closest(".coordination-sheet-visible"),
+    ).not.toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "พิมพ์ใบยา" }));
     expect(printSpy).toHaveBeenCalled();
   });

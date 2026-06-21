@@ -338,7 +338,7 @@ export default function StaffCoordination({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between print:hidden">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                  {lang === "th" ? "ใบยาพร้อมพิมพ์" : "Printable medication sheet"}
+                  {lang === "th" ? "ใบยา" : "Medication sheet"}
                 </p>
                 <p className="text-sm font-extrabold text-clinic-ink">{currentPlan.wCode}</p>
               </div>
@@ -367,7 +367,7 @@ export default function StaffCoordination({
                 </button>
               </div>
             </div>
-            <div className="print-sheet-wrapper">
+            <div className="print-sheet-wrapper coordination-sheet-visible">
               <MedicationSheet plan={currentPlan} lang={lang} printLayout={printLayout} />
             </div>
           </section>
