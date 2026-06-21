@@ -105,6 +105,9 @@ export default function StaffCoordination({
         setSessionId(result.sessionId);
         setSession(loadedSession);
         setMatchedSessionId(result.sessionId);
+        setPrintSheetOpen(
+          Boolean(loadedSession.currentPlan && loadedSession.status !== "correction_requested"),
+        );
         if (loadedSession.status === "correction_requested") {
           setOpenCorrection(await loadOpenCorrectionRequest(result.sessionId));
         }

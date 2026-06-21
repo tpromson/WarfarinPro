@@ -632,7 +632,7 @@ describe("StaffCoordination", () => {
     expect(screen.getByLabelText("ใบแนะนำการรับประทานยา")).toBeInTheDocument();
   });
 
-  it("loads and shows session details after finding today's session", async () => {
+  it("opens a printable session immediately after pressing Enter in the HN field", async () => {
     coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
       found: true,
       sessionId: "session-1",
@@ -660,14 +660,17 @@ describe("StaffCoordination", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
-    fireEvent.click(screen.getByText("ค้นหา session"));
+    const hnInput = screen.getByLabelText("HN");
+    fireEvent.change(hnInput, { target: { value: "12345" } });
+    fireEvent.submit(hnInput.closest("form")!);
 
     await waitFor(() => {
       expect(screen.getByText("สถานะ session: physician_reviewed")).toBeInTheDocument();
     });
     expect(coordinationApiMock.loadClinicSession).toHaveBeenCalledWith("session-1");
     expect(screen.getAllByText("W123").length).toBeGreaterThan(0);
+    expect(screen.getByText("ใบยา")).toBeInTheDocument();
+    expect(screen.getByLabelText("ใบแนะนำการรับประทานยา")).toBeInTheDocument();
   });
 
   it("opens a printable medication sheet from a found session plan", async () => {
