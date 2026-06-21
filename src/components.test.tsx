@@ -10,6 +10,7 @@ import StaffCoordination from "./components/StaffCoordination";
 import DoctorSessionPanel from "./components/DoctorSessionPanel";
 import PharmacySessionPanel from "./components/PharmacySessionPanel";
 import CoordinationSavePanel from "./components/CoordinationSavePanel";
+import MedicationSheet from "./components/MedicationSheet";
 import { speechController } from "./tts";
 import type { DayDose, MedicationPlan } from "./types";
 
@@ -267,6 +268,14 @@ describe("ScheduleView", () => {
       />,
     );
     expect(container.textContent).toContain("ก่อนวันปรับยา");
+  });
+});
+
+describe("MedicationSheet", () => {
+  it("marks QR placeholders with fixed-square classes", () => {
+    render(<MedicationSheet plan={makePlan()} lang="th" printLayout="half-a4" />);
+
+    expect(screen.getByRole("img", { name: "กำลังสร้าง QR" })).toHaveClass("qr-code-box");
   });
 });
 

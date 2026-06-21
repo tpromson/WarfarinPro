@@ -58,6 +58,19 @@
     padding: 0;
   }
 
+  .qr-code-img,
+  .qr-code-box,
+  .label-qr-img,
+  .label-qrpage-img,
+  .qr-sticker-img {
+    aspect-ratio: 1 / 1 !important;
+    object-fit: contain !important;
+    flex: 0 0 auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
   /* Print color adjustment */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -301,9 +314,10 @@
     padding: 8px 16px !important;
   }
 
-  .sheet.layout-half-a4 .sheet-head img {
-    height: 42mm !important;
-    width: 42mm !important;
+  .sheet.layout-half-a4 .sheet-head .qr-code-img,
+  .sheet.layout-half-a4 .sheet-head .qr-code-box {
+    height: 24mm !important;
+    width: 24mm !important;
   }
 
   .sheet.layout-half-a4 .sheet-head span {
