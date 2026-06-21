@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { FileText, Printer, X } from "lucide-react";
 import { findSessionByHn, loadClinicSession, requestCorrection } from "../coordination/api";
 import type { ClinicSession, CorrectionReason, StaffProfile } from "../coordination/types";
 import DoctorSessionPanel from "./DoctorSessionPanel";
+import MedicationSheet from "./MedicationSheet";
 import PharmacySessionPanel from "./PharmacySessionPanel";
 
 export default function StaffCoordination({
@@ -16,6 +18,8 @@ export default function StaffCoordination({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<ClinicSession | null>(null);
+  const [printSheetOpen, setPrintSheetOpen] = useState(false);
+  const [printLayout, setPrintLayout] = useState<"half-a4" | "label">("half-a4");
   const heading =
     profile.role === "pharmacist"
       ? lang === "th"
@@ -30,6 +34,7 @@ export default function StaffCoordination({
     setError("");
     setStatusMessage("");
     setSession(null);
+    setPrintSheetOpen(false);
     try {
       const clinicDate = new Date().toISOString().slice(0, 10);
       const result = await findSessionByHn(hn, clinicDate);
@@ -71,6 +76,7 @@ export default function StaffCoordination({
     try {
       await requestCorrection(sessionId, reason, note, profile.userId);
       setSession((current) => (current ? { ...current, status: "correction_requested" } : current));
+      setPrintSheetOpen(false);
       setStatusMessage(lang === "th" ? "ส่งคำขอแก้ไขให้แพทย์แล้ว" : "Correction request sent");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -78,6 +84,10 @@ export default function StaffCoordination({
       setLoading(false);
     }
   };
+
+  const currentPlan = session?.currentPlan ?? null;
+  const printBlocked = session?.status === "correction_requested";
+  const canOpenPrintSheet = Boolean(currentPlan && !printBlocked);
 
   return (
     <div className="mx-auto max-w-6xl px-3 sm:px-4 py-5">
@@ -99,7 +109,7 @@ export default function StaffCoordination({
           </p>
         )}
         {session && (
-          <section className="grid gap-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft sm:grid-cols-3">
+          <section className="grid gap-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft sm:grid-cols-[1fr_1fr_1fr_auto]">
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                 {lang === "th" ? "สถานะ" : "Status"}
@@ -122,7 +132,25 @@ export default function StaffCoordination({
               </p>
               <p className="text-sm font-extrabold text-clinic-ink">{session.clinicDate}</p>
             </div>
+            <div className="flex items-end">
+              <button
+                className="icon-button w-full justify-center"
+                disabled={!canOpenPrintSheet}
+                onClick={() => setPrintSheetOpen(true)}
+                type="button"
+              >
+                <FileText size={16} />
+                {lang === "th" ? "เปิดใบยาเพื่อพิมพ์" : "Open printable sheet"}
+              </button>
+            </div>
           </section>
+        )}
+        {printBlocked && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+            {lang === "th"
+              ? "มีคำขอแก้ไขค้างอยู่ รอแพทย์ approve/revise ก่อนพิมพ์จ่าย"
+              : "A correction is pending. Wait for physician approval or revision before dispensing."}
+          </p>
         )}
         {profile.role === "pharmacist" ? (
           <PharmacySessionPanel
@@ -134,6 +162,45 @@ export default function StaffCoordination({
           />
         ) : (
           <DoctorSessionPanel lang={lang} loading={loading} error={error} onOpenSession={handleOpenSession} />
+        )}
+        {printSheetOpen && currentPlan && (
+          <section className="space-y-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                  {lang === "th" ? "ใบยาพร้อมพิมพ์" : "Printable medication sheet"}
+                </p>
+                <p className="text-sm font-extrabold text-clinic-ink">{currentPlan.wCode}</p>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                <label className="field min-w-[160px]">
+                  {lang === "th" ? "รูปแบบ" : "Layout"}
+                  <select
+                    value={printLayout}
+                    onChange={(event) => setPrintLayout(event.target.value as typeof printLayout)}
+                  >
+                    <option value="half-a4">{lang === "th" ? "ครึ่ง A4" : "Half A4"}</option>
+                    <option value="label">{lang === "th" ? "ฉลากยา" : "Label"}</option>
+                  </select>
+                </label>
+                <button className="icon-button justify-center" onClick={() => window.print()} type="button">
+                  <Printer size={16} />
+                  {lang === "th" ? "พิมพ์ใบยา" : "Print sheet"}
+                </button>
+                <button
+                  className="icon-button justify-center bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  onClick={() => setPrintSheetOpen(false)}
+                  type="button"
+                >
+                  <X size={16} />
+                  {lang === "th" ? "ปิด" : "Close"}
+                </button>
+              </div>
+            </div>
+            <div className="print-sheet-wrapper">
+              <MedicationSheet plan={currentPlan} lang={lang} printLayout={printLayout} />
+            </div>
+          </section>
         )}
       </div>
     </div>

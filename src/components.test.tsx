@@ -439,6 +439,46 @@ describe("StaffCoordination", () => {
     expect(coordinationApiMock.loadClinicSession).toHaveBeenCalledWith("session-1");
     expect(screen.getByText("W123")).toBeInTheDocument();
   });
+
+  it("opens a printable medication sheet from a found session plan", async () => {
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => undefined);
+    coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
+      found: true,
+      sessionId: "session-1",
+    });
+    coordinationApiMock.loadClinicSession.mockResolvedValueOnce({
+      id: "session-1",
+      sessionHash: "hashed-hn",
+      clinicDate: "2026-06-21",
+      status: "physician_reviewed",
+      currentPlan: makePlan(),
+      expiresAt: "2026-06-21T23:59:59.000+07:00",
+      createdBy: "doctor-1",
+      physicianReviewedBy: "doctor-1",
+      physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+      pharmacyReviewedBy: null,
+      pharmacyReviewedAt: null,
+      dispensedBy: null,
+      dispensedAt: null,
+    });
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("ค้นหา session"));
+
+    await screen.findByRole("button", { name: "เปิดใบยาเพื่อพิมพ์" });
+    fireEvent.click(screen.getByRole("button", { name: "เปิดใบยาเพื่อพิมพ์" }));
+
+    expect(screen.getByLabelText("ใบแนะนำการรับประทานยา")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "พิมพ์ใบยา" }));
+    expect(printSpy).toHaveBeenCalled();
+  });
 });
 
 describe("DoctorSessionPanel", () => {
