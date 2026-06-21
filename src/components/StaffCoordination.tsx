@@ -1,10 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FileText, Printer, X } from "lucide-react";
-import { findSessionByHn, loadClinicSession, requestCorrection } from "../coordination/api";
+import {
+  findSessionByHn,
+  loadClinicSession,
+  loadTodayClinicSessions,
+  requestCorrection,
+} from "../coordination/api";
 import type { ClinicSession, CorrectionReason, StaffProfile } from "../coordination/types";
 import DoctorSessionPanel from "./DoctorSessionPanel";
 import MedicationSheet from "./MedicationSheet";
 import PharmacySessionPanel from "./PharmacySessionPanel";
+
+function getLocalClinicDate(): string {
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 10);
+}
+
+function shortSessionId(id: string): string {
+  return id.replace(/^session-/, "").slice(-6);
+}
+
+function sessionReviewTime(session: ClinicSession): string {
+  const reviewedAt = session.physicianReviewedAt ?? session.pharmacyReviewedAt ?? session.dispensedAt;
+  if (!reviewedAt) return "-";
+  return new Date(reviewedAt).toLocaleTimeString("th-TH", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function StaffCoordination({
   lang,
@@ -18,6 +42,10 @@ export default function StaffCoordination({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<ClinicSession | null>(null);
+  const [todaySessions, setTodaySessions] = useState<ClinicSession[]>([]);
+  const [worklistLoading, setWorklistLoading] = useState(true);
+  const [worklistError, setWorklistError] = useState("");
+  const [matchedSessionId, setMatchedSessionId] = useState("");
   const [printSheetOpen, setPrintSheetOpen] = useState(false);
   const [printLayout, setPrintLayout] = useState<"half-a4" | "label">("half-a4");
   const heading =
@@ -29,19 +57,44 @@ export default function StaffCoordination({
         ? "เปิดหรือสร้าง session วันนี้"
         : "Open Or Create Today's Session";
 
+  useEffect(() => {
+    let active = true;
+
+    loadTodayClinicSessions(getLocalClinicDate())
+      .then((sessions) => {
+        if (active) setTodaySessions(sessions);
+      })
+      .catch((err) => {
+        if (active) setWorklistError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => {
+        if (active) setWorklistLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleOpenSession = async (hn: string) => {
     setLoading(true);
     setError("");
     setStatusMessage("");
     setSession(null);
+    setMatchedSessionId("");
     setPrintSheetOpen(false);
     try {
-      const clinicDate = new Date().toISOString().slice(0, 10);
+      const clinicDate = getLocalClinicDate();
       const result = await findSessionByHn(hn, clinicDate);
       if (result.found && result.sessionId) {
         const loadedSession = await loadClinicSession(result.sessionId);
         setSessionId(result.sessionId);
         setSession(loadedSession);
+        setMatchedSessionId(result.sessionId);
+        setTodaySessions((current) => {
+          const withoutLoaded = current.filter((item) => item.id !== loadedSession.id);
+          return [loadedSession, ...withoutLoaded];
+        });
         setStatusMessage(
           lang === "th"
             ? "พบ session วันนี้สำหรับ HN นี้"
@@ -64,6 +117,23 @@ export default function StaffCoordination({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectSession = (selectedSession: ClinicSession) => {
+    setSessionId(selectedSession.id);
+    setSession(selectedSession);
+    setMatchedSessionId(selectedSession.id);
+    setPrintSheetOpen(false);
+    setStatusMessage(
+      lang === "th"
+        ? `เปิด session #${shortSessionId(selectedSession.id)}`
+        : `Opened session #${shortSessionId(selectedSession.id)}`,
+    );
+  };
+
+  const handleOpenPrintFromSession = (selectedSession: ClinicSession) => {
+    handleSelectSession(selectedSession);
+    setPrintSheetOpen(true);
   };
 
   const handleCorrection = async (reason: CorrectionReason, note: string) => {
@@ -103,6 +173,102 @@ export default function StaffCoordination({
           </div>
         </div>
         <div className="space-y-3">
+          <section className="space-y-3 rounded-2xl border border-clinic-line bg-white p-4 shadow-soft">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-extrabold text-clinic-ink">
+                  {lang === "th" ? "Session วันนี้" : "Today's sessions"}
+                </h3>
+                <p className="text-[11px] font-bold text-slate-500">
+                  {lang === "th"
+                    ? "แสดงเฉพาะข้อมูลประสานงาน ไม่แสดง HN ตรง ๆ"
+                    : "Coordination-only worklist. Plain HN is not displayed."}
+                </p>
+              </div>
+              <span className="text-[11px] font-extrabold text-slate-500">
+                {worklistLoading
+                  ? lang === "th"
+                    ? "กำลังโหลด..."
+                    : "Loading..."
+                  : `${todaySessions.length} session${todaySessions.length === 1 ? "" : "s"}`}
+              </span>
+            </div>
+            {worklistError && <p className="text-xs font-bold text-clinic-red">{worklistError}</p>}
+            {todaySessions.length === 0 && !worklistLoading ? (
+              <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-500">
+                {lang === "th" ? "ยังไม่มี session วันนี้" : "No sessions today"}
+              </p>
+            ) : null}
+            <div className="space-y-2">
+              {todaySessions.map((item) => {
+                const itemCanPrint = Boolean(item.currentPlan && item.status !== "correction_requested");
+                const isMatched = item.id === matchedSessionId;
+                return (
+                  <article
+                    key={item.id}
+                    className={`rounded-xl border p-3 ${
+                      isMatched ? "border-clinic-blue bg-clinic-cyan/10" : "border-clinic-line bg-slate-50"
+                    }`}
+                  >
+                    <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-center">
+                      <div>
+                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                          {lang === "th" ? "อ้างอิง" : "Reference"}
+                        </p>
+                        <p className="text-sm font-extrabold text-clinic-ink">
+                          session #{shortSessionId(item.id)}
+                        </p>
+                        {isMatched && (
+                          <span className="mt-1 inline-block rounded-full bg-clinic-blue px-2 py-0.5 text-[10px] font-extrabold text-white">
+                            {lang === "th" ? "ตรงกับ HN ที่ค้นหา" : "Matched searched HN"}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                          {lang === "th" ? "สถานะ" : "Status"}
+                        </p>
+                        <p className="text-sm font-extrabold text-clinic-ink">{item.status}</p>
+                        {item.status === "correction_requested" && (
+                          <span className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-800">
+                            {lang === "th" ? "รอแพทย์แก้ไข" : "Correction pending"}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                          {lang === "th" ? "แผนยา / เวลา" : "Plan / time"}
+                        </p>
+                        <p className="text-sm font-extrabold text-clinic-ink">
+                          {item.currentPlan?.wCode ?? (lang === "th" ? "ยังไม่มีแผนยา" : "No plan yet")}
+                        </p>
+                        <p className="text-[11px] font-bold text-slate-500">{sessionReviewTime(item)}</p>
+                      </div>
+                      <div className="flex flex-col gap-2 sm:min-w-[170px]">
+                        <button className="icon-button justify-center" onClick={() => handleSelectSession(item)} type="button">
+                          {lang === "th" ? "เปิด" : "Open"}
+                        </button>
+                        <button
+                          className="icon-button justify-center"
+                          disabled={!itemCanPrint}
+                          onClick={() => handleOpenPrintFromSession(item)}
+                          type="button"
+                          aria-label={
+                            lang === "th"
+                              ? `เปิดใบยา session #${shortSessionId(item.id)}`
+                              : `Open sheet session #${shortSessionId(item.id)}`
+                          }
+                        >
+                          <FileText size={16} />
+                          {lang === "th" ? "เปิดใบยา" : "Open sheet"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
           <h3 className="text-sm font-extrabold text-clinic-ink">{heading}</h3>
           {statusMessage && (
             <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">

@@ -118,6 +118,20 @@ export async function loadClinicSession(sessionId: string): Promise<ClinicSessio
   return mapClinicSession(data as ClinicSessionRow);
 }
 
+export async function loadTodayClinicSessions(clinicDate: string): Promise<ClinicSession[]> {
+  const { data, error } = await getSupabaseClient()
+    .from("clinic_sessions")
+    .select("*")
+    .eq("clinic_date", clinicDate)
+    .order("physician_reviewed_at", { ascending: false, nullsFirst: false });
+
+  if (error || !data) {
+    throw new Error(`Today session list failed: ${error?.message ?? "missing sessions"}`);
+  }
+
+  return (data as ClinicSessionRow[]).map(mapClinicSession);
+}
+
 export async function createDoctorSession({
   sessionHash,
   clinicDate,

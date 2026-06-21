@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { StaffProfile } from "./types";
 
 const singleMock = vi.fn();
+const orderMock = vi.fn();
 const eqMock = vi.fn(() => ({ single: singleMock }));
 const selectMock = vi.fn(() => ({ eq: eqMock }));
 const insertSelectSingleMock = vi.fn();
@@ -19,6 +20,7 @@ describe("coordination API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();
+    eqMock.mockImplementation(() => ({ single: singleMock, order: orderMock }));
   });
 
   it("loads active staff profile for the current user", async () => {
@@ -103,6 +105,45 @@ describe("coordination API", () => {
         status: "physician_reviewed",
       }),
     );
+  });
+
+  it("loads today's clinic sessions ordered by latest physician review", async () => {
+    orderMock.mockResolvedValueOnce({
+      data: [
+        {
+          id: "session-2",
+          session_hash: "hash-2",
+          clinic_date: "2026-06-21",
+          status: "correction_requested",
+          current_plan: null,
+          expires_at: "2026-06-21T23:59:59.000+07:00",
+          created_by: "doctor-1",
+          physician_reviewed_by: "doctor-1",
+          physician_reviewed_at: "2026-06-21T13:00:00.000Z",
+          pharmacy_reviewed_by: null,
+          pharmacy_reviewed_at: null,
+          dispensed_by: null,
+          dispensed_at: null,
+        },
+      ],
+      error: null,
+    });
+
+    const { loadTodayClinicSessions } = await import("./api");
+
+    await expect(loadTodayClinicSessions("2026-06-21")).resolves.toEqual([
+      expect.objectContaining({
+        id: "session-2",
+        status: "correction_requested",
+      }),
+    ]);
+    expect(fromMock).toHaveBeenCalledWith("clinic_sessions");
+    expect(selectMock).toHaveBeenCalledWith("*");
+    expect(eqMock).toHaveBeenCalledWith("clinic_date", "2026-06-21");
+    expect(orderMock).toHaveBeenCalledWith("physician_reviewed_at", {
+      ascending: false,
+      nullsFirst: false,
+    });
   });
 
   it("rejects correction notes longer than 300 characters", async () => {

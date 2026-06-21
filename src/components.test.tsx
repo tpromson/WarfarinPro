@@ -18,6 +18,7 @@ import type { DayDose, MedicationPlan } from "./types";
 const coordinationApiMock = vi.hoisted(() => ({
   findSessionByHn: vi.fn(),
   loadClinicSession: vi.fn(),
+  loadTodayClinicSessions: vi.fn(),
   loadStaffProfile: vi.fn(),
   requestCorrection: vi.fn(),
   savePlanToCoordinationSession: vi.fn(),
@@ -478,6 +479,8 @@ describe("StaffCoordination", () => {
   beforeEach(() => {
     coordinationApiMock.findSessionByHn.mockReset();
     coordinationApiMock.loadClinicSession.mockReset();
+    coordinationApiMock.loadTodayClinicSessions.mockReset();
+    coordinationApiMock.loadTodayClinicSessions.mockResolvedValue([]);
     coordinationApiMock.requestCorrection.mockReset();
   });
 
@@ -503,6 +506,91 @@ describe("StaffCoordination", () => {
 
     expect(screen.getByText("Pharmacist B")).toBeInTheDocument();
     expect(screen.getByText("ค้นหา session วันนี้")).toBeInTheDocument();
+  });
+
+  it("loads today's sessions into a privacy-safe worklist", async () => {
+    coordinationApiMock.loadTodayClinicSessions.mockResolvedValueOnce([
+      {
+        id: "session-abcdef",
+        sessionHash: "hashed-hn",
+        clinicDate: "2026-06-21",
+        status: "physician_reviewed",
+        currentPlan: makePlan(),
+        expiresAt: "2026-06-21T23:59:59.000+07:00",
+        createdBy: "doctor-1",
+        physicianReviewedBy: "doctor-1",
+        physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+        pharmacyReviewedBy: null,
+        pharmacyReviewedAt: null,
+        dispensedBy: null,
+        dispensedAt: null,
+      },
+    ]);
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    expect(await screen.findByText("Session วันนี้")).toBeInTheDocument();
+    expect(screen.getByText("session #abcdef")).toBeInTheDocument();
+    expect(screen.getByText("physician_reviewed")).toBeInTheDocument();
+    expect(screen.getAllByText("W123").length).toBeGreaterThan(0);
+    expect(screen.queryByText("12345")).not.toBeInTheDocument();
+  });
+
+  it("highlights a worklist session after HN search finds it", async () => {
+    coordinationApiMock.loadTodayClinicSessions.mockResolvedValueOnce([
+      {
+        id: "session-abcdef",
+        sessionHash: "hashed-hn",
+        clinicDate: "2026-06-21",
+        status: "physician_reviewed",
+        currentPlan: makePlan(),
+        expiresAt: "2026-06-21T23:59:59.000+07:00",
+        createdBy: "doctor-1",
+        physicianReviewedBy: "doctor-1",
+        physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+        pharmacyReviewedBy: null,
+        pharmacyReviewedAt: null,
+        dispensedBy: null,
+        dispensedAt: null,
+      },
+    ]);
+    coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
+      found: true,
+      sessionId: "session-abcdef",
+    });
+    coordinationApiMock.loadClinicSession.mockResolvedValueOnce({
+      id: "session-abcdef",
+      sessionHash: "hashed-hn",
+      clinicDate: "2026-06-21",
+      status: "physician_reviewed",
+      currentPlan: makePlan(),
+      expiresAt: "2026-06-21T23:59:59.000+07:00",
+      createdBy: "doctor-1",
+      physicianReviewedBy: "doctor-1",
+      physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+      pharmacyReviewedBy: null,
+      pharmacyReviewedAt: null,
+      dispensedBy: null,
+      dispensedAt: null,
+    });
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("ค้นหา session"));
+
+    expect(await screen.findByText("ตรงกับ HN ที่ค้นหา")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "เปิดใบยา session #abcdef" })).toBeInTheDocument();
   });
 
   it("loads and shows session details after finding today's session", async () => {
@@ -540,7 +628,7 @@ describe("StaffCoordination", () => {
       expect(screen.getByText("สถานะ session: physician_reviewed")).toBeInTheDocument();
     });
     expect(coordinationApiMock.loadClinicSession).toHaveBeenCalledWith("session-1");
-    expect(screen.getByText("W123")).toBeInTheDocument();
+    expect(screen.getAllByText("W123").length).toBeGreaterThan(0);
   });
 
   it("opens a printable medication sheet from a found session plan", async () => {
