@@ -73,4 +73,13 @@ describe("print CSS", () => {
     expect(stickerQr).toContain("height: calc(28mm - 4mm)");
     expect(stickerQr).toContain("width: calc(28mm - 4mm)");
   });
+
+  it("keeps the coordination medication sheet visible after the global off-screen print wrapper rule", () => {
+    expect(
+      stylesCss.lastIndexOf(".coordination-sheet-visible.print-sheet-wrapper"),
+    ).toBeGreaterThan(stylesCss.lastIndexOf("\n.print-sheet-wrapper {"));
+    expect(rule(".coordination-sheet-visible.print-sheet-wrapper", stylesCss)).toContain(
+      "position: static !important",
+    );
+  });
 });

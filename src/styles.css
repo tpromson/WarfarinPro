@@ -11,15 +11,6 @@
   overflow: hidden;
 }
 
-.coordination-sheet-visible.print-sheet-wrapper {
-  position: static;
-  left: auto;
-  top: auto;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -1371,4 +1362,13 @@ select {
   100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
   }
+}
+
+.coordination-sheet-visible.print-sheet-wrapper {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
 }
