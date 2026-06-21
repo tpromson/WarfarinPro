@@ -35,6 +35,9 @@ import { getSupabaseClient } from "../coordination/supabaseClient";
 
 const interactionKeys = Object.keys(interactionLabels) as InteractionFlag[];
 const contextKeys: ContextFlag[] = ["mechanicalValve", "pregnancy", "liverDisease"];
+const DEFAULT_INR = 2.4;
+const DEFAULT_PREVIOUS_DOSE = 35;
+const DEFAULT_CLINIC_DAY: DayKey = "thu";
 
 function getLocalClinicDate(): string {
   const now = new Date();
@@ -64,12 +67,12 @@ export default function DoctorMode({
   });
   const usePink = tabletSetup === "2_3_5";
 
-  const [inr, setInr] = useState(2.4);
-  const [previousDose, setPreviousDose] = useState(35);
+  const [inr, setInr] = useState(DEFAULT_INR);
+  const [previousDose, setPreviousDose] = useState(DEFAULT_PREVIOUS_DOSE);
   const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">("standard");
   const [customLower, setCustomLower] = useState(2);
   const [customUpper, setCustomUpper] = useState(3);
-  const [clinicDay, setClinicDay] = useState<DayKey>("thu");
+  const [clinicDay, setClinicDay] = useState<DayKey>(DEFAULT_CLINIC_DAY);
   const [majorBleeding, setMajorBleeding] = useState(false);
   const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
   const [contexts, setContexts] = useState<ContextFlag[]>([]);
@@ -79,9 +82,11 @@ export default function DoctorMode({
   const [coordinationSaving, setCoordinationSaving] = useState(false);
   const [coordinationError, setCoordinationError] = useState("");
   const [coordinationStatus, setCoordinationStatus] = useState("");
+  const [coordinationResetKey, setCoordinationResetKey] = useState(0);
   const trackedPlanReady = useRef(false);
   const trackedHardStop = useRef(false);
   const focusCoordinationAfterSummaryClose = useRef(false);
+  const focusNewCaseAfterCoordinationSave = useRef(false);
 
   useEffect(() => {
     if (toastMessage) {
@@ -172,6 +177,15 @@ export default function DoctorMode({
       document.getElementById("coordination-hn-input")?.focus();
     }, 0);
   }, [showSummaryModal]);
+
+  useEffect(() => {
+    if (!coordinationStatus || !focusNewCaseAfterCoordinationSave.current) return;
+
+    focusNewCaseAfterCoordinationSave.current = false;
+    window.setTimeout(() => {
+      document.getElementById("coordination-new-case-button")?.focus();
+    }, 0);
+  }, [coordinationStatus]);
 
   const target: TargetRange = useMemo(() => {
     if (preset === "mechanical") return { preset, lower: 2.5, upper: 3.5 };
@@ -384,6 +398,31 @@ export default function DoctorMode({
     setShowSummaryModal(false);
   }
 
+  function handleStartNewCase() {
+    const clearedSafety = { majorBleeding: false, interactions: [], contexts: [] };
+    const nextSuggestion = getSuggestion(DEFAULT_INR, target, clearedSafety);
+    const nextDose = roundToHalf(DEFAULT_PREVIOUS_DOSE * (1 + nextSuggestion.defaultAdjustment / 100));
+
+    setInr(DEFAULT_INR);
+    setPreviousDose(DEFAULT_PREVIOUS_DOSE);
+    setClinicDay(DEFAULT_CLINIC_DAY);
+    setMajorBleeding(false);
+    setInteractions([]);
+    setContexts([]);
+    setSelectedAdjustment(nextSuggestion.defaultAdjustment);
+    setHoldDoses(nextSuggestion.defaultHoldDoses);
+    setMaintenance(buildMaintenanceSchedule(nextDose, usePink));
+    setCoordinationError("");
+    setCoordinationStatus("");
+    setCoordinationResetKey((key) => key + 1);
+    trackedPlanReady.current = false;
+    trackedHardStop.current = false;
+
+    window.setTimeout(() => {
+      document.getElementById("inr-input")?.focus();
+    }, 0);
+  }
+
   async function handleSaveToCoordination(hn: string) {
     if (!plan) return;
 
@@ -422,6 +461,7 @@ export default function DoctorMode({
         userId: profile.userId,
       });
 
+      focusNewCaseAfterCoordinationSave.current = true;
       setCoordinationStatus(
         result.created
           ? lang === "th"
@@ -880,11 +920,13 @@ export default function DoctorMode({
                     setPrintLayout={setPrintLayout}
                   />
                   <CoordinationSavePanel
+                    key={coordinationResetKey}
                     lang={lang}
                     loading={coordinationSaving}
                     error={coordinationError}
                     status={coordinationStatus}
                     onSave={handleSaveToCoordination}
+                    onNewCase={handleStartNewCase}
                   />
                   <div className="print-sheet-wrapper">
                     <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />

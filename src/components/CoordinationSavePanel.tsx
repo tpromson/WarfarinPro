@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { UsersRound } from "lucide-react";
+import { RotateCcw, UsersRound } from "lucide-react";
 import Panel from "./Panel";
 
 export default function CoordinationSavePanel({
@@ -8,12 +8,14 @@ export default function CoordinationSavePanel({
   error,
   status,
   onSave,
+  onNewCase,
 }: {
   lang: "th" | "en";
   loading: boolean;
   error: string;
   status: string;
   onSave: (hn: string) => void;
+  onNewCase?: () => void;
 }) {
   const [hn, setHn] = useState("");
 
@@ -52,6 +54,17 @@ export default function CoordinationSavePanel({
         <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
           {status}
         </p>
+      )}
+      {status && onNewCase && (
+        <button
+          id="coordination-new-case-button"
+          className="icon-button mt-3"
+          onClick={onNewCase}
+          type="button"
+        >
+          <RotateCcw size={16} />
+          {lang === "th" ? "เริ่มเคสใหม่" : "Start new case"}
+        </button>
       )}
       {error && <p className="mt-3 text-xs font-bold text-clinic-red">{error}</p>}
       <p className="mt-2 text-[11px] text-slate-500">

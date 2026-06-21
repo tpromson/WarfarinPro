@@ -25,6 +25,18 @@ const coordinationApiMock = vi.hoisted(() => ({
 
 vi.mock("./coordination/api", () => coordinationApiMock);
 
+const supabaseClientMock = vi.hoisted(() => ({
+  getUser: vi.fn(),
+}));
+
+vi.mock("./coordination/supabaseClient", () => ({
+  getSupabaseClient: () => ({
+    auth: {
+      getUser: supabaseClientMock.getUser,
+    },
+  }),
+}));
+
 function makeCombo(overrides: Partial<DayDose["combo"]> = {}): DayDose["combo"] {
   return {
     dose: 5,
@@ -285,6 +297,9 @@ describe("MedicationSheet", () => {
 describe("DoctorMode keyboard workflow", () => {
   beforeEach(() => {
     localStorage.setItem("warfarinpro.tablet_setup", "2_3");
+    coordinationApiMock.loadStaffProfile.mockReset();
+    coordinationApiMock.savePlanToCoordinationSession.mockReset();
+    supabaseClientMock.getUser.mockReset();
   });
 
   afterEach(() => {
@@ -311,6 +326,49 @@ describe("DoctorMode keyboard workflow", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
       expect(screen.getByLabelText("HN")).toHaveFocus();
+    });
+  });
+
+  it("focuses new case after saving coordination and resets the doctor form with Enter", async () => {
+    supabaseClientMock.getUser.mockResolvedValueOnce({
+      data: { user: { id: "doctor-1" } },
+      error: null,
+    });
+    coordinationApiMock.loadStaffProfile.mockResolvedValueOnce({
+      userId: "doctor-1",
+      role: "doctor",
+      displayName: "Doctor A",
+      active: true,
+    });
+    coordinationApiMock.savePlanToCoordinationSession.mockResolvedValueOnce({
+      sessionId: "session-1",
+      created: true,
+    });
+
+    render(
+      <DoctorMode
+        lang="th"
+        onOpenPatient={vi.fn()}
+        printLayout="half-a4"
+        setPrintLayout={vi.fn()}
+      />,
+    );
+
+    const inrInput = document.getElementById("inr-input") as HTMLInputElement;
+    fireEvent.change(inrInput, { target: { value: "3.7" } });
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.submit(screen.getByLabelText("HN").closest("form")!);
+
+    const newCaseButton = await screen.findByRole("button", { name: "เริ่มเคสใหม่" });
+    await waitFor(() => expect(newCaseButton).toHaveFocus());
+
+    fireEvent.keyDown(newCaseButton, { key: "Enter" });
+    fireEvent.click(newCaseButton);
+
+    await waitFor(() => {
+      expect(inrInput).toHaveValue(2.4);
+      expect(screen.getByLabelText("HN")).toHaveValue("");
+      expect(inrInput).toHaveFocus();
     });
   });
 });
