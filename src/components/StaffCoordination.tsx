@@ -3,10 +3,19 @@ import { FileText, Printer, X } from "lucide-react";
 import {
   findSessionByHn,
   loadClinicSession,
+  loadOpenCorrectionRequest,
   loadTodayClinicSessions,
   requestCorrection,
+  resolveCorrectionForSession,
 } from "../coordination/api";
-import type { ClinicSession, CorrectionReason, StaffProfile } from "../coordination/types";
+import type {
+  ClinicSession,
+  CoordinationStatus,
+  CorrectionRequest,
+  CorrectionResolution,
+  CorrectionReason,
+  StaffProfile,
+} from "../coordination/types";
 import DoctorSessionPanel from "./DoctorSessionPanel";
 import MedicationSheet from "./MedicationSheet";
 import PharmacySessionPanel from "./PharmacySessionPanel";
@@ -46,6 +55,7 @@ export default function StaffCoordination({
   const [worklistLoading, setWorklistLoading] = useState(true);
   const [worklistError, setWorklistError] = useState("");
   const [matchedSessionId, setMatchedSessionId] = useState("");
+  const [openCorrection, setOpenCorrection] = useState<CorrectionRequest | null>(null);
   const [printSheetOpen, setPrintSheetOpen] = useState(false);
   const [printLayout, setPrintLayout] = useState<"half-a4" | "label">("half-a4");
   const heading =
@@ -82,6 +92,7 @@ export default function StaffCoordination({
     setStatusMessage("");
     setSession(null);
     setMatchedSessionId("");
+    setOpenCorrection(null);
     setPrintSheetOpen(false);
     try {
       const clinicDate = getLocalClinicDate();
@@ -91,6 +102,9 @@ export default function StaffCoordination({
         setSessionId(result.sessionId);
         setSession(loadedSession);
         setMatchedSessionId(result.sessionId);
+        if (loadedSession.status === "correction_requested") {
+          setOpenCorrection(await loadOpenCorrectionRequest(result.sessionId));
+        }
         setTodaySessions((current) => {
           const withoutLoaded = current.filter((item) => item.id !== loadedSession.id);
           return [loadedSession, ...withoutLoaded];
@@ -119,11 +133,15 @@ export default function StaffCoordination({
     }
   };
 
-  const handleSelectSession = (selectedSession: ClinicSession) => {
+  const handleSelectSession = async (selectedSession: ClinicSession) => {
     setSessionId(selectedSession.id);
     setSession(selectedSession);
     setMatchedSessionId(selectedSession.id);
+    setOpenCorrection(null);
     setPrintSheetOpen(false);
+    if (selectedSession.status === "correction_requested") {
+      setOpenCorrection(await loadOpenCorrectionRequest(selectedSession.id));
+    }
     setStatusMessage(
       lang === "th"
         ? `เปิด session #${shortSessionId(selectedSession.id)}`
@@ -132,8 +150,50 @@ export default function StaffCoordination({
   };
 
   const handleOpenPrintFromSession = (selectedSession: ClinicSession) => {
-    handleSelectSession(selectedSession);
+    void handleSelectSession(selectedSession);
     setPrintSheetOpen(true);
+  };
+
+  const handleResolveCorrection = async (
+    resolution: CorrectionResolution,
+    nextStatus: Extract<CoordinationStatus, "physician_reviewed" | "physician_revised">,
+  ) => {
+    if (!session || !openCorrection) return;
+    setLoading(true);
+    setError("");
+    try {
+      await resolveCorrectionForSession({
+        requestId: openCorrection.id,
+        sessionId: session.id,
+        resolution,
+        userId: profile.userId,
+        ...(resolution === "updated_plan" ? { plan: session.currentPlan } : {}),
+      });
+      const resolvedSession = {
+        ...session,
+        status: nextStatus,
+        physicianReviewedBy: profile.userId,
+        physicianReviewedAt: new Date().toISOString(),
+      };
+      setSession(resolvedSession);
+      setOpenCorrection(null);
+      setTodaySessions((current) =>
+        current.map((item) => (item.id === resolvedSession.id ? resolvedSession : item)),
+      );
+      setStatusMessage(
+        resolution === "rejected"
+          ? lang === "th"
+            ? "แพทย์ approve แผนเดิมแล้ว"
+            : "Physician approved the existing plan"
+          : lang === "th"
+            ? "แพทย์บันทึกแผนที่แก้ไขแล้ว"
+            : "Physician saved the revised plan",
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCorrection = async (reason: CorrectionReason, note: string) => {
@@ -245,7 +305,7 @@ export default function StaffCoordination({
                         <p className="text-[11px] font-bold text-slate-500">{sessionReviewTime(item)}</p>
                       </div>
                       <div className="flex flex-col gap-2 sm:min-w-[170px]">
-                        <button className="icon-button justify-center" onClick={() => handleSelectSession(item)} type="button">
+                        <button className="icon-button justify-center" onClick={() => void handleSelectSession(item)} type="button">
                           {lang === "th" ? "เปิด" : "Open"}
                         </button>
                         <button
@@ -318,6 +378,37 @@ export default function StaffCoordination({
                 ? "มีคำขอแก้ไขค้างอยู่ รอแพทย์ approve/revise ก่อนพิมพ์จ่าย"
                 : "A correction is pending. Wait for physician approval or revision before dispensing."}
             </p>
+          )}
+          {profile.role === "doctor" && session?.status === "correction_requested" && openCorrection && (
+            <section className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-soft">
+              <div>
+                <h3 className="text-sm font-extrabold text-amber-950">
+                  {lang === "th" ? "คำขอแก้ไขจากเภสัช" : "Correction request from pharmacist"}
+                </h3>
+                <p className="text-xs font-bold text-amber-800">{openCorrection.reason}</p>
+              </div>
+              <p className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm font-bold text-clinic-ink">
+                {openCorrection.note}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  className="icon-button justify-center"
+                  disabled={loading}
+                  onClick={() => void handleResolveCorrection("rejected", "physician_reviewed")}
+                  type="button"
+                >
+                  {lang === "th" ? "Approve แผนเดิม" : "Approve existing plan"}
+                </button>
+                <button
+                  className="icon-button justify-center"
+                  disabled={loading || !currentPlan}
+                  onClick={() => void handleResolveCorrection("updated_plan", "physician_revised")}
+                  type="button"
+                >
+                  {lang === "th" ? "บันทึกแผนที่แก้ไขแล้ว" : "Save revised plan"}
+                </button>
+              </div>
+            </section>
           )}
           {profile.role === "pharmacist" ? (
             <PharmacySessionPanel

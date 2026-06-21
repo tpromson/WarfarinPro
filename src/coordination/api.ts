@@ -4,6 +4,7 @@ import { getSupabaseClient } from "./supabaseClient";
 import type {
   ClinicSession,
   CoordinationStatus,
+  CorrectionRequest,
   CorrectionReason,
   CorrectionResolution,
   StaffProfile,
@@ -30,6 +31,18 @@ type ClinicSessionRow = {
   pharmacy_reviewed_at: string | null;
   dispensed_by: string | null;
   dispensed_at: string | null;
+};
+
+type CorrectionRequestRow = {
+  id: string;
+  session_id: string;
+  reason: CorrectionReason;
+  note: string;
+  requested_by: string;
+  requested_at: string;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  resolution: CorrectionResolution | null;
 };
 
 type FindSessionResult = {
@@ -68,6 +81,20 @@ function mapClinicSession(row: ClinicSessionRow): ClinicSession {
     pharmacyReviewedAt: row.pharmacy_reviewed_at,
     dispensedBy: row.dispensed_by,
     dispensedAt: row.dispensed_at,
+  };
+}
+
+function mapCorrectionRequest(row: CorrectionRequestRow): CorrectionRequest {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    reason: row.reason,
+    note: row.note,
+    requestedBy: row.requested_by,
+    requestedAt: row.requested_at,
+    resolvedBy: row.resolved_by,
+    resolvedAt: row.resolved_at,
+    resolution: row.resolution,
   };
 }
 
@@ -130,6 +157,22 @@ export async function loadTodayClinicSessions(clinicDate: string): Promise<Clini
   }
 
   return (data as ClinicSessionRow[]).map(mapClinicSession);
+}
+
+export async function loadOpenCorrectionRequest(sessionId: string): Promise<CorrectionRequest | null> {
+  const { data, error } = await getSupabaseClient()
+    .from("correction_requests")
+    .select("*")
+    .eq("session_id", sessionId)
+    .is("resolved_at", null)
+    .single();
+
+  if (error || !data) {
+    if (error?.code === "PGRST116") return null;
+    throw new Error(`Correction request load failed: ${error?.message ?? "missing correction request"}`);
+  }
+
+  return mapCorrectionRequest(data as CorrectionRequestRow);
 }
 
 export async function createDoctorSession({
@@ -269,6 +312,56 @@ export async function resolveCorrection(
 
   if (error) {
     throw new Error(`Correction resolution failed: ${error.message}`);
+  }
+}
+
+export async function resolveCorrectionForSession({
+  requestId,
+  sessionId,
+  resolution,
+  userId,
+  plan,
+}: {
+  requestId: string;
+  sessionId: string;
+  resolution: CorrectionResolution;
+  userId: string;
+  plan?: MedicationPlan | null;
+}): Promise<void> {
+  const resolvedAt = new Date().toISOString();
+  const { error } = await getSupabaseClient()
+    .from("correction_requests")
+    .update({
+      resolution,
+      resolved_by: userId,
+      resolved_at: resolvedAt,
+    })
+    .eq("id", requestId);
+
+  if (error) {
+    throw new Error(`Correction resolution failed: ${error.message}`);
+  }
+
+  const nextStatus = resolution === "rejected" ? "physician_reviewed" : "physician_revised";
+  const updateValues: {
+    status: CoordinationStatus;
+    physician_reviewed_by: string;
+    physician_reviewed_at: string;
+    current_plan?: MedicationPlan;
+  } = {
+    status: nextStatus,
+    physician_reviewed_by: userId,
+    physician_reviewed_at: resolvedAt,
+  };
+  if (plan) updateValues.current_plan = plan;
+
+  const { error: sessionError } = await getSupabaseClient()
+    .from("clinic_sessions")
+    .update(updateValues)
+    .eq("id", sessionId);
+
+  if (sessionError) {
+    throw new Error(`Correction session status update failed: ${sessionError.message}`);
   }
 }
 

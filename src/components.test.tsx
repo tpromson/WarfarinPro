@@ -18,9 +18,11 @@ import type { DayDose, MedicationPlan } from "./types";
 const coordinationApiMock = vi.hoisted(() => ({
   findSessionByHn: vi.fn(),
   loadClinicSession: vi.fn(),
+  loadOpenCorrectionRequest: vi.fn(),
   loadTodayClinicSessions: vi.fn(),
   loadStaffProfile: vi.fn(),
   requestCorrection: vi.fn(),
+  resolveCorrectionForSession: vi.fn(),
   savePlanToCoordinationSession: vi.fn(),
 }));
 
@@ -479,9 +481,13 @@ describe("StaffCoordination", () => {
   beforeEach(() => {
     coordinationApiMock.findSessionByHn.mockReset();
     coordinationApiMock.loadClinicSession.mockReset();
+    coordinationApiMock.loadOpenCorrectionRequest.mockReset();
+    coordinationApiMock.loadOpenCorrectionRequest.mockResolvedValue(null);
     coordinationApiMock.loadTodayClinicSessions.mockReset();
     coordinationApiMock.loadTodayClinicSessions.mockResolvedValue([]);
     coordinationApiMock.requestCorrection.mockReset();
+    coordinationApiMock.resolveCorrectionForSession.mockReset();
+    coordinationApiMock.resolveCorrectionForSession.mockResolvedValue(undefined);
   });
 
   it("shows doctor workflow for doctor role", () => {
@@ -710,6 +716,123 @@ describe("StaffCoordination", () => {
     const heading = screen.getByText("ประสานงานแพทย์-เภสัช");
     expect(heading.closest(".print\\:hidden")).not.toBeNull();
     expect(screen.getByLabelText("ใบแนะนำการรับประทานยา").closest(".print\\:hidden")).toBeNull();
+  });
+
+  it("lets doctors approve the existing plan to clear a correction request", async () => {
+    coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
+      found: true,
+      sessionId: "session-1",
+    });
+    coordinationApiMock.loadClinicSession.mockResolvedValueOnce({
+      id: "session-1",
+      sessionHash: "hashed-hn",
+      clinicDate: "2026-06-21",
+      status: "correction_requested",
+      currentPlan: makePlan(),
+      expiresAt: "2026-06-21T23:59:59.000+07:00",
+      createdBy: "doctor-1",
+      physicianReviewedBy: "doctor-1",
+      physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+      pharmacyReviewedBy: null,
+      pharmacyReviewedAt: null,
+      dispensedBy: null,
+      dispensedAt: null,
+    });
+    coordinationApiMock.loadOpenCorrectionRequest.mockResolvedValueOnce({
+      id: "correction-1",
+      sessionId: "session-1",
+      reason: "pill_burden",
+      note: "ลดจำนวนเม็ดยาได้ไหม",
+      requestedBy: "pharmacist-1",
+      requestedAt: "2026-06-21T12:05:00.000Z",
+      resolvedBy: null,
+      resolvedAt: null,
+      resolution: null,
+    });
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "doctor-1", role: "doctor", displayName: "Doctor A", active: true }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("เปิดหรือสร้าง session"));
+
+    expect(await screen.findByText("คำขอแก้ไขจากเภสัช")).toBeInTheDocument();
+    expect(screen.getByText("pill_burden")).toBeInTheDocument();
+    expect(screen.getByText("ลดจำนวนเม็ดยาได้ไหม")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Approve แผนเดิม" }));
+
+    await waitFor(() => {
+      expect(coordinationApiMock.resolveCorrectionForSession).toHaveBeenCalledWith({
+        requestId: "correction-1",
+        sessionId: "session-1",
+        resolution: "rejected",
+        userId: "doctor-1",
+      });
+    });
+    expect(screen.getByText("แพทย์ approve แผนเดิมแล้ว")).toBeInTheDocument();
+    expect(screen.getByText("สถานะ session: physician_reviewed")).toBeInTheDocument();
+  });
+
+  it("lets doctors mark the current plan as revised after a correction request", async () => {
+    const plan = makePlan();
+    coordinationApiMock.findSessionByHn.mockResolvedValueOnce({
+      found: true,
+      sessionId: "session-1",
+    });
+    coordinationApiMock.loadClinicSession.mockResolvedValueOnce({
+      id: "session-1",
+      sessionHash: "hashed-hn",
+      clinicDate: "2026-06-21",
+      status: "correction_requested",
+      currentPlan: plan,
+      expiresAt: "2026-06-21T23:59:59.000+07:00",
+      createdBy: "doctor-1",
+      physicianReviewedBy: "doctor-1",
+      physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+      pharmacyReviewedBy: null,
+      pharmacyReviewedAt: null,
+      dispensedBy: null,
+      dispensedAt: null,
+    });
+    coordinationApiMock.loadOpenCorrectionRequest.mockResolvedValueOnce({
+      id: "correction-1",
+      sessionId: "session-1",
+      reason: "safety_concern",
+      note: "INR สูง",
+      requestedBy: "pharmacist-1",
+      requestedAt: "2026-06-21T12:05:00.000Z",
+      resolvedBy: null,
+      resolvedAt: null,
+      resolution: null,
+    });
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "doctor-1", role: "doctor", displayName: "Doctor A", active: true }}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
+    fireEvent.click(screen.getByText("เปิดหรือสร้าง session"));
+
+    fireEvent.click(await screen.findByRole("button", { name: "บันทึกแผนที่แก้ไขแล้ว" }));
+
+    await waitFor(() => {
+      expect(coordinationApiMock.resolveCorrectionForSession).toHaveBeenCalledWith({
+        requestId: "correction-1",
+        sessionId: "session-1",
+        resolution: "updated_plan",
+        userId: "doctor-1",
+        plan,
+      });
+    });
+    expect(screen.getByText("แพทย์บันทึกแผนที่แก้ไขแล้ว")).toBeInTheDocument();
+    expect(screen.getByText("สถานะ session: physician_revised")).toBeInTheDocument();
   });
 });
 

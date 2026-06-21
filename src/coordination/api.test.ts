@@ -3,7 +3,8 @@ import type { StaffProfile } from "./types";
 
 const singleMock = vi.fn();
 const orderMock = vi.fn();
-const eqMock = vi.fn(() => ({ single: singleMock }));
+const isMock = vi.fn(() => ({ single: singleMock }));
+const eqMock = vi.fn(() => ({ single: singleMock, is: isMock }));
 const selectMock = vi.fn(() => ({ eq: eqMock }));
 const insertSelectSingleMock = vi.fn();
 const insertSelectMock = vi.fn(() => ({ single: insertSelectSingleMock }));
@@ -20,7 +21,8 @@ describe("coordination API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();
-    eqMock.mockImplementation(() => ({ single: singleMock, order: orderMock }));
+    eqMock.mockImplementation(() => ({ single: singleMock, order: orderMock, is: isMock }));
+    isMock.mockImplementation(() => ({ single: singleMock }));
   });
 
   it("loads active staff profile for the current user", async () => {
@@ -152,6 +154,69 @@ describe("coordination API", () => {
     await expect(requestCorrection("session-1", "pill_burden", "x".repeat(301))).rejects.toThrow(
       "Correction note must be 300 characters or fewer",
     );
+  });
+
+  it("loads an open correction request for a session", async () => {
+    singleMock.mockResolvedValueOnce({
+      data: {
+        id: "correction-1",
+        session_id: "session-1",
+        reason: "pill_burden",
+        note: "ลดจำนวนเม็ดยาได้ไหม",
+        requested_by: "pharmacist-1",
+        requested_at: "2026-06-21T12:05:00.000Z",
+        resolved_by: null,
+        resolved_at: null,
+        resolution: null,
+      },
+      error: null,
+    });
+
+    const { loadOpenCorrectionRequest } = await import("./api");
+
+    await expect(loadOpenCorrectionRequest("session-1")).resolves.toEqual(
+      expect.objectContaining({
+        id: "correction-1",
+        sessionId: "session-1",
+        reason: "pill_burden",
+        note: "ลดจำนวนเม็ดยาได้ไหม",
+      }),
+    );
+    expect(fromMock).toHaveBeenCalledWith("correction_requests");
+    expect(selectMock).toHaveBeenCalledWith("*");
+    expect(eqMock).toHaveBeenCalledWith("session_id", "session-1");
+    expect(isMock).toHaveBeenCalledWith("resolved_at", null);
+  });
+
+  it("resolves a correction request and restores the session status", async () => {
+    updateEqMock.mockResolvedValue({ error: null });
+
+    const { resolveCorrectionForSession } = await import("./api");
+
+    await expect(
+      resolveCorrectionForSession({
+        requestId: "correction-1",
+        sessionId: "session-1",
+        resolution: "rejected",
+        userId: "doctor-1",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(fromMock).toHaveBeenCalledWith("correction_requests");
+    expect(updateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resolution: "rejected",
+        resolved_by: "doctor-1",
+      }),
+    );
+    expect(fromMock).toHaveBeenCalledWith("clinic_sessions");
+    expect(updateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "physician_reviewed",
+        physician_reviewed_by: "doctor-1",
+      }),
+    );
+    expect(updateEqMock).toHaveBeenCalledWith("id", "session-1");
   });
 
   it("blocks dispensing when workflow guard fails", async () => {
