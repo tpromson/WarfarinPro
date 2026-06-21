@@ -1275,8 +1275,12 @@ select {
 /* Sharp crisp QR code rendering for printing */
 .label-qr-img,
 .qr-sticker-img,
-.sheet-head img,
+.qr-code-img,
+.qr-code-box,
 .qr-box img {
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  flex: 0 0 auto;
   image-rendering: -moz-crisp-edges;
   image-rendering: -o-crisp-edges;
   image-rendering: -webkit-optimize-contrast;
@@ -1358,4 +1362,13 @@ select {
   100% {
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
   }
+}
+
+.coordination-sheet-visible.print-sheet-wrapper {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
 }

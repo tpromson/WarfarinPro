@@ -177,11 +177,11 @@ export default function MedicationSheet({
         <div className="qr-sticker qr-sticker-qr">
           <div className="qr-sticker-qr-col">
             {!qr && !qrError && (
-              <div className="qr-sticker-img" style={{ background: "#f1f5f9" }} />
+              <div className="qr-sticker-img qr-code-box" style={{ background: "#f1f5f9" }} />
             )}
             {qrError && (
               <div
-                className="qr-sticker-img"
+                className="qr-sticker-img qr-code-box"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -198,7 +198,7 @@ export default function MedicationSheet({
               <img
                 src={qr}
                 alt={lang === "th" ? "QR โค้ดตารางยา" : "Medication schedule QR"}
-                className="qr-sticker-img"
+                className="qr-sticker-img qr-code-img"
               />
             )}
             <span className="qr-sticker-scan">
@@ -285,7 +285,7 @@ export default function MedicationSheet({
           <div className="label-qrpage-qr">
             {!qr && !qrError && (
               <div
-                className="label-qrpage-img"
+                className="label-qrpage-img qr-code-box"
                 style={{ background: "#f1f5f9" }}
                 role="img"
                 aria-label={lang === "th" ? "กำลังสร้าง QR" : "Generating QR"}
@@ -293,7 +293,7 @@ export default function MedicationSheet({
             )}
             {qrError && (
               <div
-                className="label-qrpage-img"
+                className="label-qrpage-img qr-code-box"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -313,7 +313,7 @@ export default function MedicationSheet({
               <img
                 src={qr}
                 alt={lang === "th" ? "QR โค้ดตารางยา" : "Medication schedule QR"}
-                className="label-qrpage-img"
+                className="label-qrpage-img qr-code-img"
               />
             )}
             <span className="label-qrpage-caption">
@@ -351,13 +351,13 @@ export default function MedicationSheet({
               <div className="flex flex-col items-center gap-0.5">
                 {!qr && !qrError && (
                   <div
-                    className="h-24 w-24 border border-clinic-line rounded bg-slate-50"
+                    className="qr-code-box h-24 w-24 border border-clinic-line rounded bg-slate-50"
                     role="img"
                     aria-label={lang === "th" ? "กำลังสร้าง QR" : "Generating QR"}
                   />
                 )}
                 {qrError && (
-                  <div className="h-24 w-24 border border-clinic-line rounded bg-slate-50 flex items-center justify-center text-center text-[9px] text-slate-500 font-bold p-1">
+                  <div className="qr-code-box h-24 w-24 border border-clinic-line rounded bg-slate-50 flex items-center justify-center text-center text-[9px] text-slate-500 font-bold p-1">
                     {lang === "th" ? "QR ใช้งานไม่ได้ — ใช้ W-code" : "QR unavailable — use W-code"}
                   </div>
                 )}
@@ -369,7 +369,7 @@ export default function MedicationSheet({
                         ? "QR โค้ดสำหรับเปิดตารางยาบนมือถือ"
                         : "QR code linking to full medication schedule"
                     }
-                    className="h-24 w-24 border border-clinic-line rounded p-0.5 bg-white"
+                    className="qr-code-img h-24 w-24 border border-clinic-line rounded p-0.5 bg-white"
                   />
                 )}
                 <span className="text-[10px] text-slate-500 font-extrabold">

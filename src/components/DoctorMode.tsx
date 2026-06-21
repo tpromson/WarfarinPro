@@ -29,20 +29,41 @@ import ScheduleEditor from "./ScheduleEditor";
 import BookletAndSharePanel from "./BookletAndSharePanel";
 import MedicationSheet from "./MedicationSheet";
 import { trackEvent } from "../analytics";
+import CoordinationSavePanel from "./CoordinationSavePanel";
+import {
+  loadStaffProfile,
+  resolveCorrectionForSession,
+  savePlanToCoordinationSession,
+} from "../coordination/api";
+import { getSupabaseClient } from "../coordination/supabaseClient";
+import type { CorrectionPlanDraft } from "../coordination/types";
 
 const interactionKeys = Object.keys(interactionLabels) as InteractionFlag[];
 const contextKeys: ContextFlag[] = ["mechanicalValve", "pregnancy", "liverDisease"];
+const DEFAULT_INR = 2.4;
+const DEFAULT_PREVIOUS_DOSE = 35;
+const DEFAULT_CLINIC_DAY: DayKey = "thu";
+
+function getLocalClinicDate(): string {
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return localTime.toISOString().slice(0, 10);
+}
 
 export default function DoctorMode({
   onOpenPatient,
   lang,
   printLayout,
   setPrintLayout,
+  correctionDraft,
+  onCorrectionDraftSaved,
 }: {
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
   printLayout: "half-a4" | "label";
   setPrintLayout: (layout: "half-a4" | "label") => void;
+  correctionDraft?: CorrectionPlanDraft | null;
+  onCorrectionDraftSaved?: () => void;
 }) {
   const isMac =
     typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
@@ -51,24 +72,40 @@ export default function DoctorMode({
   const [tabletSetup, setTabletSetup] = useState<"2_3" | "2_3_5" | null>(() => {
     const saved = localStorage.getItem("warfarinpro.tablet_setup");
     if (saved === "2_3" || saved === "2_3_5") return saved;
+    if (correctionDraft) return correctionDraft.plan.usePink ? "2_3_5" : "2_3";
     return null;
   });
   const usePink = tabletSetup === "2_3_5";
 
-  const [inr, setInr] = useState(2.4);
-  const [previousDose, setPreviousDose] = useState(35);
-  const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">("standard");
-  const [customLower, setCustomLower] = useState(2);
-  const [customUpper, setCustomUpper] = useState(3);
-  const [clinicDay, setClinicDay] = useState<DayKey>("thu");
-  const [majorBleeding, setMajorBleeding] = useState(false);
-  const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
-  const [contexts, setContexts] = useState<ContextFlag[]>([]);
+  const draftPlan = correctionDraft?.plan;
+  const [inr, setInr] = useState(draftPlan?.currentInr ?? DEFAULT_INR);
+  const [previousDose, setPreviousDose] = useState(
+    draftPlan?.previousWeeklyDose ?? DEFAULT_PREVIOUS_DOSE,
+  );
+  const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">(
+    draftPlan?.target.preset ?? "standard",
+  );
+  const [customLower, setCustomLower] = useState(draftPlan?.target.lower ?? 2);
+  const [customUpper, setCustomUpper] = useState(draftPlan?.target.upper ?? 3);
+  const [clinicDay, setClinicDay] = useState<DayKey>(draftPlan?.clinicDay ?? DEFAULT_CLINIC_DAY);
+  const [majorBleeding, setMajorBleeding] = useState(draftPlan?.safety.majorBleeding ?? false);
+  const [interactions, setInteractions] = useState<InteractionFlag[]>(
+    draftPlan?.safety.interactionFlags ?? [],
+  );
+  const [contexts, setContexts] = useState<ContextFlag[]>(
+    draftPlan?.safety.contextFlags ?? [],
+  );
   const [isSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [coordinationSaving, setCoordinationSaving] = useState(false);
+  const [coordinationError, setCoordinationError] = useState("");
+  const [coordinationStatus, setCoordinationStatus] = useState("");
+  const [coordinationResetKey, setCoordinationResetKey] = useState(0);
   const trackedPlanReady = useRef(false);
   const trackedHardStop = useRef(false);
+  const focusCoordinationAfterSummaryClose = useRef(false);
+  const focusNewCaseAfterCoordinationSave = useRef(false);
 
   useEffect(() => {
     if (toastMessage) {
@@ -134,7 +171,7 @@ export default function DoctorMode({
                 behavior: "smooth",
               });
             } else {
-              setShowSummaryModal(false);
+              closeSummaryAndFocusCoordination();
             }
           }
         }
@@ -151,6 +188,24 @@ export default function DoctorMode({
     };
   }, [showSummaryModal]);
 
+  useEffect(() => {
+    if (showSummaryModal || !focusCoordinationAfterSummaryClose.current) return;
+
+    focusCoordinationAfterSummaryClose.current = false;
+    window.setTimeout(() => {
+      document.getElementById("coordination-hn-input")?.focus();
+    }, 0);
+  }, [showSummaryModal]);
+
+  useEffect(() => {
+    if (!coordinationStatus || !focusNewCaseAfterCoordinationSave.current) return;
+
+    focusNewCaseAfterCoordinationSave.current = false;
+    window.setTimeout(() => {
+      document.getElementById("coordination-new-case-button")?.focus();
+    }, 0);
+  }, [coordinationStatus]);
+
   const target: TargetRange = useMemo(() => {
     if (preset === "mechanical") return { preset, lower: 2.5, upper: 3.5 };
     if (preset === "custom") return { preset, lower: customLower, upper: customUpper };
@@ -162,8 +217,12 @@ export default function DoctorMode({
     [majorBleeding, interactions, contexts],
   );
   const suggestion = useMemo(() => getSuggestion(inr, target, safety), [inr, safety, target]);
-  const [selectedAdjustment, setSelectedAdjustment] = useState(suggestion.defaultAdjustment);
-  const [holdDoses, setHoldDoses] = useState(suggestion.defaultHoldDoses);
+  const [selectedAdjustment, setSelectedAdjustment] = useState(
+    draftPlan?.selectedAdjustment ?? suggestion.defaultAdjustment,
+  );
+  const [holdDoses, setHoldDoses] = useState(
+    draftPlan?.firstWeekHoldDoses ?? suggestion.defaultHoldDoses,
+  );
 
   const [prevSuggestionKey, setPrevSuggestionKey] = useState(
     `${suggestion.defaultAdjustment}-${suggestion.defaultHoldDoses}`,
@@ -177,7 +236,7 @@ export default function DoctorMode({
 
   const calculatedDose = roundToHalf(previousDose * (1 + selectedAdjustment / 100));
   const [maintenance, setMaintenance] = useState<DayDose[]>(() =>
-    buildMaintenanceSchedule(calculatedDose, usePink),
+    draftPlan?.maintenanceWeek ?? buildMaintenanceSchedule(calculatedDose, usePink),
   );
 
   const [prevCalculatedDose, setPrevCalculatedDose] = useState(calculatedDose);
@@ -357,6 +416,164 @@ export default function DoctorMode({
     );
   }
 
+  function closeSummaryAndFocusCoordination() {
+    focusCoordinationAfterSummaryClose.current = true;
+    setShowSummaryModal(false);
+  }
+
+  function handleStartNewCase() {
+    const clearedSafety = { majorBleeding: false, interactions: [], contexts: [] };
+    const nextSuggestion = getSuggestion(DEFAULT_INR, target, clearedSafety);
+    const nextDose = roundToHalf(DEFAULT_PREVIOUS_DOSE * (1 + nextSuggestion.defaultAdjustment / 100));
+
+    setInr(DEFAULT_INR);
+    setPreviousDose(DEFAULT_PREVIOUS_DOSE);
+    setClinicDay(DEFAULT_CLINIC_DAY);
+    setMajorBleeding(false);
+    setInteractions([]);
+    setContexts([]);
+    setSelectedAdjustment(nextSuggestion.defaultAdjustment);
+    setHoldDoses(nextSuggestion.defaultHoldDoses);
+    setMaintenance(buildMaintenanceSchedule(nextDose, usePink));
+    setCoordinationError("");
+    setCoordinationStatus("");
+    setCoordinationResetKey((key) => key + 1);
+    trackedPlanReady.current = false;
+    trackedHardStop.current = false;
+
+    window.setTimeout(() => {
+      document.getElementById("inr-input")?.focus();
+    }, 0);
+  }
+
+  async function handleSaveCorrectionDraft() {
+    if (!plan || !correctionDraft) return;
+
+    setCoordinationSaving(true);
+    setCoordinationError("");
+    setCoordinationStatus("");
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await getSupabaseClient().auth.getUser();
+
+      if (authError || !user) {
+        throw new Error(
+          lang === "th"
+            ? "กรุณาเข้าสู่ระบบเจ้าหน้าที่ในแท็บประสานงานก่อน"
+            : "Please sign in as staff on the coordination tab first.",
+        );
+      }
+
+      const profile = await loadStaffProfile(user.id);
+      if (profile.role !== "doctor" && profile.role !== "admin") {
+        throw new Error(
+          lang === "th"
+            ? "เฉพาะแพทย์หรือผู้ดูแลระบบเท่านั้นที่บันทึกแผนยาได้"
+            : "Only doctors or admins can save medication plans.",
+        );
+      }
+
+      await resolveCorrectionForSession({
+        requestId: correctionDraft.correctionRequestId,
+        sessionId: correctionDraft.sessionId,
+        resolution: "updated_plan",
+        userId: profile.userId,
+        plan,
+      });
+      setCoordinationStatus(
+        lang === "th"
+          ? "แพทย์บันทึกแผนที่แก้ไขแล้ว"
+          : "Physician saved the revised plan",
+      );
+      onCorrectionDraftSaved?.();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : lang === "th"
+            ? "ไม่สามารถบันทึกแผนที่แก้ไขได้"
+            : "Unable to save the revised plan.";
+      setCoordinationError(message);
+    } finally {
+      setCoordinationSaving(false);
+    }
+  }
+
+  async function handleSaveToCoordination(hn: string) {
+    if (!plan) return;
+
+    setCoordinationSaving(true);
+    setCoordinationError("");
+    setCoordinationStatus("");
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await getSupabaseClient().auth.getUser();
+
+      if (authError || !user) {
+        throw new Error(
+          lang === "th"
+            ? "กรุณาเข้าสู่ระบบเจ้าหน้าที่ในแท็บประสานงานก่อน"
+            : "Please sign in as staff on the coordination tab first.",
+        );
+      }
+
+      const profile = await loadStaffProfile(user.id);
+      if (profile.role !== "doctor" && profile.role !== "admin") {
+        throw new Error(
+          lang === "th"
+            ? "เฉพาะแพทย์หรือผู้ดูแลระบบเท่านั้นที่บันทึกแผนยาได้"
+            : "Only doctors or admins can save medication plans.",
+        );
+      }
+
+      const clinicDate = getLocalClinicDate();
+      const result = await savePlanToCoordinationSession({
+        hn,
+        clinicDate,
+        plan,
+        userId: profile.userId,
+      });
+
+      focusNewCaseAfterCoordinationSave.current = true;
+      setCoordinationStatus(
+        result.created
+          ? lang === "th"
+            ? "สร้าง session วันนี้และบันทึกแผนยาแล้ว"
+            : "Created today's session and saved the medication plan."
+          : lang === "th"
+            ? "อัปเดตแผนยาใน session วันนี้แล้ว"
+            : "Updated today's coordination session.",
+      );
+      trackEvent("workflow_step_completed", {
+        section: "doctor_mode",
+        step: "coordination_plan_saved",
+        result: result.created ? "created" : "updated",
+        lang,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : lang === "th"
+            ? "ไม่สามารถบันทึก session แพทย์-เภสัชได้"
+            : "Unable to save the coordination session.";
+      setCoordinationError(message);
+      trackEvent("error_event", {
+        area: "coordination",
+        type: "plan_save_failed",
+        lang,
+      });
+    } finally {
+      setCoordinationSaving(false);
+    }
+  }
+
   if (tabletSetup === null) {
     return (
       <div className="mx-auto max-w-lg w-full px-4 py-12 animate-fadeIn flex flex-col justify-center min-h-[70vh]">
@@ -466,6 +683,33 @@ export default function DoctorMode({
     <>
       <div className="mx-auto grid gap-5 px-4 py-5 lg:grid-cols-[360px_1fr] grid-cols-1">
         <section className="space-y-4">
+          {correctionDraft && (
+            <section className="space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-soft">
+              <h2 className="text-sm font-extrabold text-amber-950">
+                {lang === "th"
+                  ? "กำลังแก้ไขแผนยาจากคำขอเภสัช"
+                  : "Editing medication plan from pharmacist correction"}
+              </h2>
+              <p className="text-xs font-bold text-amber-800">{correctionDraft.reason}</p>
+              <p className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-clinic-ink">
+                {correctionDraft.note}
+              </p>
+              {coordinationError && <p className="text-xs font-bold text-clinic-red">{coordinationError}</p>}
+              {coordinationStatus && (
+                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                  {coordinationStatus}
+                </p>
+              )}
+              <button
+                className="icon-button justify-center"
+                disabled={coordinationSaving || !plan}
+                onClick={() => void handleSaveCorrectionDraft()}
+                type="button"
+              >
+                {lang === "th" ? "บันทึกแผนที่แก้ไขแล้ว" : "Save revised plan"}
+              </button>
+            </section>
+          )}
           <Panel title="Clinical Inputs" icon={<HeartPulse size={18} />}>
             <NumberField
               id="inr-input"
@@ -781,6 +1025,15 @@ export default function DoctorMode({
                     printLayout={printLayout}
                     setPrintLayout={setPrintLayout}
                   />
+                  <CoordinationSavePanel
+                    key={coordinationResetKey}
+                    lang={lang}
+                    loading={coordinationSaving}
+                    error={coordinationError}
+                    status={coordinationStatus}
+                    onSave={handleSaveToCoordination}
+                    onNewCase={handleStartNewCase}
+                  />
                   <div className="print-sheet-wrapper">
                     <MedicationSheet plan={plan} lang={lang} printLayout={printLayout} />
                   </div>
@@ -797,7 +1050,7 @@ export default function DoctorMode({
             aria-modal="true"
             aria-labelledby="summary-modal-title"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print:hidden cursor-pointer outline-none"
-            onClick={() => setShowSummaryModal(false)}
+            onClick={closeSummaryAndFocusCoordination}
           >
             <div
               className="relative w-full max-w-4xl bg-white rounded-2xl shadow-soft border border-clinic-line overflow-hidden flex flex-col max-h-[90vh] cursor-default"
@@ -814,7 +1067,7 @@ export default function DoctorMode({
                   </h2>
                 </div>
                 <button
-                  onClick={() => setShowSummaryModal(false)}
+                  onClick={closeSummaryAndFocusCoordination}
                   className="text-white/80 hover:text-white text-xl font-bold font-mono focus:outline-none p-1"
                 >
                   ✕
@@ -839,7 +1092,7 @@ export default function DoctorMode({
               {/* Modal Footer */}
               <div className="bg-slate-50 border-t border-clinic-line p-3.5 flex justify-end gap-2">
                 <button
-                  onClick={() => setShowSummaryModal(false)}
+                  onClick={closeSummaryAndFocusCoordination}
                   className="px-4 py-1.5 bg-slate-300 text-slate-700 hover:bg-slate-400 font-bold text-xs rounded-lg transition-colors focus:outline-none"
                 >
                   {lang === "th" ? "ปิดหน้าต่าง" : "Close"}
