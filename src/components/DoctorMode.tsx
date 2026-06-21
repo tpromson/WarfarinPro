@@ -30,8 +30,13 @@ import BookletAndSharePanel from "./BookletAndSharePanel";
 import MedicationSheet from "./MedicationSheet";
 import { trackEvent } from "../analytics";
 import CoordinationSavePanel from "./CoordinationSavePanel";
-import { loadStaffProfile, savePlanToCoordinationSession } from "../coordination/api";
+import {
+  loadStaffProfile,
+  resolveCorrectionForSession,
+  savePlanToCoordinationSession,
+} from "../coordination/api";
 import { getSupabaseClient } from "../coordination/supabaseClient";
+import type { CorrectionPlanDraft } from "../coordination/types";
 
 const interactionKeys = Object.keys(interactionLabels) as InteractionFlag[];
 const contextKeys: ContextFlag[] = ["mechanicalValve", "pregnancy", "liverDisease"];
@@ -50,11 +55,15 @@ export default function DoctorMode({
   lang,
   printLayout,
   setPrintLayout,
+  correctionDraft,
+  onCorrectionDraftSaved,
 }: {
   onOpenPatient: (plan: MedicationPlan) => void;
   lang: "th" | "en";
   printLayout: "half-a4" | "label";
   setPrintLayout: (layout: "half-a4" | "label") => void;
+  correctionDraft?: CorrectionPlanDraft | null;
+  onCorrectionDraftSaved?: () => void;
 }) {
   const isMac =
     typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
@@ -63,19 +72,29 @@ export default function DoctorMode({
   const [tabletSetup, setTabletSetup] = useState<"2_3" | "2_3_5" | null>(() => {
     const saved = localStorage.getItem("warfarinpro.tablet_setup");
     if (saved === "2_3" || saved === "2_3_5") return saved;
+    if (correctionDraft) return correctionDraft.plan.usePink ? "2_3_5" : "2_3";
     return null;
   });
   const usePink = tabletSetup === "2_3_5";
 
-  const [inr, setInr] = useState(DEFAULT_INR);
-  const [previousDose, setPreviousDose] = useState(DEFAULT_PREVIOUS_DOSE);
-  const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">("standard");
-  const [customLower, setCustomLower] = useState(2);
-  const [customUpper, setCustomUpper] = useState(3);
-  const [clinicDay, setClinicDay] = useState<DayKey>(DEFAULT_CLINIC_DAY);
-  const [majorBleeding, setMajorBleeding] = useState(false);
-  const [interactions, setInteractions] = useState<InteractionFlag[]>([]);
-  const [contexts, setContexts] = useState<ContextFlag[]>([]);
+  const draftPlan = correctionDraft?.plan;
+  const [inr, setInr] = useState(draftPlan?.currentInr ?? DEFAULT_INR);
+  const [previousDose, setPreviousDose] = useState(
+    draftPlan?.previousWeeklyDose ?? DEFAULT_PREVIOUS_DOSE,
+  );
+  const [preset, setPreset] = useState<"standard" | "mechanical" | "custom">(
+    draftPlan?.target.preset ?? "standard",
+  );
+  const [customLower, setCustomLower] = useState(draftPlan?.target.lower ?? 2);
+  const [customUpper, setCustomUpper] = useState(draftPlan?.target.upper ?? 3);
+  const [clinicDay, setClinicDay] = useState<DayKey>(draftPlan?.clinicDay ?? DEFAULT_CLINIC_DAY);
+  const [majorBleeding, setMajorBleeding] = useState(draftPlan?.safety.majorBleeding ?? false);
+  const [interactions, setInteractions] = useState<InteractionFlag[]>(
+    draftPlan?.safety.interactionFlags ?? [],
+  );
+  const [contexts, setContexts] = useState<ContextFlag[]>(
+    draftPlan?.safety.contextFlags ?? [],
+  );
   const [isSummaryHighlighted] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -198,8 +217,12 @@ export default function DoctorMode({
     [majorBleeding, interactions, contexts],
   );
   const suggestion = useMemo(() => getSuggestion(inr, target, safety), [inr, safety, target]);
-  const [selectedAdjustment, setSelectedAdjustment] = useState(suggestion.defaultAdjustment);
-  const [holdDoses, setHoldDoses] = useState(suggestion.defaultHoldDoses);
+  const [selectedAdjustment, setSelectedAdjustment] = useState(
+    draftPlan?.selectedAdjustment ?? suggestion.defaultAdjustment,
+  );
+  const [holdDoses, setHoldDoses] = useState(
+    draftPlan?.firstWeekHoldDoses ?? suggestion.defaultHoldDoses,
+  );
 
   const [prevSuggestionKey, setPrevSuggestionKey] = useState(
     `${suggestion.defaultAdjustment}-${suggestion.defaultHoldDoses}`,
@@ -213,7 +236,7 @@ export default function DoctorMode({
 
   const calculatedDose = roundToHalf(previousDose * (1 + selectedAdjustment / 100));
   const [maintenance, setMaintenance] = useState<DayDose[]>(() =>
-    buildMaintenanceSchedule(calculatedDose, usePink),
+    draftPlan?.maintenanceWeek ?? buildMaintenanceSchedule(calculatedDose, usePink),
   );
 
   const [prevCalculatedDose, setPrevCalculatedDose] = useState(calculatedDose);
@@ -423,6 +446,62 @@ export default function DoctorMode({
     }, 0);
   }
 
+  async function handleSaveCorrectionDraft() {
+    if (!plan || !correctionDraft) return;
+
+    setCoordinationSaving(true);
+    setCoordinationError("");
+    setCoordinationStatus("");
+
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await getSupabaseClient().auth.getUser();
+
+      if (authError || !user) {
+        throw new Error(
+          lang === "th"
+            ? "กรุณาเข้าสู่ระบบเจ้าหน้าที่ในแท็บประสานงานก่อน"
+            : "Please sign in as staff on the coordination tab first.",
+        );
+      }
+
+      const profile = await loadStaffProfile(user.id);
+      if (profile.role !== "doctor" && profile.role !== "admin") {
+        throw new Error(
+          lang === "th"
+            ? "เฉพาะแพทย์หรือผู้ดูแลระบบเท่านั้นที่บันทึกแผนยาได้"
+            : "Only doctors or admins can save medication plans.",
+        );
+      }
+
+      await resolveCorrectionForSession({
+        requestId: correctionDraft.correctionRequestId,
+        sessionId: correctionDraft.sessionId,
+        resolution: "updated_plan",
+        userId: profile.userId,
+        plan,
+      });
+      setCoordinationStatus(
+        lang === "th"
+          ? "แพทย์บันทึกแผนที่แก้ไขแล้ว"
+          : "Physician saved the revised plan",
+      );
+      onCorrectionDraftSaved?.();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : lang === "th"
+            ? "ไม่สามารถบันทึกแผนที่แก้ไขได้"
+            : "Unable to save the revised plan.";
+      setCoordinationError(message);
+    } finally {
+      setCoordinationSaving(false);
+    }
+  }
+
   async function handleSaveToCoordination(hn: string) {
     if (!plan) return;
 
@@ -604,6 +683,33 @@ export default function DoctorMode({
     <>
       <div className="mx-auto grid gap-5 px-4 py-5 lg:grid-cols-[360px_1fr] grid-cols-1">
         <section className="space-y-4">
+          {correctionDraft && (
+            <section className="space-y-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-soft">
+              <h2 className="text-sm font-extrabold text-amber-950">
+                {lang === "th"
+                  ? "กำลังแก้ไขแผนยาจากคำขอเภสัช"
+                  : "Editing medication plan from pharmacist correction"}
+              </h2>
+              <p className="text-xs font-bold text-amber-800">{correctionDraft.reason}</p>
+              <p className="rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-clinic-ink">
+                {correctionDraft.note}
+              </p>
+              {coordinationError && <p className="text-xs font-bold text-clinic-red">{coordinationError}</p>}
+              {coordinationStatus && (
+                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                  {coordinationStatus}
+                </p>
+              )}
+              <button
+                className="icon-button justify-center"
+                disabled={coordinationSaving || !plan}
+                onClick={() => void handleSaveCorrectionDraft()}
+                type="button"
+              >
+                {lang === "th" ? "บันทึกแผนที่แก้ไขแล้ว" : "Save revised plan"}
+              </button>
+            </section>
+          )}
           <Panel title="Clinical Inputs" icon={<HeartPulse size={18} />}>
             <NumberField
               id="inr-input"

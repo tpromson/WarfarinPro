@@ -12,6 +12,7 @@ import type {
   ClinicSession,
   CoordinationStatus,
   CorrectionRequest,
+  CorrectionPlanDraft,
   CorrectionResolution,
   CorrectionReason,
   StaffProfile,
@@ -42,9 +43,11 @@ function sessionReviewTime(session: ClinicSession): string {
 export default function StaffCoordination({
   lang,
   profile,
+  onEditCorrectionPlan,
 }: {
   lang: "th" | "en";
   profile: StaffProfile;
+  onEditCorrectionPlan?: (draft: CorrectionPlanDraft) => void;
 }) {
   const [sessionId, setSessionId] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
@@ -402,10 +405,19 @@ export default function StaffCoordination({
                 <button
                   className="icon-button justify-center"
                   disabled={loading || !currentPlan}
-                  onClick={() => void handleResolveCorrection("updated_plan", "physician_revised")}
+                  onClick={() => {
+                    if (!currentPlan || !openCorrection || !onEditCorrectionPlan) return;
+                    onEditCorrectionPlan({
+                      sessionId: session.id,
+                      correctionRequestId: openCorrection.id,
+                      plan: currentPlan,
+                      reason: openCorrection.reason,
+                      note: openCorrection.note,
+                    });
+                  }}
                   type="button"
                 >
-                  {lang === "th" ? "บันทึกแผนที่แก้ไขแล้ว" : "Save revised plan"}
+                  {lang === "th" ? "ไปแก้ไขแผนยา" : "Edit medication plan"}
                 </button>
               </div>
             </section>

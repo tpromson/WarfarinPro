@@ -12,7 +12,7 @@ import { config } from "./config";
 import { trackEvent } from "./analytics";
 import { getSupabaseClient } from "./coordination/supabaseClient";
 import { loadStaffProfile } from "./coordination/api";
-import type { StaffProfile } from "./coordination/types";
+import type { CorrectionPlanDraft, StaffProfile } from "./coordination/types";
 
 export default function App() {
   const [active, setActive] = useState<"doctor" | "patient" | "help" | "staff">(() => {
@@ -32,6 +32,7 @@ export default function App() {
   const [passError, setPassError] = useState(false);
   const [rememberPasscode, setRememberPasscode] = useState(true);
   const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
+  const [correctionDraft, setCorrectionDraft] = useState<CorrectionPlanDraft | null>(null);
   const [staffLoginLoading, setStaffLoginLoading] = useState(false);
   const [staffLoginError, setStaffLoginError] = useState("");
 
@@ -339,6 +340,8 @@ export default function App() {
             lang={lang}
             printLayout={printLayout}
             setPrintLayout={setPrintLayout}
+            correctionDraft={correctionDraft}
+            onCorrectionDraftSaved={() => setCorrectionDraft(null)}
           />
         ) : active === "help" ? (
           <div className="mx-auto max-w-4xl w-full p-6 animate-fadeIn">
@@ -346,7 +349,15 @@ export default function App() {
           </div>
         ) : active === "staff" ? (
           staffProfile ? (
-            <StaffCoordination lang={lang} profile={staffProfile} />
+            <StaffCoordination
+              lang={lang}
+              profile={staffProfile}
+              onEditCorrectionPlan={(draft) => {
+                setCorrectionDraft(draft);
+                setDoctorUnlocked(true);
+                setActive("doctor");
+              }}
+            />
           ) : (
             <StaffLogin
               lang={lang}

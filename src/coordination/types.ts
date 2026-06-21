@@ -56,3 +56,11 @@ export type CorrectionRequest = {
   resolvedAt: string | null;
   resolution: CorrectionResolution | null;
 };
+
+export type CorrectionPlanDraft = {
+  sessionId: string;
+  correctionRequestId: string;
+  plan: MedicationPlan;
+  reason: CorrectionReason;
+  note: string;
+};

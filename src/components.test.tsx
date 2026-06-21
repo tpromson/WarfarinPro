@@ -810,30 +810,84 @@ describe("StaffCoordination", () => {
       resolution: null,
     });
 
+    const onEditCorrectionPlan = vi.fn();
+
     render(
       <StaffCoordination
         lang="th"
         profile={{ userId: "doctor-1", role: "doctor", displayName: "Doctor A", active: true }}
+        onEditCorrectionPlan={onEditCorrectionPlan}
       />,
     );
 
     fireEvent.change(screen.getByLabelText("HN"), { target: { value: "12345" } });
     fireEvent.click(screen.getByText("เปิดหรือสร้าง session"));
 
-    fireEvent.click(await screen.findByRole("button", { name: "บันทึกแผนที่แก้ไขแล้ว" }));
+    fireEvent.click(await screen.findByRole("button", { name: "ไปแก้ไขแผนยา" }));
+
+    expect(onEditCorrectionPlan).toHaveBeenCalledWith({
+      sessionId: "session-1",
+      correctionRequestId: "correction-1",
+      plan,
+      reason: "safety_concern",
+      note: "INR สูง",
+    });
+    expect(coordinationApiMock.resolveCorrectionForSession).not.toHaveBeenCalled();
+  });
+
+  it("saves a doctor-edited correction plan as physician revised", async () => {
+    const plan = { ...makePlan(), currentInr: 3.2 };
+    supabaseClientMock.getUser.mockResolvedValueOnce({
+      data: { user: { id: "doctor-1" } },
+      error: null,
+    });
+    coordinationApiMock.loadStaffProfile.mockResolvedValueOnce({
+      userId: "doctor-1",
+      role: "doctor",
+      displayName: "Doctor A",
+      active: true,
+    });
+    coordinationApiMock.resolveCorrectionForSession.mockResolvedValueOnce(undefined);
+
+    render(
+      <DoctorMode
+        lang="th"
+        onOpenPatient={vi.fn()}
+        printLayout="half-a4"
+        setPrintLayout={vi.fn()}
+        correctionDraft={{
+          sessionId: "session-1",
+          correctionRequestId: "correction-1",
+          plan,
+          reason: "safety_concern",
+          note: "INR สูง",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("กำลังแก้ไขแผนยาจากคำขอเภสัช")).toBeInTheDocument();
+    const inrInput = document.getElementById("inr-input") as HTMLInputElement;
+    expect(inrInput).toHaveValue(3.2);
+
+    fireEvent.change(inrInput, { target: { value: "2.8" } });
+    fireEvent.click(screen.getByRole("button", { name: "บันทึกแผนที่แก้ไขแล้ว" }));
 
     await waitFor(() => {
-      expect(coordinationApiMock.resolveCorrectionForSession).toHaveBeenCalledWith({
-        requestId: "correction-1",
-        sessionId: "session-1",
-        resolution: "updated_plan",
-        userId: "doctor-1",
-        plan,
-      });
+      expect(coordinationApiMock.resolveCorrectionForSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestId: "correction-1",
+          sessionId: "session-1",
+          resolution: "updated_plan",
+          userId: "doctor-1",
+        }),
+      );
+      expect(coordinationApiMock.resolveCorrectionForSession.mock.calls[0][0].plan.currentInr).toBe(
+        2.8,
+      );
     });
-    expect(screen.getByText("แพทย์บันทึกแผนที่แก้ไขแล้ว")).toBeInTheDocument();
-    expect(screen.getByText("สถานะ session: physician_revised")).toBeInTheDocument();
+    expect(screen.getAllByText("แพทย์บันทึกแผนที่แก้ไขแล้ว").length).toBeGreaterThan(0);
   });
+
 });
 
 describe("DoctorSessionPanel", () => {
