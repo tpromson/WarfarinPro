@@ -596,7 +596,40 @@ describe("StaffCoordination", () => {
     fireEvent.click(screen.getByText("ค้นหา session"));
 
     expect(await screen.findByText("ตรงกับ HN ที่ค้นหา")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "เปิดใบยา session #abcdef" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "เปิด session #abcdef" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "เปิดใบยา session #abcdef" })).not.toBeInTheDocument();
+  });
+
+  it("opens a printable sheet inline when a printable worklist session is opened", async () => {
+    coordinationApiMock.loadTodayClinicSessions.mockResolvedValueOnce([
+      {
+        id: "session-abcdef",
+        sessionHash: "hashed-hn",
+        clinicDate: "2026-06-21",
+        status: "physician_reviewed",
+        currentPlan: makePlan(),
+        expiresAt: "2026-06-21T23:59:59.000+07:00",
+        createdBy: "doctor-1",
+        physicianReviewedBy: "doctor-1",
+        physicianReviewedAt: "2026-06-21T12:00:00.000Z",
+        pharmacyReviewedBy: null,
+        pharmacyReviewedAt: null,
+        dispensedBy: null,
+        dispensedAt: null,
+      },
+    ]);
+
+    render(
+      <StaffCoordination
+        lang="th"
+        profile={{ userId: "u2", role: "pharmacist", displayName: "Pharmacist B", active: true }}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole("button", { name: "เปิด session #abcdef" }));
+
+    expect(screen.getByText("ใบยา")).toBeInTheDocument();
+    expect(screen.getByLabelText("ใบแนะนำการรับประทานยา")).toBeInTheDocument();
   });
 
   it("loads and shows session details after finding today's session", async () => {

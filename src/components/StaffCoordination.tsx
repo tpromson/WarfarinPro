@@ -141,7 +141,7 @@ export default function StaffCoordination({
     setSession(selectedSession);
     setMatchedSessionId(selectedSession.id);
     setOpenCorrection(null);
-    setPrintSheetOpen(false);
+    setPrintSheetOpen(Boolean(selectedSession.currentPlan && selectedSession.status !== "correction_requested"));
     if (selectedSession.status === "correction_requested") {
       setOpenCorrection(await loadOpenCorrectionRequest(selectedSession.id));
     }
@@ -150,11 +150,6 @@ export default function StaffCoordination({
         ? `เปิด session #${shortSessionId(selectedSession.id)}`
         : `Opened session #${shortSessionId(selectedSession.id)}`,
     );
-  };
-
-  const handleOpenPrintFromSession = (selectedSession: ClinicSession) => {
-    void handleSelectSession(selectedSession);
-    setPrintSheetOpen(true);
   };
 
   const handleResolveCorrection = async (
@@ -264,7 +259,6 @@ export default function StaffCoordination({
             ) : null}
             <div className="space-y-2">
               {todaySessions.map((item) => {
-                const itemCanPrint = Boolean(item.currentPlan && item.status !== "correction_requested");
                 const isMatched = item.id === matchedSessionId;
                 return (
                   <article
@@ -308,22 +302,17 @@ export default function StaffCoordination({
                         <p className="text-[11px] font-bold text-slate-500">{sessionReviewTime(item)}</p>
                       </div>
                       <div className="flex flex-col gap-2 sm:min-w-[170px]">
-                        <button className="icon-button justify-center" onClick={() => void handleSelectSession(item)} type="button">
-                          {lang === "th" ? "เปิด" : "Open"}
-                        </button>
                         <button
                           className="icon-button justify-center"
-                          disabled={!itemCanPrint}
-                          onClick={() => handleOpenPrintFromSession(item)}
+                          onClick={() => void handleSelectSession(item)}
                           type="button"
                           aria-label={
                             lang === "th"
-                              ? `เปิดใบยา session #${shortSessionId(item.id)}`
-                              : `Open sheet session #${shortSessionId(item.id)}`
+                              ? `เปิด session #${shortSessionId(item.id)}`
+                              : `Open session #${shortSessionId(item.id)}`
                           }
                         >
-                          <FileText size={16} />
-                          {lang === "th" ? "เปิดใบยา" : "Open sheet"}
+                          {lang === "th" ? "เปิด session" : "Open session"}
                         </button>
                       </div>
                     </div>
